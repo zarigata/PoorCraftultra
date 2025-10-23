@@ -202,6 +202,20 @@ public class Shader {
     }
 
     /**
+     * Sets an integer uniform value.
+     * Used for texture samplers and other integer uniforms.
+     *
+     * @param name  The uniform variable name
+     * @param value The integer value
+     */
+    public void setUniformInt(String name, int value) {
+        int location = getUniformLocation(name);
+        if (location != -1) {
+            glUniform1i(location, value);
+        }
+    }
+
+    /**
      * Cleans up shader resources.
      */
     public void cleanup() {

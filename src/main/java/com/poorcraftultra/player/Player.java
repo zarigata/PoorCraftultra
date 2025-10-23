@@ -2,6 +2,8 @@ package com.poorcraftultra.player;
 
 import com.poorcraftultra.input.InputAction;
 import com.poorcraftultra.input.InputManager;
+import com.poorcraftultra.world.block.Block;
+import com.poorcraftultra.world.block.BlockRegistry;
 import com.poorcraftultra.world.chunk.ChunkManager;
 import org.joml.Vector3f;
 
@@ -193,8 +195,10 @@ public class Player {
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
-                    byte block = chunkManager.getBlock(x, y, z);
-                    if (block != 0) { // Non-zero = solid block
+                    byte blockId = chunkManager.getBlock(x, y, z);
+                    Block block = BlockRegistry.getInstance().getBlock(blockId);
+                    // Only solid blocks cause collision (transparent blocks like glass are solid but don't block light)
+                    if (block.isSolid()) {
                         return true;
                     }
                 }

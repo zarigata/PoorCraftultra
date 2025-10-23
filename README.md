@@ -2,9 +2,9 @@
 
 An open-source Minecraft clone built with modern Java and LWJGL3, featuring advanced rendering, networking, and modding capabilities.
 
-## Current Phase: Phase 4 - First-Person Camera & Player Movement
+## Current Phase: Phase 5 - Block Registry & Texture System
 
-Phase 4 implements a first-person camera system with player physics, collision detection, and input handling for interactive gameplay.
+Phase 5 implements an extensible block system with a centralized registry, 32×32 texture atlas, per-face textures, and block interaction API foundation.
 
 ### Features Implemented
 
@@ -46,6 +46,18 @@ Phase 4 implements a first-person camera system with player physics, collision d
 - ✅ Modular architecture separating Camera, Player, and InputManager
 - ✅ Comprehensive test suite for camera math, input handling, and player physics
 
+**Phase 5 - Block Registry & Textures:**
+- ✅ Centralized block registry with singleton pattern (BlockRegistry)
+- ✅ Extensible block system with properties (solid, transparent, light-emitting, gravity)
+- ✅ Default blocks: AIR, STONE, GRASS, DIRT, SAND, GLASS
+- ✅ 32×32 texture atlas with LWJGL STB image loading
+- ✅ Per-face texture support (different textures on different faces like grass)
+- ✅ Extended vertex format: position + color + UV (8 floats per vertex)
+- ✅ Updated shaders for texture sampling with lighting multiplication
+- ✅ Block interaction API foundation (listeners for place/break/update events)
+- ✅ Property-based collision detection (isSolid() instead of block != 0)
+- ✅ Comprehensive test suite for block system and texture atlas
+
 ## Requirements
 
 - **Java 17 or higher** - Modern Java LTS version
@@ -73,7 +85,15 @@ PoorCraftUltra/
 │   │   │       ├── player/
 │   │   │       │   ├── Player.java        # Player entity with physics
 │   │   │       │   └── PlayerController.java # Player-camera integration
+│   │   │       ├── rendering/
+│   │   │       │   └── TextureAtlas.java  # 32×32 texture atlas management
 │   │   │       └── world/
+│   │   │           ├── block/
+│   │   │           │   ├── Block.java              # Block type definition
+│   │   │           │   ├── BlockProperties.java    # Block behavior properties
+│   │   │           │   ├── BlockFace.java          # Block face enum
+│   │   │           │   ├── BlockRegistry.java      # Centralized block registry
+│   │   │           │   └── BlockInteractionListener.java # Block event API
 │   │   │           └── chunk/
 │   │   │               ├── ChunkPos.java      # Chunk position (immutable)
 │   │   │               ├── ChunkSection.java  # 16×16×16 block section
@@ -83,9 +103,16 @@ PoorCraftUltra/
 │   │   │               ├── ChunkMesher.java   # Greedy meshing algorithm
 │   │   │               └── ChunkRenderer.java # Chunk rendering pipeline
 │   │   └── resources/
-│   │       └── shaders/
-│   │           ├── vertex.glsl            # Vertex shader (GLSL 330)
-│   │           └── fragment.glsl          # Fragment shader (GLSL 330)
+│   │       ├── shaders/
+│   │       │   ├── vertex.glsl            # Vertex shader with UV support (GLSL 330)
+│   │       │   └── fragment.glsl          # Fragment shader with texture sampling (GLSL 330)
+│   │       └── textures/
+│   │           ├── stone.png              # Stone texture (32×32)
+│   │           ├── grass_top.png          # Grass top texture (32×32)
+│   │           ├── grass_side.png         # Grass side texture (32×32)
+│   │           ├── dirt.png               # Dirt texture (32×32)
+│   │           ├── sand.png               # Sand texture (32×32)
+│   │           └── glass.png              # Glass texture (32×32)
 │   └── test/
 │       └── java/
 │           └── com/poorcraftultra/
@@ -104,7 +131,13 @@ PoorCraftUltra/
 │               ├── player/
 │               │   ├── PlayerTest.java        # Player physics tests
 │               │   └── PlayerControllerTest.java # Player-camera integration tests
+│               ├── rendering/
+│               │   └── TextureAtlasTest.java  # Texture atlas tests
 │               └── world/
+│                   ├── block/
+│                   │   ├── BlockPropertiesTest.java # Block properties tests
+│                   │   ├── BlockTest.java            # Block class tests
+│                   │   └── BlockRegistryTest.java   # Block registry tests
 │                   └── chunk/
 │                       ├── ChunkPosTest.java              # Coordinate conversion tests
 │                       ├── ChunkSectionTest.java          # Section storage tests
@@ -168,8 +201,10 @@ PoorCraftUltra/
 
 ## Running the Application
 
-After building, you should see a window displaying a voxel world with first-person controls:
+After building, you should see a window displaying a textured voxel world with first-person controls:
 - **50 chunks** loaded in a 5×5×2 grid
+- **Textured blocks** with stone, grass, dirt, sand, and glass
+- **Per-face textures** (grass has different textures on top/bottom/sides)
 - **First-person camera** with mouse look (cursor locked)
 - **Player movement** with WASD keys
 - **Physics simulation** with gravity and collision
@@ -262,7 +297,7 @@ Conversion between coordinate systems uses `Math.floorDiv()` and `Math.floorMod(
 #### ChunkMesh (`ChunkMesh.java`)
 - Stores vertex and index data for a single chunk
 - Manages GPU resources (VAO, VBO, EBO)
-- Interleaved vertex format: position (XYZ) + color (RGB)
+- Interleaved vertex format: position (XYZ) + color (RGB) + texCoord (UV) = 8 floats per vertex
 - Handles upload to GPU and rendering via glDrawElements
 - Automatic cleanup of OpenGL resources
 
@@ -270,9 +305,10 @@ Conversion between coordinate systems uses `Math.floorDiv()` and `Math.floorMod(
 - Implements greedy meshing algorithm for vertex optimization
 - Scans each axis and merges adjacent faces of the same block type
 - Reduces vertex count by 90%+ compared to naive per-block meshing
-- Face culling: skips faces between solid blocks
+- Face culling: skips faces between solid blocks or transparent blocks
 - Cross-chunk face culling using ChunkManager neighbor access
-- Simple per-face shading (top=bright, bottom=dark, sides=medium)
+- Generates UV coordinates from TextureAtlas for each face
+- Simple per-face shading (top=bright, bottom=dark, sides=medium) multiplied with texture color
 
 #### ChunkRenderer (`ChunkRenderer.java`)
 - Manages rendering pipeline for multiple chunks
@@ -313,7 +349,7 @@ Conversion between coordinate systems uses `Math.floorDiv()` and `Math.floorMod(
 - Movement states: walking, sprinting, crouching
 - Physics constants: gravity (32 blocks/s²), jump velocity (8 blocks/s), speeds (walk/sprint/crouch)
 - AABB collision detection with swept tests
-- Queries ChunkManager for block collision (0=air, non-zero=solid)
+- Queries BlockRegistry for block collision (isSolid() property-based)
 - Separate collision resolution per axis (X, Y, Z)
 - Eye position calculation for camera placement
 - Frame-rate independent movement using delta time
@@ -355,6 +391,14 @@ The project includes comprehensive unit tests for all core components:
 - **PlayerTest**: Validates player physics (gravity, jumping, collision, movement speeds)
 - **PlayerControllerTest**: Tests player-camera integration and mouse look
 
+### Phase 5 Tests
+- **BlockPropertiesTest**: Validates block property value class (solid, transparent, factory methods)
+- **BlockTest**: Tests block creation, texture references, property delegation, equality
+- **BlockRegistryTest**: Validates registry singleton, default blocks, ID/name lookup, locking
+- **TextureAtlasTest**: Tests atlas structure and UV coordinate calculation
+- **ChunkMeshTest**: Updated for 8-float vertex format (position + color + UV)
+- **ChunkMesherTest**: Updated for BlockRegistry integration and texture atlas
+
 Run all tests:
 ```powershell
 .\gradlew test
@@ -373,6 +417,16 @@ Run camera tests:
 Run player tests:
 ```powershell
 .\gradlew test --tests "*Player*"
+```
+
+Run block system tests:
+```powershell
+.\gradlew test --tests "*Block*"
+```
+
+Run texture tests:
+```powershell
+.\gradlew test --tests "*TextureAtlas*"
 ```
 
 Run performance tests:
@@ -407,7 +461,7 @@ Test results are displayed in the console with detailed pass/fail information. P
 - Performance benchmarks (60 FPS @ 16 chunk distance)
 - Comprehensive test coverage including performance tests
 
-### Phase 4: First-Person Camera & Player Movement ✅ (Current)
+### Phase 4: First-Person Camera & Player Movement ✅
 - First-person camera with pitch/yaw rotation
 - Input handling with rebindable controls
 - Player physics (gravity, jumping, sprinting, crouching)
@@ -417,18 +471,33 @@ Test results are displayed in the console with detailed pass/fail information. P
 - Modular architecture (Camera, InputManager, Player, PlayerController)
 - Comprehensive test coverage
 
-### Phase 5: Block System (Planned)
+### Phase 5: Block Registry & Texture System ✅ (Current)
+- Centralized block registry with extensible property system
+- 32×32 texture atlas with per-face texture support
+- Default blocks: AIR, STONE, GRASS, DIRT, SAND, GLASS
+- Extended rendering pipeline with UV coordinates and texture sampling
+- Block interaction API foundation (listeners for future phases)
+- Property-based collision detection (isSolid, isTransparent)
+- Comprehensive test coverage
+
+### Phase 6: Terrain Generation (Planned)
+- Procedural terrain generation with noise functions
+- Biome system with block type variation
+- Cave generation
+- Ore distribution
+
+### Phase 7: Block Interaction (Planned)
 - Block placement and breaking
 - Raycast block selection
 - Block interaction events
 - Inventory system
 
-### Phase 6: Networking (Planned)
+### Phase 8: Networking (Planned)
 - Client-server architecture
 - Multiplayer synchronization
 - Entity replication
 
-### Phase 7: Modding API (Planned)
+### Phase 9: Modding API (Planned)
 - Plugin system
 - Event-driven architecture
 - Custom block/item registration
@@ -463,5 +532,5 @@ This project is open-source. License information to be determined.
 
 ---
 
-**Current Version**: Phase 4 - v4.0-SNAPSHOT  
+**Current Version**: Phase 5 - v5.0-SNAPSHOT  
 **Last Updated**: October 2025

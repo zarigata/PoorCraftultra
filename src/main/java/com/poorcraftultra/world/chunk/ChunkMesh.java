@@ -5,11 +5,12 @@ import static org.lwjgl.opengl.GL30.*;
 /**
  * Manages mesh data and GPU resources for a single chunk.
  * 
- * <p>Vertex format: Interleaved position (XYZ) and color (RGB), 6 floats per vertex.
+ * <p>Vertex format: Interleaved position (XYZ), color (RGB), and texture coordinates (UV), 8 floats per vertex.
  * Each vertex contains:
  * <ul>
  *   <li>Position: vec3 (x, y, z) - world space coordinates</li>
- *   <li>Color: vec3 (r, g, b) - RGB color values [0.0, 1.0]</li>
+ *   <li>Color: vec3 (r, g, b) - RGB color values [0.0, 1.0] for lighting/shading</li>
+ *   <li>TexCoord: vec2 (u, v) - texture atlas UV coordinates [0.0, 1.0]</li>
  * </ul>
  * 
  * <p>This class encapsulates all OpenGL state (VAO, VBO, EBO) for one chunk's geometry,
@@ -30,13 +31,13 @@ public class ChunkMesh {
     /**
      * Creates a new chunk mesh with the given vertex and index data.
      * 
-     * @param vertices vertex data (position XYZ + color RGB, 6 floats per vertex)
+     * @param vertices vertex data (position XYZ + color RGB + texCoord UV, 8 floats per vertex)
      * @param indices triangle indices
      */
     public ChunkMesh(float[] vertices, int[] indices) {
         this.vertices = vertices;
         this.indices = indices;
-        this.vertexCount = vertices.length / 6; // 6 floats per vertex
+        this.vertexCount = vertices.length / 8; // 8 floats per vertex
         this.indexCount = indices.length;
         this.uploaded = false;
     }
@@ -67,7 +68,7 @@ public class ChunkMesh {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
         
         // Configure vertex attributes
-        int stride = 6 * Float.BYTES;
+        int stride = 8 * Float.BYTES;
         
         // Location 0: position (vec3)
         glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, 0);
@@ -76,6 +77,10 @@ public class ChunkMesh {
         // Location 1: color (vec3)
         glVertexAttribPointer(1, 3, GL_FLOAT, false, stride, 3 * Float.BYTES);
         glEnableVertexAttribArray(1);
+        
+        // Location 2: texCoord (vec2)
+        glVertexAttribPointer(2, 2, GL_FLOAT, false, stride, 6 * Float.BYTES);
+        glEnableVertexAttribArray(2);
         
         // Unbind (unbind array buffer before VAO, leave EBO bound to VAO)
         glBindBuffer(GL_ARRAY_BUFFER, 0);

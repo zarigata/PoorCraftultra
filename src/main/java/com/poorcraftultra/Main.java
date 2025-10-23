@@ -6,6 +6,8 @@ import com.poorcraftultra.core.Window;
 import com.poorcraftultra.input.InputManager;
 import com.poorcraftultra.player.Player;
 import com.poorcraftultra.player.PlayerController;
+import com.poorcraftultra.rendering.TextureAtlas;
+import com.poorcraftultra.world.block.BlockRegistry;
 import com.poorcraftultra.world.chunk.ChunkManager;
 import com.poorcraftultra.world.chunk.ChunkRenderer;
 import com.poorcraftultra.world.chunk.ChunkPos;
@@ -22,7 +24,7 @@ import static org.lwjgl.glfw.GLFW.*;
 public class Main {
     private static final int WINDOW_WIDTH = 1280;
     private static final int WINDOW_HEIGHT = 720;
-    private static final String WINDOW_TITLE = "PoorCraftUltra - Phase 4: First-Person Camera & Player";
+    private static final String WINDOW_TITLE = "PoorCraftUltra - Phase 5: Block Registry & Textures";
 
     public static void main(String[] args) {
         System.out.println("Starting PoorCraftUltra...");
@@ -35,6 +37,7 @@ public class Main {
         Camera camera = null;
         Player player = null;
         PlayerController playerController = null;
+        TextureAtlas textureAtlas = null;
 
         try {
             // Initialize GLFW
@@ -51,13 +54,32 @@ public class Main {
             renderer = new Renderer();
             renderer.init();
 
+            // Initialize BlockRegistry (auto-registers default blocks)
+            BlockRegistry registry = BlockRegistry.getInstance();
+            System.out.println("Block registry initialized with " + registry.getAllBlocks().size() + " blocks");
+
+            // Create and load TextureAtlas
+            textureAtlas = TextureAtlas.createDefault();
+            textureAtlas.updateBlockTextures(registry);
+            System.out.println("Texture atlas loaded with " + textureAtlas.getTextureId() + " OpenGL texture ID");
+
+            // Lock registry to prevent further registration
+            registry.lock();
+            System.out.println("Block registry locked");
+
             // Create chunk manager and chunk renderer
             chunkManager = new ChunkManager();
-            chunkRenderer = new ChunkRenderer(chunkManager, renderer.getShader());
+            chunkRenderer = new ChunkRenderer(chunkManager, renderer.getShader(), textureAtlas);
             chunkRenderer.init();
 
             // Generate test world: 5x5x2 grid of chunks (50 chunks total)
-            System.out.println("Generating test world...");
+            System.out.println("Generating test world with different block types...");
+            byte stoneId = registry.getBlock("stone").getId();
+            byte grassId = registry.getBlock("grass").getId();
+            byte dirtId = registry.getBlock("dirt").getId();
+            byte sandId = registry.getBlock("sand").getId();
+            byte glassId = registry.getBlock("glass").getId();
+            
             for (int cx = -2; cx <= 2; cx++) {
                 for (int cz = -2; cz <= 2; cz++) {
                     for (int cy = 0; cy < 2; cy++) {
@@ -70,16 +92,25 @@ public class Main {
                                 for (int y = 0; y < 16; y++) {
                                     int worldY = cy * 16 + y;
                                     
-                                    // Bottom layer (y=0-15): solid blocks
-                                    if (worldY < 16) {
-                                        // Checkerboard pattern for visual interest
-                                        if ((x + z) % 2 == 0) {
-                                            chunk.setBlock(x, y, z, (byte) 1);
-                                        }
+                                    // Bottom layer (y=0-10): stone
+                                    if (worldY < 10) {
+                                        chunk.setBlock(x, y, z, stoneId);
                                     }
-                                    // Create some variation at y=16-31
-                                    else if (worldY < 32 && (x % 4 == 0 && z % 4 == 0)) {
-                                        chunk.setBlock(x, y, z, (byte) 1);
+                                    // Middle layer (y=10-14): dirt
+                                    else if (worldY < 14) {
+                                        chunk.setBlock(x, y, z, dirtId);
+                                    }
+                                    // Top layer (y=14-15): grass
+                                    else if (worldY < 16) {
+                                        chunk.setBlock(x, y, z, grassId);
+                                    }
+                                    // Create some pillars at y=16-24 with different materials
+                                    else if (worldY < 24 && (x % 8 == 0 && z % 8 == 0)) {
+                                        if ((x + z) % 16 == 0) {
+                                            chunk.setBlock(x, y, z, sandId);
+                                        } else {
+                                            chunk.setBlock(x, y, z, glassId);
+                                        }
                                     }
                                 }
                             }
@@ -168,6 +199,10 @@ public class Main {
 
             if (chunkRenderer != null) {
                 chunkRenderer.cleanup();
+            }
+
+            if (textureAtlas != null) {
+                textureAtlas.cleanup();
             }
 
             if (renderer != null) {

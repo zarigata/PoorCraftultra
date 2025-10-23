@@ -1,5 +1,9 @@
 package com.poorcraftultra.world.chunk;
 
+import com.poorcraftultra.rendering.TextureAtlas;
+import com.poorcraftultra.world.block.Block;
+import com.poorcraftultra.world.block.BlockFace;
+import com.poorcraftultra.world.block.BlockRegistry;
 import org.joml.Vector3f;
 
 /**
@@ -19,34 +23,17 @@ import org.joml.Vector3f;
  */
 public class ChunkMesher {
     private final ChunkManager chunkManager;
-    
-    /**
-     * Represents the six cardinal directions for face culling and meshing.
-     */
-    public enum Direction {
-        NORTH(0, 0, -1),
-        SOUTH(0, 0, 1),
-        EAST(1, 0, 0),
-        WEST(-1, 0, 0),
-        UP(0, 1, 0),
-        DOWN(0, -1, 0);
-        
-        public final int dx, dy, dz;
-        
-        Direction(int dx, int dy, int dz) {
-            this.dx = dx;
-            this.dy = dy;
-            this.dz = dz;
-        }
-    }
+    private final TextureAtlas textureAtlas;
     
     /**
      * Creates a new chunk mesher.
      * 
      * @param chunkManager reference to chunk manager for neighbor access during face culling
+     * @param textureAtlas reference to texture atlas for UV coordinate lookup
      */
-    public ChunkMesher(ChunkManager chunkManager) {
+    public ChunkMesher(ChunkManager chunkManager, TextureAtlas textureAtlas) {
         this.chunkManager = chunkManager;
+        this.textureAtlas = textureAtlas;
     }
     
     /**
@@ -130,8 +117,8 @@ public class ChunkMesher {
      * @return the generated chunk mesh
      */
     public ChunkMesh generateMesh(Chunk chunk) {
-        // Pre-allocate with reasonable initial capacity
-        FloatBuffer allVertices = new FloatBuffer(4096);
+        // Pre-allocate with reasonable initial capacity (8 floats per vertex now)
+        FloatBuffer allVertices = new FloatBuffer(6144);
         IntBuffer allIndices = new IntBuffer(2048);
         
         // Iterate through all 16 sections
@@ -152,7 +139,7 @@ public class ChunkMesher {
      */
     private void generateSectionMesh(Chunk chunk, int sectionIndex, FloatBuffer vertices, IntBuffer indices) {
         // Generate meshes for all 6 directions
-        for (Direction direction : Direction.values()) {
+        for (BlockFace direction : BlockFace.values()) {
             greedyMesh(chunk, sectionIndex, direction, vertices, indices);
         }
     }
@@ -166,7 +153,7 @@ public class ChunkMesher {
      * @param vertices output vertex buffer
      * @param indices output index buffer
      */
-    private void greedyMesh(Chunk chunk, int sectionIndex, Direction direction, 
+    private void greedyMesh(Chunk chunk, int sectionIndex, BlockFace direction, 
                            FloatBuffer vertices, IntBuffer indices) {
         int sectionY = sectionIndex * 16;
         
@@ -197,8 +184,8 @@ public class ChunkMesher {
                         case WEST:
                             x = d; y = v; z = u;
                             break;
-                        case UP:
-                        case DOWN:
+                        case TOP:
+                        case BOTTOM:
                             x = u; y = d; z = v;
                             break;
                         default:
@@ -255,8 +242,8 @@ public class ChunkMesher {
                         case WEST:
                             x = d; y = v; z = u;
                             break;
-                        case UP:
-                        case DOWN:
+                        case TOP:
+                        case BOTTOM:
                             x = u; y = d; z = v;
                             break;
                         default:
@@ -284,16 +271,17 @@ public class ChunkMesher {
      * 
      * @return true if the face is visible and should be rendered
      */
-    private boolean shouldRenderFace(Chunk chunk, int x, int y, int z, Direction direction) {
-        byte block = chunk.getBlock(x, y, z);
-        if (block == 0) {
-            return false; // Air blocks have no faces
+    private boolean shouldRenderFace(Chunk chunk, int x, int y, int z, BlockFace direction) {
+        byte blockId = chunk.getBlock(x, y, z);
+        Block block = BlockRegistry.getInstance().getBlock(blockId);
+        if (!block.isSolid()) {
+            return false; // Non-solid blocks (like air) have no faces
         }
         
         // Calculate neighbor position
-        int nx = x + direction.dx;
-        int ny = y + direction.dy;
-        int nz = z + direction.dz;
+        int nx = x + direction.getDx();
+        int ny = y + direction.getDy();
+        int nz = z + direction.getDz();
         
         byte neighbor;
         
@@ -327,15 +315,21 @@ public class ChunkMesher {
             neighbor = neighborChunk.getBlock(localX, ny, localZ);
         }
         
-        return neighbor == 0; // Face is visible if neighbor is air
+        Block neighborBlock = BlockRegistry.getInstance().getBlock(neighbor);
+        return !neighborBlock.isSolid() || neighborBlock.isTransparent(); // Face is visible if neighbor is air or transparent
     }
     
     /**
      * Adds a quad to the mesh data.
      */
     private void addQuad(Chunk chunk, int x, int y, int z, int width, int height, 
-                        Direction direction, byte blockType, FloatBuffer vertices, IntBuffer indices) {
+                        BlockFace direction, byte blockType, FloatBuffer vertices, IntBuffer indices) {
         Vector3f color = getBlockColor(blockType, direction);
+        
+        // Get texture UV coordinates
+        Block block = BlockRegistry.getInstance().getBlock(blockType);
+        Block.TextureReference texRef = block.getTextureReference(direction);
+        TextureAtlas.AtlasPosition atlasPos = textureAtlas.getUVCoordinates(texRef.textureName);
         
         // Calculate world position offset for the chunk
         float offsetX = chunk.getPosition().getX() * 16.0f;
@@ -369,13 +363,13 @@ public class ChunkMesher {
                 corners[2] = new Vector3f(offsetX + x + 1, y + height, offsetZ + z + width);
                 corners[3] = new Vector3f(offsetX + x + 1, y + height, offsetZ + z);
                 break;
-            case DOWN: // -Y face
+            case BOTTOM: // -Y face
                 corners[0] = new Vector3f(offsetX + x, y, offsetZ + z);
                 corners[1] = new Vector3f(offsetX + x, y, offsetZ + z + height);
                 corners[2] = new Vector3f(offsetX + x + width, y, offsetZ + z + height);
                 corners[3] = new Vector3f(offsetX + x + width, y, offsetZ + z);
                 break;
-            case UP: // +Y face
+            case TOP: // +Y face
                 corners[0] = new Vector3f(offsetX + x, y + 1, offsetZ + z);
                 corners[1] = new Vector3f(offsetX + x + width, y + 1, offsetZ + z);
                 corners[2] = new Vector3f(offsetX + x + width, y + 1, offsetZ + z + height);
@@ -383,23 +377,34 @@ public class ChunkMesher {
                 break;
         }
         
-        addQuadVertices(corners, color, vertices, indices);
+        // Calculate UV coordinates for the quad
+        float[] uvs = new float[] {
+            atlasPos.u0, atlasPos.v0,
+            atlasPos.u1, atlasPos.v0,
+            atlasPos.u1, atlasPos.v1,
+            atlasPos.u0, atlasPos.v1
+        };
+        
+        addQuadVertices(corners, color, uvs, vertices, indices);
     }
     
     /**
      * Adds quad vertices and indices to the mesh data.
      */
-    private void addQuadVertices(Vector3f[] corners, Vector3f color, FloatBuffer vertices, IntBuffer indices) {
-        int baseIndex = vertices.size() / 6; // Current vertex count
+    private void addQuadVertices(Vector3f[] corners, Vector3f color, float[] uvs, FloatBuffer vertices, IntBuffer indices) {
+        int baseIndex = vertices.size() / 8; // Current vertex count (8 floats per vertex)
         
         // Add 4 vertices
-        for (Vector3f corner : corners) {
+        for (int i = 0; i < corners.length; i++) {
+            Vector3f corner = corners[i];
             vertices.add(corner.x);
             vertices.add(corner.y);
             vertices.add(corner.z);
             vertices.add(color.x);
             vertices.add(color.y);
             vertices.add(color.z);
+            vertices.add(uvs[i * 2]);     // U
+            vertices.add(uvs[i * 2 + 1]); // V
         }
         
         // Add 6 indices (2 triangles)
@@ -419,12 +424,12 @@ public class ChunkMesher {
      * @param face the face direction
      * @return RGB color vector
      */
-    private Vector3f getBlockColor(byte blockId, Direction face) {
-        // Simple per-face shading for now
+    private Vector3f getBlockColor(byte blockId, BlockFace face) {
+        // Simple per-face shading for lighting (multiplied with texture color in shader)
         switch (face) {
-            case UP:
+            case TOP:
                 return new Vector3f(1.0f, 1.0f, 1.0f); // Brightest (top)
-            case DOWN:
+            case BOTTOM:
                 return new Vector3f(0.5f, 0.5f, 0.5f); // Darkest (bottom)
             case NORTH:
                 return new Vector3f(0.7f, 0.7f, 0.7f); // Medium

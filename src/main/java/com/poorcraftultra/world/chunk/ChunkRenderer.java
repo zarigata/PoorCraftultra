@@ -2,6 +2,7 @@ package com.poorcraftultra.world.chunk;
 
 import com.poorcraftultra.core.Frustum;
 import com.poorcraftultra.core.Shader;
+import com.poorcraftultra.rendering.TextureAtlas;
 import org.joml.Matrix4f;
 
 import java.util.HashMap;
@@ -27,6 +28,7 @@ public class ChunkRenderer {
     private final ChunkMesher mesher;
     private final Map<ChunkPos, ChunkMesh> meshCache;
     private final Shader shader;
+    private final TextureAtlas textureAtlas;
     private final Frustum frustum;
     
     private int renderedChunkCount;
@@ -37,11 +39,13 @@ public class ChunkRenderer {
      * 
      * @param chunkManager reference to the chunk manager
      * @param shader the shader program to use for rendering
+     * @param textureAtlas the texture atlas for block textures
      */
-    public ChunkRenderer(ChunkManager chunkManager, Shader shader) {
+    public ChunkRenderer(ChunkManager chunkManager, Shader shader, TextureAtlas textureAtlas) {
         this.chunkManager = chunkManager;
         this.shader = shader;
-        this.mesher = new ChunkMesher(chunkManager);
+        this.textureAtlas = textureAtlas;
+        this.mesher = new ChunkMesher(chunkManager, textureAtlas);
         this.meshCache = new HashMap<>();
         this.frustum = new Frustum();
         this.renderedChunkCount = 0;
@@ -70,6 +74,10 @@ public class ChunkRenderer {
         
         // Bind shader
         shader.use();
+        
+        // Bind texture atlas
+        textureAtlas.bind();
+        shader.setUniformInt("textureSampler", 0);
         
         // Set view and projection uniforms
         shader.setUniform("view", view);
@@ -106,6 +114,9 @@ public class ChunkRenderer {
             mesh.render();
             renderedChunkCount++;
         }
+        
+        // Unbind texture atlas
+        textureAtlas.unbind();
         
         // Unbind shader
         shader.unbind();
