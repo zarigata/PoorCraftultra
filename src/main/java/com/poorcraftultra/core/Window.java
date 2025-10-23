@@ -1,11 +1,17 @@
 package com.poorcraftultra.core;
 
+import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
+import java.nio.IntBuffer;
+
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 /**
@@ -16,6 +22,10 @@ public class Window {
     private final int width;
     private final int height;
     private final String title;
+    private int fbWidth;
+    private int fbHeight;
+    private GLFWErrorCallback errorCallback;
+    private GLFWFramebufferSizeCallback framebufferSizeCallback;
 
     /**
      * Creates a new Window instance.
@@ -38,7 +48,7 @@ public class Window {
      */
     public void init() {
         // Setup error callback
-        GLFWErrorCallback.createPrint(System.err).set();
+        errorCallback = GLFWErrorCallback.createPrint(System.err).set();
 
         // Configure GLFW
         glfwDefaultWindowHints();
@@ -67,7 +77,26 @@ public class Window {
         // Create OpenGL capabilities
         GL.createCapabilities();
 
-        System.out.println("Window initialized: " + width + "x" + height);
+        // Get initial framebuffer size
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            IntBuffer pWidth = stack.mallocInt(1);
+            IntBuffer pHeight = stack.mallocInt(1);
+            glfwGetFramebufferSize(windowHandle, pWidth, pHeight);
+            fbWidth = pWidth.get(0);
+            fbHeight = pHeight.get(0);
+        }
+
+        // Set initial viewport
+        glViewport(0, 0, fbWidth, fbHeight);
+
+        // Setup framebuffer size callback
+        framebufferSizeCallback = glfwSetFramebufferSizeCallback(windowHandle, (window, width, height) -> {
+            fbWidth = width;
+            fbHeight = height;
+            glViewport(0, 0, width, height);
+        });
+
+        System.out.println("Window initialized: " + width + "x" + height + " (framebuffer: " + fbWidth + "x" + fbHeight + ")");
     }
 
     /**
@@ -91,7 +120,18 @@ public class Window {
      * Destroys the window and frees resources.
      */
     public void destroy() {
+        // Free window-specific callbacks
+        Callbacks.glfwFreeCallbacks(windowHandle);
+        
+        // Destroy the window
         glfwDestroyWindow(windowHandle);
+        
+        // Free the error callback
+        if (errorCallback != null) {
+            glfwSetErrorCallback(null);
+            errorCallback.free();
+        }
+        
         System.out.println("Window destroyed");
     }
 
@@ -120,5 +160,23 @@ public class Window {
      */
     public long getHandle() {
         return windowHandle;
+    }
+
+    /**
+     * Gets the framebuffer width.
+     *
+     * @return The framebuffer width in pixels
+     */
+    public int getFramebufferWidth() {
+        return fbWidth;
+    }
+
+    /**
+     * Gets the framebuffer height.
+     *
+     * @return The framebuffer height in pixels
+     */
+    public int getFramebufferHeight() {
+        return fbHeight;
     }
 }

@@ -159,6 +159,23 @@ public class Shader {
     }
 
     /**
+     * Sets a mat4 uniform value (alias for setUniformMat4).
+     *
+     * @param name   The uniform variable name
+     * @param matrix The matrix value
+     */
+    public void setUniform(String name, Matrix4f matrix) {
+        setUniformMat4(name, matrix);
+    }
+
+    /**
+     * Activates the shader program (alias for bind).
+     */
+    public void use() {
+        bind();
+    }
+
+    /**
      * Sets a vec3 uniform value.
      *
      * @param name   The uniform variable name
@@ -189,8 +206,9 @@ public class Shader {
      */
     public void cleanup() {
         unbind();
-        if (programId != 0) {
+        if (programId != 0 && glIsProgram(programId)) {
             glDeleteProgram(programId);
+            programId = 0;
             System.out.println("Shader program cleaned up");
         }
     }

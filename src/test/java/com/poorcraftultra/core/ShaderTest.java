@@ -1,54 +1,22 @@
 package com.poorcraftultra.core;
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;
 
 /**
  * Unit tests for the Shader class.
  */
+@ExtendWith(GLTestContext.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ShaderTest {
-    private static long testWindow;
-
-    @BeforeAll
-    public static void setupOpenGL() {
-        if (!glfwInit()) {
-            throw new RuntimeException("Failed to initialize GLFW for testing");
-        }
-
-        // Configure GLFW for OpenGL 3.3 core
-        glfwDefaultWindowHints();
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-
-        testWindow = glfwCreateWindow(800, 600, "Shader Test Window", 0, 0);
-        if (testWindow == 0) {
-            throw new RuntimeException("Failed to create test window");
-        }
-
-        glfwMakeContextCurrent(testWindow);
-        org.lwjgl.opengl.GL.createCapabilities();
-
-        System.out.println("OpenGL context created for Shader tests");
-    }
-
-    @AfterAll
-    public static void teardownOpenGL() {
-        glfwDestroyWindow(testWindow);
-        glfwTerminate();
-        System.out.println("OpenGL context destroyed after Shader tests");
-    }
 
     @Test
     @Order(1)

@@ -1,6 +1,7 @@
 package com.poorcraftultra.core;
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.lwjgl.glfw.GLFW.*;
@@ -8,33 +9,24 @@ import static org.lwjgl.glfw.GLFW.*;
 /**
  * Unit tests for the Window class.
  */
+@ExtendWith(GLTestContext.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class WindowTest {
-
-    @BeforeAll
-    public static void setupGLFW() {
-        if (!glfwInit()) {
-            throw new RuntimeException("Failed to initialize GLFW for testing");
-        }
-        System.out.println("GLFW initialized for Window tests");
-    }
-
-    @AfterAll
-    public static void teardownGLFW() {
-        glfwTerminate();
-        System.out.println("GLFW terminated after Window tests");
-    }
 
     @Test
     @Order(1)
     @DisplayName("Test window creation")
     public void testWindowCreation() {
+        // Note: Window.init() will call glfwInit() internally if not already initialized,
+        // but GLTestContext ensures GLFW is already initialized
         Window window = new Window(800, 600, "Test Window");
         window.init();
 
         assertNotEquals(0, window.getHandle(), "Window handle should not be null");
         assertEquals(800, window.getWidth(), "Window width should match");
         assertEquals(600, window.getHeight(), "Window height should match");
+        assertTrue(window.getFramebufferWidth() > 0, "Framebuffer width should be positive");
+        assertTrue(window.getFramebufferHeight() > 0, "Framebuffer height should be positive");
 
         window.destroy();
     }

@@ -146,10 +146,10 @@ public class Renderer {
     /**
      * Renders the scene.
      *
-     * @param windowWidth  The window width for aspect ratio calculation
-     * @param windowHeight The window height for aspect ratio calculation
+     * @param framebufferWidth  The framebuffer width for aspect ratio calculation
+     * @param framebufferHeight The framebuffer height for aspect ratio calculation
      */
-    public void render(int windowWidth, int windowHeight) {
+    public void render(int framebufferWidth, int framebufferHeight) {
         // Clear buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -174,7 +174,7 @@ public class Renderer {
                         new Vector3f(0.0f, 0.0f, 0.0f),
                         new Vector3f(0.0f, 1.0f, 0.0f));
 
-        float aspectRatio = (float) windowWidth / (float) windowHeight;
+        float aspectRatio = (float) framebufferWidth / (float) framebufferHeight;
         Matrix4f projection = new Matrix4f()
                 .identity()
                 .perspective((float) Math.toRadians(45.0f), aspectRatio, 0.1f, 100.0f);
@@ -197,10 +197,26 @@ public class Renderer {
      * Cleans up renderer resources.
      */
     public void cleanup() {
-        // Delete buffers
-        glDeleteBuffers(vboId);
-        glDeleteBuffers(eboId);
-        glDeleteVertexArrays(vaoId);
+        // Unbind state before deletion
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        
+        // Delete buffers with validity checks
+        if (glIsBuffer(vboId)) {
+            glDeleteBuffers(vboId);
+        }
+        vboId = 0;
+        
+        if (glIsBuffer(eboId)) {
+            glDeleteBuffers(eboId);
+        }
+        eboId = 0;
+        
+        if (glIsVertexArray(vaoId)) {
+            glDeleteVertexArrays(vaoId);
+        }
+        vaoId = 0;
 
         // Cleanup shader
         shader.cleanup();

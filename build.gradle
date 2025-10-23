@@ -67,10 +67,39 @@ application {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        // Exclude performance tests from normal test runs
+        excludeTags 'performance'
+    }
     testLogging {
         events "passed", "skipped", "failed"
     }
+    
+    // Disable parallel execution at class level to prevent GLFW init/terminate conflicts
+    maxParallelForks = 1
+    
+    // Configure JUnit Platform to run tests serially
+    systemProperty 'junit.jupiter.execution.parallel.enabled', 'false'
+}
+
+// Performance test task
+task performanceTest(type: Test) {
+    useJUnitPlatform {
+        // Only run performance tests
+        includeTags 'performance'
+    }
+    
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true  // Show performance output
+    }
+    
+    // Disable parallel execution
+    maxParallelForks = 1
+    systemProperty 'junit.jupiter.execution.parallel.enabled', 'false'
+    
+    // Ensure performance tests run after normal tests
+    shouldRunAfter test
 }
 
 tasks.withType(JavaCompile) {
