@@ -17,12 +17,12 @@ public class ChunkMeshTest {
     @Test
     @DisplayName("Mesh creation with sample data")
     void testMeshCreation() {
-        // Vertex format: position (XYZ) + color (RGB) + texCoord (UV) = 8 floats
+        // Vertex format: position (XYZ) + color (RGB) + texCoord (UV) + faceUV (XY) + tileSpan (UV) = 12 floats
         float[] vertices = {
-            0, 0, 0, 1, 0, 0, 0, 0,
-            1, 0, 0, 1, 0, 0, 1, 0,
-            1, 1, 0, 1, 0, 0, 1, 1,
-            0, 1, 0, 1, 0, 0, 0, 1
+            0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1,
+            1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1,
+            1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1,
+            0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1
         };
         int[] indices = {0, 1, 2, 2, 3, 0};
 
@@ -50,9 +50,9 @@ public class ChunkMeshTest {
     @DisplayName("Mesh upload to GPU")
     void testMeshUpload() {
         float[] vertices = {
-            0, 0, 0, 1, 0, 0, 0, 0,
-            1, 0, 0, 1, 0, 0, 1, 0,
-            1, 1, 0, 1, 0, 0, 1, 1
+            0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1,
+            1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1,
+            1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1
         };
         int[] indices = {0, 1, 2};
 
@@ -70,9 +70,9 @@ public class ChunkMeshTest {
     @DisplayName("Mesh rendering")
     void testMeshRender() {
         float[] vertices = {
-            0, 0, 0, 1, 0, 0, 0, 0,
-            1, 0, 0, 1, 0, 0, 1, 0,
-            1, 1, 0, 1, 0, 0, 1, 1
+            0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1,
+            1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1,
+            1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1
         };
         int[] indices = {0, 1, 2};
 
@@ -91,9 +91,9 @@ public class ChunkMeshTest {
     @DisplayName("Mesh cleanup")
     void testMeshCleanup() {
         float[] vertices = {
-            0, 0, 0, 1, 0, 0, 0, 0,
-            1, 0, 0, 1, 0, 0, 1, 0,
-            1, 1, 0, 1, 0, 0, 1, 1
+            0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1,
+            1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1,
+            1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1
         };
         int[] indices = {0, 1, 2};
 
@@ -110,9 +110,9 @@ public class ChunkMeshTest {
     @DisplayName("Double upload handling")
     void testDoubleUpload() {
         float[] vertices = {
-            0, 0, 0, 1, 0, 0, 0, 0,
-            1, 0, 0, 1, 0, 0, 1, 0,
-            1, 1, 0, 1, 0, 0, 1, 1
+            0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1,
+            1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1,
+            1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1
         };
         int[] indices = {0, 1, 2};
 

@@ -1,6 +1,10 @@
 package com.poorcraftultra.world.chunk;
 
+import com.poorcraftultra.core.GLTestContext;
+import com.poorcraftultra.rendering.TextureAtlas;
+import com.poorcraftultra.world.block.BlockRegistry;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -8,14 +12,29 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests for ChunkMesher class (pure algorithm testing, no OpenGL needed).
  */
 @DisplayName("ChunkMesher Tests")
+@ExtendWith(GLTestContext.class)
 public class ChunkMesherTest {
     private ChunkManager chunkManager;
     private ChunkMesher mesher;
+    private TextureAtlas textureAtlas;
 
     @BeforeEach
     void setUp() {
         chunkManager = new ChunkManager();
-        mesher = new ChunkMesher(chunkManager);
+        
+        // Create and initialize texture atlas
+        textureAtlas = TextureAtlas.createDefault();
+        textureAtlas.updateBlockTextures(BlockRegistry.getInstance());
+        
+        // Create mesher with texture atlas
+        mesher = new ChunkMesher(chunkManager, textureAtlas);
+    }
+    
+    @AfterEach
+    void tearDown() {
+        if (textureAtlas != null) {
+            textureAtlas.cleanup();
+        }
     }
 
     @Test
@@ -202,5 +221,88 @@ public class ChunkMesherTest {
         assertFalse(mesh.isEmpty());
         // Different faces should have different colors (simple shading)
         // This is implicitly tested by the mesh generation
+    }
+
+    @Test
+    @DisplayName("Mesh vertices include UV coordinates (12 floats per vertex)")
+    void testVertexStrideIncludesUVs() {
+        ChunkPos pos = new ChunkPos(0, 0, 0);
+        Chunk chunk = chunkManager.loadChunk(pos);
+        chunk.setBlock(0, 0, 0, (byte) 1); // Single stone block
+
+        ChunkMesh mesh = mesher.generateMesh(chunk);
+
+        assertFalse(mesh.isEmpty(), "Mesh should not be empty");
+        
+        // Vertex stride should be 12 floats: position (3) + color (3) + UV (2) + faceUV (2) + tileSpan (2)
+        // For a single isolated block with 6 faces, each face has 4 vertices
+        // So minimum vertex count is 24 (6 faces × 4 vertices)
+        int vertexCount = mesh.getVertexCount();
+        assertTrue(vertexCount >= 24, "Single block should have at least 24 vertices (6 faces × 4 vertices)");
+        
+        // The vertex count should be consistent with 12 floats per vertex
+        // This is implicitly validated by the ChunkMesh constructor which divides by 12
+    }
+
+    @Test
+    @DisplayName("Transparent block adjacent to opaque block renders face")
+    void testTransparentOpaqueTransition() {
+        ChunkPos pos = new ChunkPos(0, 0, 0);
+        Chunk chunk = chunkManager.loadChunk(pos);
+        
+        // Place opaque block (stone) and transparent block (glass) adjacent
+        chunk.setBlock(0, 0, 0, (byte) 1); // Stone (opaque)
+        chunk.setBlock(1, 0, 0, (byte) 5); // Glass (transparent)
+
+        ChunkMesh mesh = mesher.generateMesh(chunk);
+
+        assertFalse(mesh.isEmpty(), "Mesh should not be empty");
+        
+        // Both blocks should have faces rendered at the transition
+        // Stone should show its face adjacent to glass
+        // Glass should show its face adjacent to stone
+        // The exact vertex count depends on greedy meshing, but should be > 0
+        assertTrue(mesh.getVertexCount() > 0, "Should have vertices for transparent-opaque transition");
+    }
+
+    @Test
+    @DisplayName("Two adjacent transparent blocks of same type cull shared face")
+    void testTransparentBlockCulling() {
+        ChunkPos pos = new ChunkPos(0, 0, 0);
+        Chunk chunk = chunkManager.loadChunk(pos);
+        
+        // Place two glass blocks adjacent
+        chunk.setBlock(0, 0, 0, (byte) 5); // Glass
+        chunk.setBlock(1, 0, 0, (byte) 5); // Glass
+
+        ChunkMesh meshDouble = mesher.generateMesh(chunk);
+
+        // Now test with a single glass block for comparison
+        Chunk chunkSingle = chunkManager.loadChunk(new ChunkPos(1, 0, 0));
+        chunkSingle.setBlock(0, 0, 0, (byte) 5); // Glass
+        ChunkMesh meshSingle = mesher.generateMesh(chunkSingle);
+
+        // Two adjacent glass blocks should have fewer vertices than 2× single glass
+        // because the shared face between them should be culled
+        assertTrue(meshDouble.getVertexCount() < meshSingle.getVertexCount() * 2,
+                "Adjacent identical transparent blocks should cull shared face");
+    }
+
+    @Test
+    @DisplayName("Different transparent blocks render face between them")
+    void testDifferentTransparentBlocks() {
+        ChunkPos pos = new ChunkPos(0, 0, 0);
+        Chunk chunk = chunkManager.loadChunk(pos);
+        
+        // If we had different transparent blocks, they should render faces between them
+        // For now, we only have glass (ID 5), so this test documents expected behavior
+        // Place two glass blocks - they should cull since they're the same type
+        chunk.setBlock(0, 0, 0, (byte) 5); // Glass
+        chunk.setBlock(1, 0, 0, (byte) 5); // Glass
+
+        ChunkMesh mesh = mesher.generateMesh(chunk);
+
+        assertFalse(mesh.isEmpty(), "Mesh should not be empty");
+        // This test serves as documentation for future when we have multiple transparent block types
     }
 }

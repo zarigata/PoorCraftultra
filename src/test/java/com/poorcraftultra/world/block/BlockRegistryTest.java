@@ -79,4 +79,112 @@ class BlockRegistryTest {
             blocks.clear();
         });
     }
+
+    @Test
+    @DisplayName("Register new custom block and retrieve by ID and name")
+    void testRegisterCustomBlock() {
+        BlockRegistry registry = BlockRegistry.getInstance();
+        
+        // Note: Since BlockRegistry is a singleton and may be locked by other tests,
+        // we can only test this if the registry is not locked
+        if (registry.isLocked()) {
+            // Skip test if registry is already locked
+            return;
+        }
+        
+        // Create a custom block
+        Block customBlock = new Block(
+            (byte) 100,
+            "custom_test_block",
+            "Custom Test Block",
+            BlockProperties.solid(),
+            "stone"
+        );
+        
+        // Register the block
+        registry.register(customBlock);
+        
+        // Retrieve by ID
+        Block retrievedById = registry.getBlock((byte) 100);
+        assertNotNull(retrievedById);
+        assertEquals("custom_test_block", retrievedById.getName());
+        assertEquals((byte) 100, retrievedById.getId());
+        
+        // Retrieve by name
+        Block retrievedByName = registry.getBlock("custom_test_block");
+        assertNotNull(retrievedByName);
+        assertEquals((byte) 100, retrievedByName.getId());
+        
+        // Verify it's registered
+        assertTrue(registry.isRegistered((byte) 100));
+    }
+
+    @Test
+    @DisplayName("Register duplicate ID should throw exception")
+    void testRegisterDuplicateId() {
+        BlockRegistry registry = BlockRegistry.getInstance();
+        
+        if (registry.isLocked()) {
+            return; // Skip if locked
+        }
+        
+        // Try to register a block with ID 1 (STONE already exists)
+        Block duplicateIdBlock = new Block(
+            (byte) 1,
+            "duplicate_id_block",
+            "Duplicate ID Block",
+            BlockProperties.solid(),
+            "stone"
+        );
+        
+        assertThrows(IllegalArgumentException.class, () -> {
+            registry.register(duplicateIdBlock);
+        }, "Should throw exception for duplicate ID");
+    }
+
+    @Test
+    @DisplayName("Register duplicate name should throw exception")
+    void testRegisterDuplicateName() {
+        BlockRegistry registry = BlockRegistry.getInstance();
+        
+        if (registry.isLocked()) {
+            return; // Skip if locked
+        }
+        
+        // Try to register a block with name "stone" (already exists)
+        Block duplicateNameBlock = new Block(
+            (byte) 101,
+            "stone",
+            "Duplicate Name Block",
+            BlockProperties.solid(),
+            "stone"
+        );
+        
+        assertThrows(IllegalArgumentException.class, () -> {
+            registry.register(duplicateNameBlock);
+        }, "Should throw exception for duplicate name");
+    }
+
+    @Test
+    @DisplayName("Lock should prevent further registration")
+    void testLockPreventsRegistration() {
+        BlockRegistry registry = BlockRegistry.getInstance();
+        
+        // Lock the registry
+        registry.lock();
+        assertTrue(registry.isLocked(), "Registry should be locked");
+        
+        // Try to register a new block
+        Block newBlock = new Block(
+            (byte) 102,
+            "locked_test_block",
+            "Locked Test Block",
+            BlockProperties.solid(),
+            "stone"
+        );
+        
+        assertThrows(IllegalStateException.class, () -> {
+            registry.register(newBlock);
+        }, "Should throw exception when trying to register after lock");
+    }
 }

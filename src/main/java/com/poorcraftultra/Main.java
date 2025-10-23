@@ -11,7 +11,7 @@ import com.poorcraftultra.world.block.BlockRegistry;
 import com.poorcraftultra.world.chunk.ChunkManager;
 import com.poorcraftultra.world.chunk.ChunkRenderer;
 import com.poorcraftultra.world.chunk.ChunkPos;
-import com.poorcraftultra.world.chunk.Chunk;
+import com.poorcraftultra.world.generation.WorldGenerator;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
@@ -24,7 +24,7 @@ import static org.lwjgl.glfw.GLFW.*;
 public class Main {
     private static final int WINDOW_WIDTH = 1280;
     private static final int WINDOW_HEIGHT = 720;
-    private static final String WINDOW_TITLE = "PoorCraftUltra - Phase 5: Block Registry & Textures";
+    private static final String WINDOW_TITLE = "PoorCraftUltra - Phase 7: Biome System";
 
     public static void main(String[] args) {
         System.out.println("Starting PoorCraftUltra...");
@@ -67,58 +67,27 @@ public class Main {
             registry.lock();
             System.out.println("Block registry locked");
 
-            // Create chunk manager and chunk renderer
-            chunkManager = new ChunkManager();
+            // Initialize world generator
+            long worldSeed = 12345L;
+            WorldGenerator worldGenerator = WorldGenerator.createWithBiomes(worldSeed);
+            System.out.println("World generator initialized with seed: " + worldSeed + " (with biomes)");
+
+            // Create chunk manager with world generator
+            chunkManager = new ChunkManager(worldGenerator);
             chunkRenderer = new ChunkRenderer(chunkManager, renderer.getShader(), textureAtlas);
             chunkRenderer.init();
 
-            // Generate test world: 5x5x2 grid of chunks (50 chunks total)
-            System.out.println("Generating test world with different block types...");
-            byte stoneId = registry.getBlock("stone").getId();
-            byte grassId = registry.getBlock("grass").getId();
-            byte dirtId = registry.getBlock("dirt").getId();
-            byte sandId = registry.getBlock("sand").getId();
-            byte glassId = registry.getBlock("glass").getId();
-            
+            // Generate procedural terrain: 5x5x2 grid of chunks
+            System.out.println("Generating procedural terrain...");
             for (int cx = -2; cx <= 2; cx++) {
                 for (int cz = -2; cz <= 2; cz++) {
-                    for (int cy = 0; cy < 2; cy++) {
+                    for (int cy = 0; cy <= 1; cy++) {
                         ChunkPos pos = new ChunkPos(cx, cy, cz);
-                        Chunk chunk = chunkManager.loadChunk(pos);
-                        
-                        // Fill with test blocks
-                        for (int x = 0; x < 16; x++) {
-                            for (int z = 0; z < 16; z++) {
-                                for (int y = 0; y < 16; y++) {
-                                    int worldY = cy * 16 + y;
-                                    
-                                    // Bottom layer (y=0-10): stone
-                                    if (worldY < 10) {
-                                        chunk.setBlock(x, y, z, stoneId);
-                                    }
-                                    // Middle layer (y=10-14): dirt
-                                    else if (worldY < 14) {
-                                        chunk.setBlock(x, y, z, dirtId);
-                                    }
-                                    // Top layer (y=14-15): grass
-                                    else if (worldY < 16) {
-                                        chunk.setBlock(x, y, z, grassId);
-                                    }
-                                    // Create some pillars at y=16-24 with different materials
-                                    else if (worldY < 24 && (x % 8 == 0 && z % 8 == 0)) {
-                                        if ((x + z) % 16 == 0) {
-                                            chunk.setBlock(x, y, z, sandId);
-                                        } else {
-                                            chunk.setBlock(x, y, z, glassId);
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        chunkManager.loadChunk(pos);
                     }
                 }
             }
-            System.out.println("Test world generated: " + chunkManager.getLoadedChunkCount() + " chunks");
+            System.out.println("Generated " + chunkManager.getLoadedChunkCount() + " chunks with procedural terrain");
 
             // Initialize input manager
             inputManager = new InputManager(window.getHandle());

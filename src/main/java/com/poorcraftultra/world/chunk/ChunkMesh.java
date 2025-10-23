@@ -5,12 +5,15 @@ import static org.lwjgl.opengl.GL30.*;
 /**
  * Manages mesh data and GPU resources for a single chunk.
  * 
- * <p>Vertex format: Interleaved position (XYZ), color (RGB), and texture coordinates (UV), 8 floats per vertex.
+ * <p>Vertex format: Interleaved position (XYZ), color (RGB), texture coordinates (UV),
+ * face UV (XY), and tile span (UV), 12 floats per vertex.
  * Each vertex contains:
  * <ul>
  *   <li>Position: vec3 (x, y, z) - world space coordinates</li>
  *   <li>Color: vec3 (r, g, b) - RGB color values [0.0, 1.0] for lighting/shading</li>
- *   <li>TexCoord: vec2 (u, v) - texture atlas UV coordinates [0.0, 1.0]</li>
+ *   <li>TexCoord: vec2 (u, v) - base atlas tile UV coordinates [0.0, 1.0]</li>
+ *   <li>FaceUV: vec2 (u, v) - face-local coordinates in block units for tiling</li>
+ *   <li>TileSpan: vec2 (u, v) - tile span (u1-u0, v1-v0) for shader repeat calculation</li>
  * </ul>
  * 
  * <p>This class encapsulates all OpenGL state (VAO, VBO, EBO) for one chunk's geometry,
@@ -31,13 +34,13 @@ public class ChunkMesh {
     /**
      * Creates a new chunk mesh with the given vertex and index data.
      * 
-     * @param vertices vertex data (position XYZ + color RGB + texCoord UV, 8 floats per vertex)
+     * @param vertices vertex data (position XYZ + color RGB + texCoord UV + faceUV XY + tileSpan UV, 12 floats per vertex)
      * @param indices triangle indices
      */
     public ChunkMesh(float[] vertices, int[] indices) {
         this.vertices = vertices;
         this.indices = indices;
-        this.vertexCount = vertices.length / 8; // 8 floats per vertex
+        this.vertexCount = vertices.length / 12; // 12 floats per vertex
         this.indexCount = indices.length;
         this.uploaded = false;
     }
@@ -68,7 +71,7 @@ public class ChunkMesh {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
         
         // Configure vertex attributes
-        int stride = 8 * Float.BYTES;
+        int stride = 12 * Float.BYTES;
         
         // Location 0: position (vec3)
         glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, 0);
@@ -78,9 +81,17 @@ public class ChunkMesh {
         glVertexAttribPointer(1, 3, GL_FLOAT, false, stride, 3 * Float.BYTES);
         glEnableVertexAttribArray(1);
         
-        // Location 2: texCoord (vec2)
+        // Location 2: texCoord (vec2) - base atlas tile UV
         glVertexAttribPointer(2, 2, GL_FLOAT, false, stride, 6 * Float.BYTES);
         glEnableVertexAttribArray(2);
+        
+        // Location 3: faceUV (vec2) - face-local coordinates in block units
+        glVertexAttribPointer(3, 2, GL_FLOAT, false, stride, 8 * Float.BYTES);
+        glEnableVertexAttribArray(3);
+        
+        // Location 4: tileSpan (vec2) - tile span for shader repeat
+        glVertexAttribPointer(4, 2, GL_FLOAT, false, stride, 10 * Float.BYTES);
+        glEnableVertexAttribArray(4);
         
         // Unbind (unbind array buffer before VAO, leave EBO bound to VAO)
         glBindBuffer(GL_ARRAY_BUFFER, 0);

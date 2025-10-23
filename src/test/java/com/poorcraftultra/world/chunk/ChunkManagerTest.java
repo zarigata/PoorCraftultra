@@ -1,5 +1,6 @@
 package com.poorcraftultra.world.chunk;
 
+import com.poorcraftultra.world.generation.WorldGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @DisplayName("ChunkManager Tests")
 class ChunkManagerTest {
@@ -191,5 +193,78 @@ class ChunkManagerTest {
         // Verify chunk Y=0 (world Y 0-255) is not affected
         assertEquals(0, manager.getBlock(0, 100, 0));
         assertNull(manager.getChunkAt(0, 100, 0));
+    }
+
+    @Test
+    @DisplayName("Chunk generation with WorldGenerator")
+    void testChunkGenerationWithGenerator() {
+        WorldGenerator mockGenerator = mock(WorldGenerator.class);
+        ChunkManager managerWithGen = new ChunkManager(mockGenerator);
+        
+        ChunkPos pos = new ChunkPos(0, 0, 0);
+        Chunk chunk = managerWithGen.loadChunk(pos);
+        
+        assertNotNull(chunk);
+        verify(mockGenerator, times(1)).generateChunk(chunk);
+    }
+
+    @Test
+    @DisplayName("No generation without WorldGenerator")
+    void testNoGenerationWithoutGenerator() {
+        ChunkManager managerNoGen = new ChunkManager();
+        
+        ChunkPos pos = new ChunkPos(0, 0, 0);
+        Chunk chunk = managerNoGen.loadChunk(pos);
+        
+        assertNotNull(chunk);
+        assertTrue(chunk.isEmpty(), "Chunk should be empty without generator");
+    }
+
+    @Test
+    @DisplayName("Set WorldGenerator after construction")
+    void testSetWorldGenerator() {
+        ChunkManager managerNoGen = new ChunkManager();
+        
+        // Load chunk without generator (should be empty)
+        ChunkPos pos1 = new ChunkPos(0, 0, 0);
+        Chunk chunk1 = managerNoGen.loadChunk(pos1);
+        assertTrue(chunk1.isEmpty(), "First chunk should be empty");
+        
+        // Set generator
+        WorldGenerator mockGenerator = mock(WorldGenerator.class);
+        managerNoGen.setWorldGenerator(mockGenerator);
+        
+        // Load another chunk (should be generated)
+        ChunkPos pos2 = new ChunkPos(1, 0, 0);
+        Chunk chunk2 = managerNoGen.loadChunk(pos2);
+        
+        verify(mockGenerator, times(1)).generateChunk(chunk2);
+    }
+
+    @Test
+    @DisplayName("Generator propagates to all loaded chunks")
+    void testGeneratorPropagation() {
+        WorldGenerator mockGenerator = mock(WorldGenerator.class);
+        ChunkManager managerWithGen = new ChunkManager(mockGenerator);
+        
+        // Load multiple chunks
+        for (int i = 0; i < 5; i++) {
+            managerWithGen.loadChunk(new ChunkPos(i, 0, 0));
+        }
+        
+        // Verify generator was called for each chunk
+        verify(mockGenerator, times(5)).generateChunk(any(Chunk.class));
+    }
+
+    @Test
+    @DisplayName("Get and set WorldGenerator")
+    void testGetSetWorldGenerator() {
+        ChunkManager managerNoGen = new ChunkManager();
+        assertNull(managerNoGen.getWorldGenerator(), "Should start with no generator");
+        
+        WorldGenerator generator = WorldGenerator.createDefault(12345L);
+        managerNoGen.setWorldGenerator(generator);
+        
+        assertSame(generator, managerNoGen.getWorldGenerator(), "Should return set generator");
     }
 }

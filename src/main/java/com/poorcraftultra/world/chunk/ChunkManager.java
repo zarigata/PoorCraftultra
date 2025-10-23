@@ -1,5 +1,6 @@
 package com.poorcraftultra.world.chunk;
 
+import com.poorcraftultra.world.generation.WorldGenerator;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,26 +14,50 @@ import java.util.List;
  * 
  * The world is infinite (within integer bounds) and chunks are loaded on-demand.
  * Chunks can be accessed by chunk position or world coordinates.
+ * 
+ * If a WorldGenerator is configured, chunks are procedurally generated when loaded.
+ * Otherwise, empty chunks are created (backward compatible with existing tests).
  */
 public class ChunkManager {
     private final Map<ChunkPos, Chunk> loadedChunks;
+    private WorldGenerator worldGenerator;
 
     /**
-     * Creates a new chunk manager with no loaded chunks.
+     * Creates a new chunk manager with no loaded chunks and no world generator.
+     * Chunks will be created empty.
      */
     public ChunkManager() {
         this.loadedChunks = new HashMap<>();
+        this.worldGenerator = null;
+    }
+
+    /**
+     * Creates a new chunk manager with the specified world generator.
+     * Chunks will be procedurally generated when loaded.
+     * 
+     * @param worldGenerator the world generator for procedural generation (can be null)
+     */
+    public ChunkManager(WorldGenerator worldGenerator) {
+        this.loadedChunks = new HashMap<>();
+        this.worldGenerator = worldGenerator;
     }
 
     /**
      * Loads a chunk at the specified position.
      * If the chunk is already loaded, returns the existing chunk.
+     * If a WorldGenerator is configured, the chunk will be procedurally generated.
      *
      * @param pos the chunk position
      * @return the loaded chunk
      */
     public Chunk loadChunk(ChunkPos pos) {
-        return loadedChunks.computeIfAbsent(pos, Chunk::new);
+        return loadedChunks.computeIfAbsent(pos, p -> {
+            Chunk chunk = new Chunk(p);
+            if (worldGenerator != null) {
+                worldGenerator.generateChunk(chunk);
+            }
+            return chunk;
+        });
     }
 
     /**
@@ -177,5 +202,23 @@ public class ChunkManager {
         if (neighbor != null) neighbors.add(neighbor);
         
         return neighbors;
+    }
+
+    /**
+     * Sets the world generator for procedural chunk generation.
+     * 
+     * @param generator the world generator (can be null to disable generation)
+     */
+    public void setWorldGenerator(WorldGenerator generator) {
+        this.worldGenerator = generator;
+    }
+
+    /**
+     * Gets the current world generator.
+     * 
+     * @return the world generator, or null if not set
+     */
+    public WorldGenerator getWorldGenerator() {
+        return worldGenerator;
     }
 }

@@ -2,9 +2,9 @@
 
 An open-source Minecraft clone built with modern Java and LWJGL3, featuring advanced rendering, networking, and modding capabilities.
 
-## Current Phase: Phase 5 - Block Registry & Texture System
+## Current Phase: Phase 6 - Procedural Terrain Generation
 
-Phase 5 implements an extensible block system with a centralized registry, 32×32 texture atlas, per-face textures, and block interaction API foundation.
+Phase 6 implements a modular noise-based terrain generation system with multi-octave Perlin and Simplex noise, height map terrain generation, and 3D cave carving. All generation is deterministic (same seed = same world) with <5ms per chunk performance.
 
 ### Features Implemented
 
@@ -58,6 +58,18 @@ Phase 5 implements an extensible block system with a centralized registry, 32×3
 - ✅ Property-based collision detection (isSolid() instead of block != 0)
 - ✅ Comprehensive test suite for block system and texture atlas
 
+**Phase 6 - Procedural Terrain Generation:**
+- ✅ NoiseGenerator interface with PerlinNoise and SimplexNoise implementations
+- ✅ Multi-octave noise layering (OctaveNoise) for natural terrain detail
+- ✅ Height map-based terrain generation with stone/dirt/grass layers
+- ✅ 3D cave carving using noise thresholding
+- ✅ Seed-based deterministic generation (same seed = identical worlds)
+- ✅ Performance: <5ms per chunk generation time
+- ✅ WorldGenerator orchestrating terrain → caves → optimization pipeline
+- ✅ ChunkManager integration via optional WorldGenerator field
+- ✅ Configurable parameters: base height (64), variation (±32), cave threshold (0.6)
+- ✅ Comprehensive test suite with performance benchmarks and consistency tests
+
 ## Requirements
 
 - **Java 17 or higher** - Modern Java LTS version
@@ -94,14 +106,22 @@ PoorCraftUltra/
 │   │   │           │   ├── BlockFace.java          # Block face enum
 │   │   │           │   ├── BlockRegistry.java      # Centralized block registry
 │   │   │           │   └── BlockInteractionListener.java # Block event API
-│   │   │           └── chunk/
-│   │   │               ├── ChunkPos.java      # Chunk position (immutable)
-│   │   │               ├── ChunkSection.java  # 16×16×16 block section
-│   │   │               ├── Chunk.java         # 16×16×256 chunk column
-│   │   │               ├── ChunkManager.java  # World chunk management
-│   │   │               ├── ChunkMesh.java     # GPU mesh data storage
-│   │   │               ├── ChunkMesher.java   # Greedy meshing algorithm
-│   │   │               └── ChunkRenderer.java # Chunk rendering pipeline
+│   │   │           ├── chunk/
+│   │   │           │   ├── ChunkPos.java      # Chunk position (immutable)
+│   │   │           │   ├── ChunkSection.java  # 16×16×16 block section
+│   │   │           │   ├── Chunk.java         # 16×16×256 chunk column
+│   │   │           │   ├── ChunkManager.java  # World chunk management
+│   │   │           │   ├── ChunkMesh.java     # GPU mesh data storage
+│   │   │           │   ├── ChunkMesher.java   # Greedy meshing algorithm
+│   │   │           │   └── ChunkRenderer.java # Chunk rendering pipeline
+│   │   │           └── generation/
+│   │   │               ├── NoiseGenerator.java     # Noise generation interface
+│   │   │               ├── PerlinNoise.java        # Classic Perlin noise
+│   │   │               ├── SimplexNoise.java       # Ken Perlin's improved noise
+│   │   │               ├── OctaveNoise.java        # Multi-octave noise layering
+│   │   │               ├── TerrainGenerator.java   # Height map terrain generation
+│   │   │               ├── CaveGenerator.java      # 3D cave carving
+│   │   │               └── WorldGenerator.java     # Generation pipeline orchestrator
 │   │   └── resources/
 │   │       ├── shaders/
 │   │       │   ├── vertex.glsl            # Vertex shader with UV support (GLSL 330)
@@ -138,16 +158,25 @@ PoorCraftUltra/
 │                   │   ├── BlockPropertiesTest.java # Block properties tests
 │                   │   ├── BlockTest.java            # Block class tests
 │                   │   └── BlockRegistryTest.java   # Block registry tests
-│                   └── chunk/
-│                       ├── ChunkPosTest.java              # Coordinate conversion tests
-│                       ├── ChunkSectionTest.java          # Section storage tests
-│                       ├── ChunkTest.java                 # Chunk logic tests
-│                       ├── ChunkManagerTest.java          # World management tests
-│                       ├── ChunkMeshTest.java             # Mesh GPU resource tests
-│                       ├── ChunkMesherTest.java           # Greedy meshing algorithm tests
-│                       ├── ChunkRendererTest.java         # Rendering pipeline tests
-│                       ├── ChunkMeshPerformanceTest.java  # Meshing performance benchmarks
-│                       └── ChunkRenderPerformanceTest.java # Rendering performance benchmarks
+│                   ├── chunk/
+│                   │   ├── ChunkPosTest.java              # Coordinate conversion tests
+│                   │   ├── ChunkSectionTest.java          # Section storage tests
+│                   │   ├── ChunkTest.java                 # Chunk logic tests
+│                   │   ├── ChunkManagerTest.java          # World management tests
+│                   │   ├── ChunkMeshTest.java             # Mesh GPU resource tests
+│                   │   ├── ChunkMesherTest.java           # Greedy meshing algorithm tests
+│                   │   ├── ChunkRendererTest.java         # Rendering pipeline tests
+│                   │   ├── ChunkMeshPerformanceTest.java  # Meshing performance benchmarks
+│                   │   └── ChunkRenderPerformanceTest.java # Rendering performance benchmarks
+│                   └── generation/
+│                       ├── PerlinNoiseTest.java           # Perlin noise tests
+│                       ├── SimplexNoiseTest.java          # Simplex noise tests
+│                       ├── OctaveNoiseTest.java           # Multi-octave noise tests
+│                       ├── TerrainGeneratorTest.java      # Terrain generation tests
+│                       ├── CaveGeneratorTest.java         # Cave generation tests
+│                       ├── WorldGeneratorTest.java        # World generator tests
+│                       ├── GenerationPerformanceTest.java # Generation performance benchmarks
+│                       └── GenerationConsistencyTest.java # Determinism and consistency tests
 ├── build.gradle                           # Gradle build configuration
 ├── settings.gradle                        # Gradle settings
 └── README.md                              # This file
@@ -201,14 +230,16 @@ PoorCraftUltra/
 
 ## Running the Application
 
-After building, you should see a window displaying a textured voxel world with first-person controls:
-- **50 chunks** loaded in a 5×5×2 grid
-- **Textured blocks** with stone, grass, dirt, sand, and glass
+After building, you should see a window displaying a procedurally generated voxel world:
+- **50 chunks** loaded in a 5×5×2 grid with procedural terrain
+- **Realistic terrain** with height variation and natural-looking features
+- **Cave systems** carved through underground terrain
+- **Textured blocks** with stone, grass, dirt (sand and glass available in registry)
 - **Per-face textures** (grass has different textures on top/bottom/sides)
 - **First-person camera** with mouse look (cursor locked)
-- **Player movement** with WASD keys
-- **Physics simulation** with gravity and collision
+- **Player movement** with WASD keys and physics
 - **Performance statistics** printed every 60 frames (FPS, player position, chunks rendered/culled)
+- **Seed-based generation** (seed 12345L) - same seed always produces the same world
 
 ### Controls
 - **WASD**: Move forward/left/backward/right
@@ -399,6 +430,17 @@ The project includes comprehensive unit tests for all core components:
 - **ChunkMeshTest**: Updated for 8-float vertex format (position + color + UV)
 - **ChunkMesherTest**: Updated for BlockRegistry integration and texture atlas
 
+### Phase 6 Tests
+- **PerlinNoiseTest**: Validates Perlin noise determinism, output range, continuity, and performance
+- **SimplexNoiseTest**: Tests Simplex noise implementation and compares performance vs Perlin
+- **OctaveNoiseTest**: Validates multi-octave layering, normalization, and parameter effects
+- **TerrainGeneratorTest**: Tests height map generation, terrain layers, and chunk boundaries
+- **CaveGeneratorTest**: Validates cave carving, height limits, and determinism
+- **WorldGeneratorTest**: Tests complete generation pipeline and seed propagation
+- **GenerationPerformanceTest**: Benchmarks generation performance (<5ms target per chunk)
+- **GenerationConsistencyTest**: Validates determinism, cross-platform consistency, and seed behavior
+- **ChunkManagerTest**: Updated with WorldGenerator integration tests
+
 Run all tests:
 ```powershell
 .\gradlew test
@@ -427,6 +469,11 @@ Run block system tests:
 Run texture tests:
 ```powershell
 .\gradlew test --tests "*TextureAtlas*"
+```
+
+Run generation tests:
+```powershell
+.\gradlew test --tests "*Generation*"
 ```
 
 Run performance tests:
@@ -471,7 +518,7 @@ Test results are displayed in the console with detailed pass/fail information. P
 - Modular architecture (Camera, InputManager, Player, PlayerController)
 - Comprehensive test coverage
 
-### Phase 5: Block Registry & Texture System ✅ (Current)
+### Phase 5: Block Registry & Texture System ✅
 - Centralized block registry with extensible property system
 - 32×32 texture atlas with per-face texture support
 - Default blocks: AIR, STONE, GRASS, DIRT, SAND, GLASS
@@ -480,24 +527,35 @@ Test results are displayed in the console with detailed pass/fail information. P
 - Property-based collision detection (isSolid, isTransparent)
 - Comprehensive test coverage
 
-### Phase 6: Terrain Generation (Planned)
-- Procedural terrain generation with noise functions
-- Biome system with block type variation
-- Cave generation
+### Phase 6: Procedural Terrain Generation ✅ (Current)
+- Multi-octave Perlin and Simplex noise generators
+- Height map-based terrain generation (stone/dirt/grass layers)
+- 3D cave carving with configurable parameters
+- Seed-based deterministic generation
+- WorldGenerator orchestrating generation pipeline
+- ChunkManager integration via dependency injection
+- Performance: <5ms per chunk
+- Comprehensive test coverage with performance and consistency tests
+
+### Phase 7: Biome System (Planned)
+- Biome-specific terrain generation
+- Block type variation per biome
+- Temperature and humidity maps
+- Biome blending and transitions
 - Ore distribution
 
-### Phase 7: Block Interaction (Planned)
+### Phase 8: Block Interaction (Planned)
 - Block placement and breaking
 - Raycast block selection
 - Block interaction events
 - Inventory system
 
-### Phase 8: Networking (Planned)
+### Phase 9: Networking (Planned)
 - Client-server architecture
 - Multiplayer synchronization
 - Entity replication
 
-### Phase 9: Modding API (Planned)
+### Phase 10: Modding API (Planned)
 - Plugin system
 - Event-driven architecture
 - Custom block/item registration
@@ -532,5 +590,5 @@ This project is open-source. License information to be determined.
 
 ---
 
-**Current Version**: Phase 5 - v5.0-SNAPSHOT  
+**Current Version**: Phase 6 - v6.0-SNAPSHOT  
 **Last Updated**: October 2025

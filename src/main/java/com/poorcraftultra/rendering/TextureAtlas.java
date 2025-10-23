@@ -24,6 +24,8 @@ import static org.lwjgl.opengl.GL13.glActiveTexture;
  * packed in a grid. Each texture is assigned a position in the atlas, and
  * UV coordinates are calculated for rendering.
  * <p>
+ * Phase 7 adds biome-specific textures to support diverse terrain generation.
+ * <p>
  * <b>Atlas Layout:</b>
  * <ul>
  *   <li>Tile size: 32×32 pixels</li>
@@ -81,9 +83,11 @@ public class TextureAtlas {
 
             // Load image using STB
             ByteBuffer imageData = loadImageFromResource(resourcePath);
+            boolean isPlaceholder = false;
             if (imageData == null) {
                 System.err.println("Warning: Failed to load texture: " + resourcePath + ", using placeholder");
                 imageData = createPlaceholderTexture();
+                isPlaceholder = true;
             }
 
             // Calculate tile position in atlas
@@ -92,6 +96,11 @@ public class TextureAtlas {
 
             // Copy pixel data to atlas buffer
             copyToAtlas(imageData, atlasBuffer, tileX, tileY);
+
+            // Free STB image buffer immediately after copying (only for STB-loaded images, not placeholders)
+            if (!isPlaceholder) {
+                STBImage.stbi_image_free(imageData);
+            }
 
             // Calculate normalized UV coordinates
             float u0 = (float) (tileX * tileSize) / atlasWidth;
@@ -291,12 +300,26 @@ public class TextureAtlas {
         TextureAtlas atlas = new TextureAtlas(512, 512, 32);
 
         Map<String, String> textureFiles = new LinkedHashMap<>();
+        // Phase 6 textures
         textureFiles.put("stone", "/textures/stone.png");
         textureFiles.put("grass_top", "/textures/grass_top.png");
         textureFiles.put("grass_side", "/textures/grass_side.png");
         textureFiles.put("dirt", "/textures/dirt.png");
         textureFiles.put("sand", "/textures/sand.png");
         textureFiles.put("glass", "/textures/glass.png");
+        
+        // Phase 7 biome textures
+        textureFiles.put("snow", "/textures/snow.png");
+        textureFiles.put("jungle_grass_top", "/textures/jungle_grass_top.png");
+        textureFiles.put("jungle_grass_side", "/textures/jungle_grass_side.png");
+        textureFiles.put("sandstone", "/textures/sandstone.png");
+        textureFiles.put("mountain_stone", "/textures/mountain_stone.png");
+        textureFiles.put("desert_sand", "/textures/desert_sand.png");
+        textureFiles.put("ice", "/textures/ice.png");
+        textureFiles.put("cactus_side", "/textures/cactus_side.png");
+        textureFiles.put("cactus_top", "/textures/cactus_top.png");
+        textureFiles.put("jungle_log_side", "/textures/jungle_log_side.png");
+        textureFiles.put("jungle_log_top", "/textures/jungle_log_top.png");
 
         atlas.load(textureFiles);
         return atlas;

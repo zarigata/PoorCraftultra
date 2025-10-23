@@ -117,8 +117,8 @@ public class ChunkMesher {
      * @return the generated chunk mesh
      */
     public ChunkMesh generateMesh(Chunk chunk) {
-        // Pre-allocate with reasonable initial capacity (8 floats per vertex now)
-        FloatBuffer allVertices = new FloatBuffer(6144);
+        // Pre-allocate with reasonable initial capacity (10 floats per vertex now)
+        FloatBuffer allVertices = new FloatBuffer(7680);
         IntBuffer allIndices = new IntBuffer(2048);
         
         // Iterate through all 16 sections
@@ -316,7 +316,30 @@ public class ChunkMesher {
         }
         
         Block neighborBlock = BlockRegistry.getInstance().getBlock(neighbor);
-        return !neighborBlock.isSolid() || neighborBlock.isTransparent(); // Face is visible if neighbor is air or transparent
+        
+        // Face culling logic:
+        // 1. Always render if neighbor is non-solid (air, etc.)
+        // 2. Cull if neighbor is solid and opaque (same material)
+        // 3. Render when transitioning between opaque and transparent
+        // 4. Cull between two identical transparent blocks (e.g., glass-to-glass)
+        
+        if (!neighborBlock.isSolid()) {
+            return true; // Neighbor is air or non-solid, render face
+        }
+        
+        // Both blocks are solid at this point
+        if (block.isTransparent() && neighborBlock.isTransparent()) {
+            // Both transparent: only cull if they're the same block type
+            return blockId != neighbor;
+        }
+        
+        if (block.isTransparent() || neighborBlock.isTransparent()) {
+            // One transparent, one opaque: always render the transition
+            return true;
+        }
+        
+        // Both opaque and solid: cull the face
+        return false;
     }
     
     /**
@@ -377,34 +400,81 @@ public class ChunkMesher {
                 break;
         }
         
-        // Calculate UV coordinates for the quad
-        float[] uvs = new float[] {
-            atlasPos.u0, atlasPos.v0,
-            atlasPos.u1, atlasPos.v0,
-            atlasPos.u1, atlasPos.v1,
-            atlasPos.u0, atlasPos.v1
-        };
+        // Calculate base UV coordinates (tile bounds in atlas)
+        float[] uvs = calculateUVsForQuad(atlasPos, width, height, direction);
         
-        addQuadVertices(corners, color, uvs, vertices, indices);
+        // Calculate face-local UV coordinates for tiling in shader
+        // These represent coordinates in block units (0..width, 0..height)
+        float[] faceUVs = new float[8];
+        switch (direction) {
+            case NORTH:
+            case SOUTH:
+            case EAST:
+            case WEST:
+            case TOP:
+            case BOTTOM:
+                // All faces: corners map to (0,0), (width,0), (width,height), (0,height)
+                faceUVs[0] = 0;      faceUVs[1] = 0;       // Corner 0
+                faceUVs[2] = width;  faceUVs[3] = 0;       // Corner 1
+                faceUVs[4] = width;  faceUVs[5] = height;  // Corner 2
+                faceUVs[6] = 0;      faceUVs[7] = height;  // Corner 3
+                break;
+        }
+        
+        // Calculate tile span for shader
+        float tileSpanU = atlasPos.u1 - atlasPos.u0;
+        float tileSpanV = atlasPos.v1 - atlasPos.v0;
+        
+        addQuadVertices(corners, color, uvs, faceUVs, tileSpanU, tileSpanV, vertices, indices);
+    }
+    
+    /**
+     * Calculates UV coordinates for a quad.
+     * Returns the base tile UV rectangle without scaling, to prevent bleeding.
+     * Tiling is handled in the shader using faceUV coordinates.
+     * 
+     * @param atlasPos the atlas position for the base texture tile
+     * @param width the width of the quad in blocks (unused, kept for signature compatibility)
+     * @param height the height of the quad in blocks (unused, kept for signature compatibility)
+     * @param direction the face direction (unused, kept for signature compatibility)
+     * @return array of 8 UV coordinates (4 vertices × 2 coordinates) representing the base tile
+     */
+    private float[] calculateUVsForQuad(TextureAtlas.AtlasPosition atlasPos, int width, int height, BlockFace direction) {
+        // Return the base tile's UV rectangle without any scaling
+        // This ensures we never sample outside the tile bounds
+        // Tiling is handled in the fragment shader using faceUV and fract()
+        return new float[] {
+            atlasPos.u0, atlasPos.v0,  // Corner 0
+            atlasPos.u1, atlasPos.v0,  // Corner 1
+            atlasPos.u1, atlasPos.v1,  // Corner 2
+            atlasPos.u0, atlasPos.v1   // Corner 3
+        };
     }
     
     /**
      * Adds quad vertices and indices to the mesh data.
+     * Vertex format: position (XYZ), color (RGB), texCoord (UV), faceUV (XY), tileSpan (UV)
+     * Total: 12 floats per vertex
      */
-    private void addQuadVertices(Vector3f[] corners, Vector3f color, float[] uvs, FloatBuffer vertices, IntBuffer indices) {
-        int baseIndex = vertices.size() / 8; // Current vertex count (8 floats per vertex)
+    private void addQuadVertices(Vector3f[] corners, Vector3f color, float[] uvs, float[] faceUVs,
+                                float tileSpanU, float tileSpanV, FloatBuffer vertices, IntBuffer indices) {
+        int baseIndex = vertices.size() / 12; // Current vertex count (12 floats per vertex)
         
         // Add 4 vertices
         for (int i = 0; i < corners.length; i++) {
             Vector3f corner = corners[i];
-            vertices.add(corner.x);
-            vertices.add(corner.y);
-            vertices.add(corner.z);
-            vertices.add(color.x);
-            vertices.add(color.y);
-            vertices.add(color.z);
-            vertices.add(uvs[i * 2]);     // U
-            vertices.add(uvs[i * 2 + 1]); // V
+            vertices.add(corner.x);           // Position X
+            vertices.add(corner.y);           // Position Y
+            vertices.add(corner.z);           // Position Z
+            vertices.add(color.x);            // Color R
+            vertices.add(color.y);            // Color G
+            vertices.add(color.z);            // Color B
+            vertices.add(uvs[i * 2]);         // Base atlas U (u0)
+            vertices.add(uvs[i * 2 + 1]);     // Base atlas V (v0)
+            vertices.add(faceUVs[i * 2]);     // Face-local U (in block units)
+            vertices.add(faceUVs[i * 2 + 1]); // Face-local V (in block units)
+            vertices.add(tileSpanU);          // Tile span U (u1-u0)
+            vertices.add(tileSpanV);          // Tile span V (v1-v0)
         }
         
         // Add 6 indices (2 triangles)

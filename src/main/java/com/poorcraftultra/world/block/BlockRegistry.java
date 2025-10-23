@@ -9,6 +9,8 @@ import java.util.*;
  * provides lookup by ID or name. It is initialized with default blocks and can
  * be extended with custom blocks before being locked.
  * <p>
+ * Phase 7 adds biome-specific blocks (IDs 6-15) to support diverse terrain generation.
+ * <p>
  * <b>Thread Safety:</b> This class is NOT thread-safe. It should only be accessed
  * from the main thread during initialization.
  * <p>
@@ -185,6 +187,98 @@ public class BlockRegistry {
                 "Glass",
                 BlockProperties.transparent(),
                 "glass"
+        ));
+
+        // ===== Phase 7: Biome-Specific Blocks =====
+
+        // SNOW_BLOCK (ID 6) - solid, opaque, "snow" texture on all faces
+        register(new Block(
+                (byte) 6,
+                "snow_block",
+                "Snow Block",
+                BlockProperties.solid(),
+                "snow"
+        ));
+
+        // JUNGLE_GRASS (ID 7) - solid, opaque, different textures per face
+        register(new Block(
+                (byte) 7,
+                "jungle_grass",
+                "Jungle Grass",
+                BlockProperties.solid(),
+                new String[]{"jungle_grass_top", "dirt", "jungle_grass_side", "jungle_grass_side", "jungle_grass_side", "jungle_grass_side"}
+        ));
+
+        // SANDSTONE (ID 8) - solid, opaque, "sandstone" texture on all faces
+        register(new Block(
+                (byte) 8,
+                "sandstone",
+                "Sandstone",
+                BlockProperties.solid(),
+                "sandstone"
+        ));
+
+        // MOUNTAIN_STONE (ID 9) - solid, opaque, "mountain_stone" texture on all faces
+        register(new Block(
+                (byte) 9,
+                "mountain_stone",
+                "Mountain Stone",
+                BlockProperties.solid(),
+                "mountain_stone"
+        ));
+
+        // SNOW_DIRT (ID 10) - solid, opaque, "snow" on top, "dirt" on bottom/sides
+        register(new Block(
+                (byte) 10,
+                "snow_dirt",
+                "Snow Dirt",
+                BlockProperties.solid(),
+                new String[]{"snow", "dirt", "dirt", "dirt", "dirt", "dirt"}
+        ));
+
+        // JUNGLE_DIRT (ID 11) - solid, opaque, "dirt" texture (reused for now)
+        register(new Block(
+                (byte) 11,
+                "jungle_dirt",
+                "Jungle Dirt",
+                BlockProperties.solid(),
+                "dirt"
+        ));
+
+        // DESERT_SAND (ID 12) - solid, opaque, "desert_sand" texture, has gravity
+        register(new Block(
+                (byte) 12,
+                "desert_sand",
+                "Desert Sand",
+                new BlockProperties(true, false, false, 0, true),
+                "desert_sand"
+        ));
+
+        // ICE (ID 13) - solid, transparent, "ice" texture
+        register(new Block(
+                (byte) 13,
+                "ice",
+                "Ice",
+                BlockProperties.transparent(),
+                "ice"
+        ));
+
+        // CACTUS (ID 14) - solid, opaque, different textures per face
+        register(new Block(
+                (byte) 14,
+                "cactus",
+                "Cactus",
+                BlockProperties.solid(),
+                new String[]{"cactus_top", "cactus_top", "cactus_side", "cactus_side", "cactus_side", "cactus_side"}
+        ));
+
+        // JUNGLE_LOG (ID 15) - solid, opaque, different textures per face
+        register(new Block(
+                (byte) 15,
+                "jungle_log",
+                "Jungle Log",
+                BlockProperties.solid(),
+                new String[]{"jungle_log_top", "jungle_log_top", "jungle_log_side", "jungle_log_side", "jungle_log_side", "jungle_log_side"}
         ));
     }
 }

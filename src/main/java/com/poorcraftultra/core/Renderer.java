@@ -154,7 +154,7 @@ public class Renderer {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Bind shader
-        shader.bind();
+        shader.use();
 
         // Update rotation
         rotation += 0.5f;
@@ -180,9 +180,9 @@ public class Renderer {
                 .perspective((float) Math.toRadians(45.0f), aspectRatio, 0.1f, 100.0f);
 
         // Set uniforms
-        shader.setUniformMat4("model", model);
-        shader.setUniformMat4("view", view);
-        shader.setUniformMat4("projection", projection);
+        shader.setUniform("model", model);
+        shader.setUniform("view", view);
+        shader.setUniform("projection", projection);
 
         // Bind VAO and draw
         glBindVertexArray(vaoId);
