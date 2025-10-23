@@ -1,7 +1,11 @@
 package com.poorcraftultra;
 
+import com.poorcraftultra.core.Camera;
 import com.poorcraftultra.core.Renderer;
 import com.poorcraftultra.core.Window;
+import com.poorcraftultra.input.InputManager;
+import com.poorcraftultra.player.Player;
+import com.poorcraftultra.player.PlayerController;
 import com.poorcraftultra.world.chunk.ChunkManager;
 import com.poorcraftultra.world.chunk.ChunkRenderer;
 import com.poorcraftultra.world.chunk.ChunkPos;
@@ -18,7 +22,7 @@ import static org.lwjgl.glfw.GLFW.*;
 public class Main {
     private static final int WINDOW_WIDTH = 1280;
     private static final int WINDOW_HEIGHT = 720;
-    private static final String WINDOW_TITLE = "PoorCraftUltra - Phase 3: Chunk Rendering";
+    private static final String WINDOW_TITLE = "PoorCraftUltra - Phase 4: First-Person Camera & Player";
 
     public static void main(String[] args) {
         System.out.println("Starting PoorCraftUltra...");
@@ -27,6 +31,10 @@ public class Main {
         Renderer renderer = null;
         ChunkManager chunkManager = null;
         ChunkRenderer chunkRenderer = null;
+        InputManager inputManager = null;
+        Camera camera = null;
+        Player player = null;
+        PlayerController playerController = null;
 
         try {
             // Initialize GLFW
@@ -81,37 +89,46 @@ public class Main {
             }
             System.out.println("Test world generated: " + chunkManager.getLoadedChunkCount() + " chunks");
 
-            // Camera parameters
-            float cameraDistance = 50.0f;
-            float cameraHeight = 30.0f;
-            float cameraRotation = 0.0f;
+            // Initialize input manager
+            inputManager = new InputManager(window.getHandle());
+            inputManager.init();
+            inputManager.lockCursor();
+            System.out.println("Input manager initialized");
+
+            // Create camera and player
+            camera = new Camera(new Vector3f(0, 20, 0));
+            player = new Player(new Vector3f(0, 20, 0), chunkManager);
+            final PlayerController controller = new PlayerController(player, camera);
+            playerController = controller;
+            
+            // Register mouse look callbacks
+            inputManager.setMouseLookCallbacks(
+                deltaPitch -> controller.handleMouseLook(deltaPitch, 0),
+                deltaYaw -> controller.handleMouseLook(0, deltaYaw)
+            );
+            System.out.println("Camera and player initialized");
+
+            // Delta time tracking
+            double lastTime = glfwGetTime();
+            double deltaTime = 0.0;
 
             // Main game loop
             System.out.println("Entering main loop...");
             int frameCount = 0;
             while (!window.shouldClose()) {
+                // Calculate delta time
+                double currentTime = glfwGetTime();
+                deltaTime = currentTime - lastTime;
+                lastTime = currentTime;
+
                 // Poll for window events
                 glfwPollEvents();
 
-                // Update camera rotation
-                cameraRotation += 0.3f;
-                if (cameraRotation > 360.0f) {
-                    cameraRotation -= 360.0f;
-                }
+                // Update player and camera
+                playerController.update((float) deltaTime, inputManager);
 
-                // Create transformation matrices
-                float radians = (float) Math.toRadians(cameraRotation);
-                Vector3f cameraPos = new Vector3f(
-                    (float) Math.sin(radians) * cameraDistance,
-                    cameraHeight,
-                    (float) Math.cos(radians) * cameraDistance
-                );
-
-                Matrix4f view = new Matrix4f()
-                    .identity()
-                    .lookAt(cameraPos,
-                            new Vector3f(0.0f, 10.0f, 0.0f),
-                            new Vector3f(0.0f, 1.0f, 0.0f));
+                // Get view matrix from camera
+                Matrix4f view = camera.getViewMatrix();
 
                 float aspectRatio = (float) window.getFramebufferWidth() / (float) window.getFramebufferHeight();
                 Matrix4f projection = new Matrix4f()
@@ -127,8 +144,12 @@ public class Main {
                 // Display statistics every 60 frames
                 frameCount++;
                 if (frameCount % 60 == 0) {
-                    System.out.println("Rendered: " + chunkRenderer.getRenderedChunkCount() + 
-                                     " chunks, Culled: " + chunkRenderer.getCulledChunkCount() + " chunks");
+                    Vector3f playerPos = player.getPosition();
+                    float fps = (float) (1.0 / deltaTime);
+                    System.out.printf("FPS: %.1f | Player: (%.1f, %.1f, %.1f) | Chunks: %d rendered, %d culled%n",
+                        fps, playerPos.x, playerPos.y, playerPos.z,
+                        chunkRenderer.getRenderedChunkCount(),
+                        chunkRenderer.getCulledChunkCount());
                 }
             }
 
@@ -141,6 +162,10 @@ public class Main {
 
         } finally {
             // Cleanup
+            if (inputManager != null) {
+                inputManager.cleanup();
+            }
+
             if (chunkRenderer != null) {
                 chunkRenderer.cleanup();
             }

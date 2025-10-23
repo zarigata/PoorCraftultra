@@ -2,9 +2,9 @@
 
 An open-source Minecraft clone built with modern Java and LWJGL3, featuring advanced rendering, networking, and modding capabilities.
 
-## Current Phase: Phase 3 - Chunk Meshing & Rendering
+## Current Phase: Phase 4 - First-Person Camera & Player Movement
 
-Phase 3 implements an optimized chunk rendering system with greedy meshing, face culling, and frustum culling for high-performance voxel rendering.
+Phase 4 implements a first-person camera system with player physics, collision detection, and input handling for interactive gameplay.
 
 ### Features Implemented
 
@@ -36,6 +36,16 @@ Phase 3 implements an optimized chunk rendering system with greedy meshing, face
 - ✅ Performance targets: 60 FPS with 16 chunk render distance
 - ✅ Comprehensive test suite including performance benchmarks
 
+**Phase 4 - Camera & Player:**
+- ✅ First-person camera with pitch/yaw rotation and view matrix generation
+- ✅ Input handling system with rebindable controls (WASD, Space, Shift, Ctrl, Escape)
+- ✅ Player physics with gravity, jumping, sprinting, and crouching
+- ✅ AABB collision detection with swept tests against voxel world
+- ✅ Mouse look with configurable sensitivity and pitch clamping
+- ✅ Frame-rate independent movement using delta time
+- ✅ Modular architecture separating Camera, Player, and InputManager
+- ✅ Comprehensive test suite for camera math, input handling, and player physics
+
 ## Requirements
 
 - **Java 17 or higher** - Modern Java LTS version
@@ -53,9 +63,16 @@ PoorCraftUltra/
 │   │   │       ├── Main.java              # Application entry point
 │   │   │       ├── core/
 │   │   │       │   ├── Window.java        # GLFW window management
+│   │   │       │   ├── Camera.java        # First-person camera
 │   │   │       │   ├── Shader.java        # Shader compilation & management
 │   │   │       │   ├── Renderer.java      # OpenGL rendering pipeline
 │   │   │       │   └── Frustum.java       # Frustum culling math
+│   │   │       ├── input/
+│   │   │       │   ├── InputAction.java   # Input action enum
+│   │   │       │   └── InputManager.java  # GLFW input handling
+│   │   │       ├── player/
+│   │   │       │   ├── Player.java        # Player entity with physics
+│   │   │       │   └── PlayerController.java # Player-camera integration
 │   │   │       └── world/
 │   │   │           └── chunk/
 │   │   │               ├── ChunkPos.java      # Chunk position (immutable)
@@ -78,9 +95,15 @@ PoorCraftUltra/
 │               │   └── RendererTest.java      # Rendering pipeline tests
 │               ├── core/
 │               │   ├── WindowTest.java        # Window lifecycle tests
+│               │   ├── CameraTest.java        # Camera math tests
 │               │   ├── ShaderTest.java        # Shader compilation tests
 │               │   ├── RendererTest.java      # Rendering pipeline tests
 │               │   └── FrustumTest.java       # Frustum culling tests
+│               ├── input/
+│               │   └── InputManagerTest.java  # Input handling tests
+│               ├── player/
+│               │   ├── PlayerTest.java        # Player physics tests
+│               │   └── PlayerControllerTest.java # Player-camera integration tests
 │               └── world/
 │                   └── chunk/
 │                       ├── ChunkPosTest.java              # Coordinate conversion tests
@@ -145,14 +168,20 @@ PoorCraftUltra/
 
 ## Running the Application
 
-After building, you should see a window displaying a voxel world with chunks:
+After building, you should see a window displaying a voxel world with first-person controls:
 - **50 chunks** loaded in a 5×5×2 grid
-- **Rotating camera** orbiting the world
-- **Greedy meshing** optimizing vertex count
-- **Frustum culling** hiding chunks outside view
-- **Performance statistics** printed every 60 frames
+- **First-person camera** with mouse look (cursor locked)
+- **Player movement** with WASD keys
+- **Physics simulation** with gravity and collision
+- **Performance statistics** printed every 60 frames (FPS, player position, chunks rendered/culled)
 
-The camera rotates around the world to demonstrate chunk rendering, frustum culling, and mesh caching.
+### Controls
+- **WASD**: Move forward/left/backward/right
+- **Space**: Jump
+- **Left Shift**: Sprint
+- **Left Control**: Crouch
+- **Mouse**: Look around
+- **Escape**: Toggle cursor lock (release/capture mouse)
 
 ## Dependencies
 
@@ -259,6 +288,44 @@ Conversion between coordinate systems uses `Math.floorDiv()` and `Math.floorMod(
 - Typically reduces rendered chunks by 50-70%
 - Optimized for chunk-based visibility testing
 
+### Phase 4: Camera & Player System
+
+#### Camera (`Camera.java`)
+- Pure math class for first-person camera view matrix generation
+- Position and rotation (pitch/yaw) management
+- Pitch clamping (-89° to 89°) to prevent gimbal lock
+- Yaw wrapping (0° to 360°) for smooth rotation
+- Direction vector calculation (front, right, up)
+- JOML integration for efficient matrix operations
+- No dependencies on player or input systems (testable in isolation)
+
+#### InputManager (`InputManager.java`)
+- GLFW callback-based input handling
+- Rebindable key mappings using InputAction enum
+- Active action tracking (Set of currently pressed actions)
+- Mouse look with configurable sensitivity
+- Cursor lock/unlock for mouse capture
+- Callback registration for pitch/yaw deltas
+- Default bindings: W/A/S/D (movement), Space (jump), Shift (sprint), Ctrl (crouch), Escape (toggle cursor)
+
+#### Player (`Player.java`)
+- Player entity with physics simulation and collision detection
+- Movement states: walking, sprinting, crouching
+- Physics constants: gravity (32 blocks/s²), jump velocity (8 blocks/s), speeds (walk/sprint/crouch)
+- AABB collision detection with swept tests
+- Queries ChunkManager for block collision (0=air, non-zero=solid)
+- Separate collision resolution per axis (X, Y, Z)
+- Eye position calculation for camera placement
+- Frame-rate independent movement using delta time
+
+#### PlayerController (`PlayerController.java`)
+- Integration layer between Player and Camera
+- Synchronizes camera position to player eye position
+- Synchronizes camera rotation to player rotation
+- Handles mouse look input and updates player rotation
+- Orchestrates player update and camera sync each frame
+- Clean separation of concerns for future networking support
+
 ## Testing
 
 The project includes comprehensive unit tests for all core components:
@@ -282,6 +349,12 @@ The project includes comprehensive unit tests for all core components:
 - **ChunkMeshPerformanceTest**: Benchmarks meshing performance (<5ms target), vertex reduction (90%+ target)
 - **ChunkRenderPerformanceTest**: Benchmarks rendering performance (60 FPS target with 16 chunk distance)
 
+### Phase 4 Tests
+- **CameraTest**: Validates camera math (view matrix, rotation, direction vectors, clamping/wrapping)
+- **InputManagerTest**: Tests input handling, key bindings, cursor locking, mouse callbacks
+- **PlayerTest**: Validates player physics (gravity, jumping, collision, movement speeds)
+- **PlayerControllerTest**: Tests player-camera integration and mouse look
+
 Run all tests:
 ```powershell
 .\gradlew test
@@ -290,6 +363,16 @@ Run all tests:
 Run chunk system tests only:
 ```powershell
 .\gradlew test --tests "com.poorcraftultra.world.chunk.*"
+```
+
+Run camera tests:
+```powershell
+.\gradlew test --tests "*Camera*"
+```
+
+Run player tests:
+```powershell
+.\gradlew test --tests "*Player*"
 ```
 
 Run performance tests:
@@ -315,7 +398,7 @@ Test results are displayed in the console with detailed pass/fail information. P
 - Memory optimization (null sections)
 - Comprehensive test coverage
 
-### Phase 3: Chunk Meshing & Rendering ✅ (Current)
+### Phase 3: Chunk Meshing & Rendering ✅
 - Greedy meshing algorithm (90%+ vertex reduction)
 - Face culling between solid blocks
 - Frustum culling (50-70% chunk reduction)
@@ -324,12 +407,28 @@ Test results are displayed in the console with detailed pass/fail information. P
 - Performance benchmarks (60 FPS @ 16 chunk distance)
 - Comprehensive test coverage including performance tests
 
-### Phase 4: Networking (Planned)
+### Phase 4: First-Person Camera & Player Movement ✅ (Current)
+- First-person camera with pitch/yaw rotation
+- Input handling with rebindable controls
+- Player physics (gravity, jumping, sprinting, crouching)
+- AABB collision detection with voxel world
+- Mouse look with sensitivity control
+- Frame-rate independent movement
+- Modular architecture (Camera, InputManager, Player, PlayerController)
+- Comprehensive test coverage
+
+### Phase 5: Block System (Planned)
+- Block placement and breaking
+- Raycast block selection
+- Block interaction events
+- Inventory system
+
+### Phase 6: Networking (Planned)
 - Client-server architecture
 - Multiplayer synchronization
 - Entity replication
 
-### Phase 5: Modding API (Planned)
+### Phase 7: Modding API (Planned)
 - Plugin system
 - Event-driven architecture
 - Custom block/item registration
@@ -364,5 +463,5 @@ This project is open-source. License information to be determined.
 
 ---
 
-**Current Version**: Phase 3 - v3.0-SNAPSHOT  
+**Current Version**: Phase 4 - v4.0-SNAPSHOT  
 **Last Updated**: October 2025
