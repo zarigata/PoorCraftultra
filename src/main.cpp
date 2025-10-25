@@ -7,6 +7,7 @@
 #include "poorcraft/core/Timer.h"
 #include "poorcraft/core/Window.h"
 #include "poorcraft/rendering/RendererFactory.h"
+#include "poorcraft/rendering/TextureAtlas.h"
 #include "poorcraft/rendering/VulkanRenderer.h"
 #include "poorcraft/world/ChunkManager.h"
 #include "poorcraft/ui/UIManager.h"
@@ -74,7 +75,40 @@ int main()
 
     renderer->setVSync(true);
 
-    poorcraft::world::ChunkManager chunkManager(*renderer, 12345u);
+    poorcraft::rendering::TextureAtlas textureAtlas;
+    if(!textureAtlas.initialize(32u))
+    {
+        std::cerr << "Failed to initialize texture atlas. Exiting." << std::endl;
+        renderer->shutdown();
+        renderer.reset();
+        window.reset();
+        SDL_Quit();
+        return EXIT_FAILURE;
+    }
+
+    const auto& atlasData = textureAtlas.getAtlasData();
+    const auto atlasWidth = textureAtlas.getAtlasWidth();
+    const auto atlasHeight = textureAtlas.getAtlasHeight();
+    const Renderer::TextureHandle atlasHandle = renderer->createTexture(atlasData.data(), atlasWidth, atlasHeight, 4u);
+    if(atlasHandle == 0)
+    {
+        std::cerr << "Failed to upload texture atlas. Exiting." << std::endl;
+        renderer->shutdown();
+        renderer.reset();
+        window.reset();
+        SDL_Quit();
+        return EXIT_FAILURE;
+    }
+
+    Renderer::LightingParams lightingParams{};
+    lightingParams.sunDirection = glm::normalize(glm::vec3(0.45f, -1.0f, 0.35f));
+    lightingParams.sunColor = glm::vec3(1.0f, 0.96f, 0.85f);
+    lightingParams.sunIntensity = 1.2f;
+    lightingParams.ambientColor = glm::vec3(0.25f, 0.32f, 0.4f);
+    lightingParams.ambientIntensity = 0.35f;
+    renderer->setLightingParams(lightingParams);
+
+    poorcraft::world::ChunkManager chunkManager(*renderer, textureAtlas, 12345u);
 
     RendererCapabilities capabilities = renderer->getCapabilities();
     std::cout << "Renderer backend: "
@@ -290,6 +324,7 @@ int main()
         renderer->beginFrame();
         renderer->clear(kClearColorR, kClearColorG, kClearColorB, kClearColorA);
         renderer->setViewProjection(viewMatrix, projectionMatrix);
+        renderer->bindTexture(atlasHandle, 0);
         chunkManager.render();
         uiManager.render();
         renderer->endFrame();
@@ -311,6 +346,7 @@ int main()
 
     uiManager.shutdown();
     renderer->shutdownUI();
+    renderer->destroyTexture(atlasHandle);
     renderer->shutdown();
     renderer.reset();
     window.reset();

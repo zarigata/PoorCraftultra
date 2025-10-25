@@ -6,6 +6,7 @@
 #include "poorcraft/core/Timer.h"
 #include "poorcraft/rendering/Renderer.h"
 #include "poorcraft/ui/UIManager.h"
+#include "poorcraft/rendering/TextureAtlas.h"
 #include "poorcraft/world/ChunkManager.h"
 
 namespace poorcraft::ui
@@ -38,18 +39,24 @@ public:
 
 private:
     bool m_vsync{true};
+    rendering::TextureAtlas m_atlas;
     bool m_uiInitialized{false};
 };
 
 class StubChunkManager : public world::ChunkManager
 {
 public:
-    StubChunkManager(rendering::Renderer& renderer)
-        : world::ChunkManager(renderer, 0)
-    {}
+    explicit StubChunkManager(rendering::Renderer& renderer)
+        : world::ChunkManager(renderer, m_atlas, 0)
+    {
+        m_atlas.initialize(16);
+    }
 
     void update(const glm::vec3&) override {}
     void render() override {}
+
+private:
+    rendering::TextureAtlas m_atlas;
 };
 
 class UIManagerTest : public ::testing::Test

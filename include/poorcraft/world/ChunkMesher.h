@@ -1,5 +1,6 @@
 #pragma once
 
+#include "poorcraft/common/FaceDirection.h"
 #include "poorcraft/world/Chunk.h"
 #include "poorcraft/world/ChunkMesh.h"
 
@@ -11,15 +12,7 @@ namespace poorcraft::world {
 
 class ChunkMesher {
 public:
-    enum class FaceDirection {
-        PosX = 0,
-        NegX,
-        PosY,
-        NegY,
-        PosZ,
-        NegZ,
-        Count
-    };
+    using FaceDirection = common::FaceDirection;
 
     static void generateMesh(
         const Chunk& chunk,

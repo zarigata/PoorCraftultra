@@ -26,11 +26,11 @@ std::uint32_t blockTypeIndex(world::BlockType type) {
     }
 }
 
-std::uint32_t faceIndex(world::ChunkMesher::FaceDirection face) {
+std::uint32_t faceIndex(common::FaceDirection face) {
     return static_cast<std::uint32_t>(face);
 }
 
-std::mt19937::result_type seedFor(world::BlockType type, world::ChunkMesher::FaceDirection face) {
+std::mt19937::result_type seedFor(world::BlockType type, common::FaceDirection face) {
     return static_cast<std::mt19937::result_type>(blockTypeIndex(type) * 10 + faceIndex(face));
 }
 } // namespace
@@ -56,7 +56,7 @@ bool TextureAtlas::initialize(std::uint32_t textureSize) {
     return true;
 }
 
-AtlasRegion TextureAtlas::getRegion(world::BlockType blockType, world::ChunkMesher::FaceDirection face) const {
+AtlasRegion TextureAtlas::getRegion(world::BlockType blockType, common::FaceDirection face) const {
     const RegionKey key{blockType, face};
     if (auto it = m_regions.find(key); it != m_regions.end()) {
         return it->second;
@@ -67,14 +67,14 @@ AtlasRegion TextureAtlas::getRegion(world::BlockType blockType, world::ChunkMesh
 void TextureAtlas::generateGrassTexture(
     std::uint8_t* pixels,
     std::uint32_t size,
-    world::ChunkMesher::FaceDirection face
+    common::FaceDirection face
 ) const {
     const std::array<std::uint8_t, 4> dirtColor{120U, 72U, 38U, 255U};
     const std::array<std::uint8_t, 4> grassColorTop{102U, 188U, 88U, 255U};
     const std::array<std::uint8_t, 4> grassColorSide{92U, 178U, 78U, 255U};
 
-    const bool isTop = face == world::ChunkMesher::FaceDirection::PosY;
-    const bool isBottom = face == world::ChunkMesher::FaceDirection::NegY;
+    const bool isTop = face == common::FaceDirection::PosY;
+    const bool isBottom = face == common::FaceDirection::NegY;
 
     std::mt19937 rng(seedFor(world::BlockType::Grass, face));
     std::uniform_int_distribution<int> noise(-10, 10);
@@ -105,7 +105,7 @@ void TextureAtlas::generateGrassTexture(
 void TextureAtlas::generateDirtTexture(std::uint8_t* pixels, std::uint32_t size) const {
     const std::array<std::uint8_t, 4> dirtColor{139U, 90U, 43U, 255U};
 
-    std::mt19937 rng(seedFor(world::BlockType::Dirt, world::ChunkMesher::FaceDirection::PosY));
+    std::mt19937 rng(seedFor(world::BlockType::Dirt, common::FaceDirection::PosY));
     std::uniform_int_distribution<int> noise(-12, 12);
 
     for (std::uint32_t y = 0; y < size; ++y) {
@@ -124,7 +124,7 @@ void TextureAtlas::generateDirtTexture(std::uint8_t* pixels, std::uint32_t size)
 void TextureAtlas::generateStoneTexture(std::uint8_t* pixels, std::uint32_t size) const {
     const std::array<std::uint8_t, 4> stoneColor{132U, 132U, 132U, 255U};
 
-    std::mt19937 rng(seedFor(world::BlockType::Stone, world::ChunkMesher::FaceDirection::PosY));
+    std::mt19937 rng(seedFor(world::BlockType::Stone, common::FaceDirection::PosY));
     std::uniform_int_distribution<int> noise(-15, 15);
 
     for (std::uint32_t y = 0; y < size; ++y) {
@@ -155,7 +155,7 @@ void TextureAtlas::packTextures(std::uint32_t textureSize) {
     for (std::uint32_t blockIdx = 0; blockIdx < BLOCK_TYPE_COUNT; ++blockIdx) {
         for (std::uint32_t faceIdx = 0; faceIdx < FACE_COUNT; ++faceIdx) {
             const world::BlockType blockType = blocks[blockIdx];
-            const world::ChunkMesher::FaceDirection face = static_cast<world::ChunkMesher::FaceDirection>(faceIdx);
+            const common::FaceDirection face = static_cast<common::FaceDirection>(faceIdx);
 
             switch (blockType) {
             case world::BlockType::Grass:

@@ -195,4 +195,3 @@ private:
 
 
 
-// DEATH TO ALL COMUNISTS

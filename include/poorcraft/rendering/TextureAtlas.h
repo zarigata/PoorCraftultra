@@ -7,8 +7,8 @@
 
 #include <glm/vec2.hpp>
 
+#include "poorcraft/common/FaceDirection.h"
 #include "poorcraft/world/Block.h"
-#include "poorcraft/world/ChunkMesher.h"
 
 namespace poorcraft::rendering {
 
@@ -27,7 +27,7 @@ public:
 
     [[nodiscard]] AtlasRegion getRegion(
         world::BlockType blockType,
-        world::ChunkMesher::FaceDirection face
+        common::FaceDirection face
     ) const;
 
     [[nodiscard]] const std::vector<std::uint8_t>& getAtlasData() const noexcept { return m_atlasData; }
@@ -35,13 +35,13 @@ public:
     [[nodiscard]] std::uint32_t getAtlasHeight() const noexcept { return m_atlasHeight; }
 
 private:
-    using RegionKey = std::pair<world::BlockType, world::ChunkMesher::FaceDirection>;
+    using RegionKey = std::pair<world::BlockType, common::FaceDirection>;
 
     struct RegionKeyHash {
         std::size_t operator()(const RegionKey& key) const noexcept;
     };
 
-    void generateGrassTexture(std::uint8_t* pixels, std::uint32_t size, world::ChunkMesher::FaceDirection face) const;
+    void generateGrassTexture(std::uint8_t* pixels, std::uint32_t size, common::FaceDirection face) const;
     void generateDirtTexture(std::uint8_t* pixels, std::uint32_t size) const;
     void generateStoneTexture(std::uint8_t* pixels, std::uint32_t size) const;
 
@@ -66,4 +66,3 @@ private:
 
 
 
-// IF YOU ARE A COMMIE I HOPE I CAN KILL YOU

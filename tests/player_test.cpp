@@ -7,6 +7,7 @@
 #include "poorcraft/rendering/Renderer.h"
 #include "poorcraft/world/Block.h"
 #include "poorcraft/world/ChunkManager.h"
+#include "poorcraft/rendering/TextureAtlas.h"
 
 #include <cmath>
 #include <glm/glm.hpp>
@@ -51,7 +52,9 @@ struct IVec3Hash {
 class StubChunkManager : public poorcraft::world::ChunkManager {
 public:
     StubChunkManager()
-        : poorcraft::world::ChunkManager(g_dummyRenderer, 0u) {}
+        : poorcraft::world::ChunkManager(g_dummyRenderer, m_atlas, 0u) {
+        m_atlas.initialize(16);
+    }
 
     void setSolidBlock(const glm::ivec3& block, bool solid = true) {
         if (solid) {
@@ -98,6 +101,7 @@ public:
     }
 
 private:
+    poorcraft::rendering::TextureAtlas m_atlas;
     std::unordered_set<glm::ivec3, IVec3Hash> m_solidBlocks;
 };
 
