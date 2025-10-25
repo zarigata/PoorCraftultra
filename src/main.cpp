@@ -1,6 +1,7 @@
 #include "poorcraft/core/Camera.h"
 #include "poorcraft/core/GPUInfo.h"
 #include "poorcraft/core/Input.h"
+#include "poorcraft/core/Player.h"
 #include "poorcraft/core/Timer.h"
 #include "poorcraft/core/Window.h"
 #include "poorcraft/rendering/RendererFactory.h"
@@ -16,6 +17,7 @@
 
 using poorcraft::core::Camera;
 using poorcraft::core::Input;
+using poorcraft::core::Player;
 using poorcraft::core::Timer;
 using poorcraft::core::Window;
 using poorcraft::core::gpu::enumerateGPUs;
@@ -98,13 +100,14 @@ int main()
 #endif
 
     Input input;
-    Camera camera(glm::vec3(0.0f, 0.0f, 5.0f), 0.0f, 0.0f);
-    constexpr float kMovementSpeed = 5.0f;
+    Player player(glm::vec3(0.0f, 100.0f, 0.0f));
+    Camera camera(player.getEyePosition(), 0.0f, 0.0f);
     constexpr float kMouseSensitivity = 0.002f;
     constexpr float kFieldOfView = glm::radians(60.0f);
     constexpr float kNearPlane = 0.1f;
     constexpr float kFarPlane = 1000.0f;
     input.setRelativeMouseMode(true);
+    player.setViewOrientation(camera.getForward(), camera.getRight());
 
     Timer timer;
     int frameCounter = 0;
@@ -123,53 +126,24 @@ int main()
         timer.tick();
         const float deltaTime = static_cast<float>(timer.getDeltaTime());
 
-        glm::vec3 movement(0.0f);
-        const glm::vec3 forward = camera.getForward();
-        const glm::vec3 right = camera.getRight();
-        const glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
+        const bool flyToggleThisFrame = input.isKeyPressed(Input::KeyCode::F);
 
-        // Flatten forward vector to XZ plane for W/S movement
-        glm::vec3 flatForward(forward.x, 0.0f, forward.z);
-        if(glm::length(flatForward) > 0.0f)
-        {
-            flatForward = glm::normalize(flatForward);
-        }
-
-        if(input.isKeyDown(Input::KeyCode::W))
-        {
-            movement += flatForward;
-        }
-        if(input.isKeyDown(Input::KeyCode::S))
-        {
-            movement -= flatForward;
-        }
-        if(input.isKeyDown(Input::KeyCode::A))
-        {
-            movement -= right;
-        }
-        if(input.isKeyDown(Input::KeyCode::D))
-        {
-            movement += right;
-        }
-        if(input.isKeyDown(Input::KeyCode::Space))
-        {
-            movement += worldUp;
-        }
-        if(input.isKeyDown(Input::KeyCode::LeftShift))
-        {
-            movement -= worldUp;
-        }
-
-        if(glm::length(movement) > 0.0f)
-        {
-            movement = glm::normalize(movement) * kMovementSpeed * deltaTime;
-            camera.translate(movement);
-        }
+        player.setViewOrientation(camera.getForward(), camera.getRight());
+        // Input → Player physics → Camera follows player eye position
+        player.update(input, deltaTime, chunkManager);
+        camera.setPosition(player.getEyePosition());
 
         const auto mouseDelta = input.getMouseDelta();
         if(input.isRelativeMouseMode())
         {
             camera.rotate(mouseDelta.x * kMouseSensitivity, -mouseDelta.y * kMouseSensitivity);
+            player.setViewOrientation(camera.getForward(), camera.getRight());
+        }
+
+        if(flyToggleThisFrame)
+        {
+            const auto mode = player.getMovementMode();
+            std::cout << "Fly mode " << (mode == Player::MovementMode::Fly ? "enabled" : "disabled") << std::endl;
         }
 
         if(input.isKeyPressed(Input::KeyCode::Escape))
@@ -193,10 +167,11 @@ int main()
         ++frameCounter;
         if(frameCounter >= 60)
         {
-            const auto& cameraPosition = camera.getPosition();
+            const auto& playerPosition = player.getPosition();
             std::cout << "FPS: " << timer.getFPS() << " | Chunks: " << chunkManager.getLoadedChunkCount()
-                      << " | Camera: (" << cameraPosition.x << ", "
-                      << cameraPosition.y << ", " << cameraPosition.z << ")" << std::endl;
+                      << " | Player: (" << playerPosition.x << ", "
+                      << playerPosition.y << ", " << playerPosition.z << ")"
+                      << " | OnGround: " << (player.isOnGround() ? "Yes" : "No") << std::endl;
             frameCounter = 0;
         }
     }

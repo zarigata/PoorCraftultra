@@ -24,6 +24,7 @@ struct ChunkData {
 class ChunkManager {
 public:
     ChunkManager(rendering::Renderer& renderer, std::uint32_t seed);
+    virtual ~ChunkManager() = default;
 
     void update(const glm::vec3& cameraPosition);
     void render();
@@ -32,8 +33,8 @@ public:
     [[nodiscard]] int getRenderDistance() const noexcept { return m_renderDistance; }
     [[nodiscard]] std::size_t getLoadedChunkCount() const noexcept { return m_chunks.size(); }
 
-    [[nodiscard]] BlockType getBlockAt(const glm::vec3& worldPosition) const;
-    [[nodiscard]] bool isBlockSolid(const glm::vec3& worldPosition) const;
+    [[nodiscard]] virtual BlockType getBlockAt(const glm::vec3& worldPosition) const;
+    [[nodiscard]] virtual bool isBlockSolid(const glm::vec3& worldPosition) const;
 
 private:
     [[nodiscard]] ChunkPosition worldToChunkPosition(const glm::vec3& worldPos) const;

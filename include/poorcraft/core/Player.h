@@ -17,6 +17,9 @@ struct AABB {
     glm::vec3 max{};
 };
 
+// Player encapsulates first-person physics with a swept AABB collider. Gravity is applied when
+// not in fly mode, collisions are resolved axis-by-axis against solid voxel blocks, and jumping
+// is only permitted while grounded.
 class Player {
 public:
     enum class MovementMode {
@@ -41,10 +44,11 @@ public:
     void setMovementMode(MovementMode mode) noexcept;
 
     [[nodiscard]] glm::vec3 getEyePosition() const noexcept;
+    void setViewOrientation(const glm::vec3& forward, const glm::vec3& right) noexcept;
 
 private:
     void applyGravity(float deltaTime);
-    void applyMovement(const Input& input, const glm::vec3& inputDirection, float deltaTime);
+    void applyMovement(const glm::vec3& inputDirection, float deltaTime);
     void resolveCollisions(float deltaTime, const world::ChunkManager& chunkManager);
     void checkGroundCollision(const world::ChunkManager& chunkManager);
 
@@ -56,6 +60,8 @@ private:
     AABB m_localAABB{};
     MovementMode m_mode{MovementMode::Walk};
     bool m_onGround{false};
+    glm::vec3 m_viewForward{0.0f, 0.0f, -1.0f};
+    glm::vec3 m_viewRight{1.0f, 0.0f, 0.0f};
 
     static constexpr float kWalkSpeed = 4.3f;
     static constexpr float kSprintSpeed = 5.6f;

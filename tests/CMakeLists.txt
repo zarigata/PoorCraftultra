@@ -33,6 +33,8 @@ add_executable(
     chunk_mesher_test.cpp
     terrain_generator_test.cpp
     chunk_manager_test.cpp
+    player_test.cpp
+    collision_test.cpp
 )
 
 target_compile_features(poorcraft_tests PRIVATE cxx_std_17)

@@ -11,6 +11,7 @@ PoorCraft is a modern, moddable voxel engine inspired by the classics. The proje
 - ✅ **GPU vendor detection (NVIDIA, AMD, Intel, Apple)**
 - ✅ **FPS counter and VSync toggle**
 - ✅ **Automated CI/CD with headless testing**
+- ✅ **Physics-driven first-person player with gravity and collisions**
 - 🔄 **Upcoming**: Deferred rendering, world generation, gameplay systems
 
 ## Project Structure
@@ -73,9 +74,9 @@ PoorCraft is a modern, moddable voxel engine inspired by the classics. The proje
 
 Artifacts are installed under `install/<preset>` when you run `cmake --install`.
 
-## Current Status (Phase 3 Complete)
+## Current Status (Phase 5 Complete)
 
-PoorCraft now boots into a fully managed SDL2 window, selects the optimal renderer (Vulkan first, OpenGL fallback), clears the screen at >60 FPS, reports GPU vendor and capabilities, exposes a toggleable VSync, and ships with a first-person camera controller. The new input system captures keyboard and mouse state (including SDL relative mouse mode) to drive smooth WASD movement, fly-mode vertical controls, and mouse-look rotation. Continuous integration spins up Xvfb with Mesa's lavapipe for headless testing, ensuring rendering logic and foundational systems are validated on Linux alongside native Windows/macOS runs.
+PoorCraft now boots into a fully managed SDL2 window, selects the optimal renderer (Vulkan first, OpenGL fallback), clears the screen at >60 FPS, reports GPU vendor and capabilities, exposes a toggleable VSync, and ships with a physics-driven first-person player controller. The input system captures keyboard and mouse state (including SDL relative mouse mode) to drive WASD/sprint movement, jumping, and fly-mode vertical controls, while a new Player entity performs swept AABB collision detection against the voxel world. Continuous integration spins up Xvfb with Mesa's lavapipe for headless testing, ensuring rendering logic and foundational systems are validated on Linux alongside native Windows/macOS runs.
 
 ## Features
 
@@ -84,7 +85,8 @@ PoorCraft now boots into a fully managed SDL2 window, selects the optimal render
 - ✅ GPU vendor detection (NVIDIA, AMD, Intel, Apple)
 - ✅ FPS counter and VSync toggle
 - ✅ Input system for keyboard and mouse with relative mouse mode
-- ✅ First-person camera with WASD movement and fly-mode vertical controls
+- ✅ Physics-based player entity with AABB collision detection
+- ✅ Gravity, jumping, sprint, and fly movement modes
 - 🔄 Upcoming: Deferred rendering, world generation, gameplay systems
 
 ## Running the Engine
@@ -94,7 +96,7 @@ cmake --preset <your-configure-preset>
 cmake --build --preset <your-build-preset>
 ```
 
-Executables are emitted under `build/<preset>/`. Launch the `poorcraft` binary to open a window displaying a cornflower blue clear color. Use **WASD** for horizontal movement, **Space** / **Left Shift** for fly-mode vertical movement, and the mouse for camera look; press **Escape** to release the cursor. The console prints renderer selection, GPU information, and an FPS + camera position log every 60 frames.
+Executables are emitted under `build/<preset>/`. Launch the `poorcraft` binary to open a window displaying a cornflower blue clear color. Use **WASD** to move, hold **Left Shift** to sprint, press **Space** to jump (while grounded), and tap **F** to toggle fly mode (Space/Shift adjust altitude). The mouse controls camera look; press **Escape** to release the cursor. The console prints renderer selection, GPU information, and an FPS + player position log every 60 frames, including grounded state.
 
 ## Testing
 
@@ -118,7 +120,7 @@ Linux developers without a display can mirror CI by starting `Xvfb :99` and expo
 1. ✅ **Bootstrap** – Tooling, CI, hello-world executable
 2. ✅ **Rendering Core** – Vulkan renderer, windowing, swapchain management
 3. ✅ **Player Interaction** – Input system, first-person camera, fly-mode prototype
-4. **Graphics Enhancements** – Deferred pipeline, ray tracing experiments, PBR materials
+4. ✅ **Physics & Collision** – Player entity with swept AABB, gravity, jumping, fly mode
 5. **World Generation** – Procedural terrain, biomes, caves, structure placement
 6. **Gameplay Systems** – Inventory, crafting tree, survival mechanics
 7. **Networking** – Deterministic simulation, rollback, dedicated server launcher

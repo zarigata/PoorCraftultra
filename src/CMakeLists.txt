@@ -8,6 +8,7 @@ add_executable(
     core/Timer.cpp
     core/Input.cpp
     core/Camera.cpp
+    core/Player.cpp
     rendering/VulkanRenderer.cpp
     rendering/OpenGLRenderer.cpp
     rendering/RendererFactory.cpp
