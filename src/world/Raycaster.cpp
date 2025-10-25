@@ -13,6 +13,7 @@ namespace poorcraft::world {
 
 namespace {
 constexpr float MAX_ALLOWED_DISTANCE = 10.0f;
+constexpr float TIE_EPSILON = 1e-6f;
 } // namespace
 
 RaycastHit Raycaster::raycast(const glm::vec3& origin,
@@ -88,35 +89,67 @@ RaycastHit Raycaster::raycast(const glm::vec3& origin,
             return result;
         }
 
-        previousBlock = currentBlock;
-
-        if (tMaxX <= tMaxY && tMaxX <= tMaxZ) {
-            if (stepX == 0) {
-                break;
-            }
-            distanceTravelled = tMaxX;
-            currentBlock.x += stepX;
-            tMaxX += tDeltaX;
-            lastStepAxis = 0;
-        } else if (tMaxY <= tMaxX && tMaxY <= tMaxZ) {
-            if (stepY == 0) {
-                break;
-            }
-            distanceTravelled = tMaxY;
-            currentBlock.y += stepY;
-            tMaxY += tDeltaY;
-            lastStepAxis = 1;
-        } else {
-            if (stepZ == 0) {
-                break;
-            }
-            distanceTravelled = tMaxZ;
-            currentBlock.z += stepZ;
-            tMaxZ += tDeltaZ;
-            lastStepAxis = 2;
+        const float tNext = std::min({tMaxX, tMaxY, tMaxZ});
+        if (!std::isfinite(tNext)) {
+            break;
         }
 
-        if (distanceTravelled > clampedDistance) {
+        distanceTravelled = tNext;
+
+        const bool stepTieX = std::abs(tMaxX - tNext) <= TIE_EPSILON;
+        const bool stepTieY = std::abs(tMaxY - tNext) <= TIE_EPSILON;
+        const bool stepTieZ = std::abs(tMaxZ - tNext) <= TIE_EPSILON;
+
+        const auto stepAxis = [&](int axis) -> bool {
+            switch (axis) {
+            case 0:
+                if (stepX == 0) {
+                    return false;
+                }
+                previousBlock = currentBlock;
+                currentBlock.x += stepX;
+                tMaxX += tDeltaX;
+                lastStepAxis = 0;
+                return true;
+            case 1:
+                if (stepY == 0) {
+                    return false;
+                }
+                previousBlock = currentBlock;
+                currentBlock.y += stepY;
+                tMaxY += tDeltaY;
+                lastStepAxis = 1;
+                return true;
+            case 2:
+                if (stepZ == 0) {
+                    return false;
+                }
+                previousBlock = currentBlock;
+                currentBlock.z += stepZ;
+                tMaxZ += tDeltaZ;
+                lastStepAxis = 2;
+                return true;
+            default:
+                return false;
+            }
+        };
+
+        bool advanced = false;
+        if (stepTieX) {
+            advanced = stepAxis(0) || advanced;
+        }
+        if (stepTieY) {
+            advanced = stepAxis(1) || advanced;
+        }
+        if (stepTieZ) {
+            advanced = stepAxis(2) || advanced;
+        }
+
+        if (!advanced) {
+            break;
+        }
+
+        if (distanceTravelled > clampedDistance + TIE_EPSILON) {
             break;
         }
     }

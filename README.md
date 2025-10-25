@@ -74,9 +74,9 @@ PoorCraft is a modern, moddable voxel engine inspired by the classics. The proje
 
 Artifacts are installed under `install/<preset>` when you run `cmake --install`.
 
-## Current Status (Phase 5 Complete)
+## Current Status (Phase 6 Complete)
 
-PoorCraft now boots into a fully managed SDL2 window, selects the optimal renderer (Vulkan first, OpenGL fallback), clears the screen at >60 FPS, reports GPU vendor and capabilities, exposes a toggleable VSync, and ships with a physics-driven first-person player controller. The input system captures keyboard and mouse state (including SDL relative mouse mode) to drive WASD/sprint movement, jumping, and fly-mode vertical controls, while a new Player entity performs swept AABB collision detection against the voxel world. Continuous integration spins up Xvfb with Mesa's lavapipe for headless testing, ensuring rendering logic and foundational systems are validated on Linux alongside native Windows/macOS runs.
+PoorCraft now boots into a fully managed SDL2 window, selects the optimal renderer (Vulkan first, OpenGL fallback), clears the screen at >60 FPS, reports GPU vendor and capabilities, exposes a toggleable VSync, and ships with a physics-driven first-person player controller. The input system captures keyboard and mouse state (including SDL relative mouse mode) to drive WASD/sprint movement, jumping, and fly-mode vertical controls, while a Player entity performs swept AABB collision detection against the voxel world. Continuous integration spins up Xvfb with Mesa's lavapipe for headless testing, ensuring rendering logic and foundational systems are validated on Linux alongside native Windows/macOS runs. With Phase 6 complete, the engine additionally supports block breaking and placement via DDA raycasting, seamlessly updates chunk meshes across boundaries, and introduces a nine-slot hotbar inventory for quick block selection.
 
 ## Features
 
@@ -87,6 +87,11 @@ PoorCraft now boots into a fully managed SDL2 window, selects the optimal render
 - ✅ Input system for keyboard and mouse with relative mouse mode
 - ✅ Physics-based player entity with AABB collision detection
 - ✅ Gravity, jumping, sprint, and fly movement modes
+- ✅ Raycasting for block selection
+- ✅ Break blocks (left-click)
+- ✅ Place blocks (right-click)
+- ✅ Simple inventory (hotbar with 9 slots)
+- ✅ Automatic chunk mesh updates
 - 🔄 Upcoming: Deferred rendering, world generation, gameplay systems
 
 ## Running the Engine
@@ -97,6 +102,18 @@ cmake --build --preset <your-build-preset>
 ```
 
 Executables are emitted under `build/<preset>/`. Launch the `poorcraft` binary to open a window displaying a cornflower blue clear color. Use **WASD** to move, hold **Left Shift** to sprint, press **Space** to jump (while grounded), and tap **F** to toggle fly mode (Space/Shift adjust altitude). The mouse controls camera look; press **Escape** to release the cursor. The console prints renderer selection, GPU information, and an FPS + player position log every 60 frames, including grounded state.
+
+**Block interaction controls**
+
+- **Left click** – Break the targeted block (reach: 5 blocks)
+- **Right click** – Place the selected hotbar block at the highlighted position (if unobstructed)
+- **Number keys 1–9** – Select hotbar slot (Grass → Stone prefilled, remaining slots empty)
+
+Any block modification automatically flags affected chunks—including neighbors on boundaries—for remeshing, ensuring visuals stay coherent without manual intervention.
+
+## Block Interaction
+
+Block interaction uses a Digital Differential Analyzer (DDA) raycaster fired from the camera. The algorithm marches voxel-by-voxel up to a 5 block reach, returning the first solid block intersected plus the adjacent placement position and surface normal. Break actions remove the hit block, and placement actions validate against the player's collider before committing. Neighboring chunk meshes are marked dirty when edge blocks change, guaranteeing seamless updates. A simple nine-slot hotbar keeps frequently used blocks within reach; a UI overlay for the hotbar will ship in the next phase.
 
 ## Testing
 
@@ -115,20 +132,21 @@ Linux developers without a display can mirror CI by starting `Xvfb :99` and expo
 - GoogleTest **1.17.0**
 - CMake **3.31+**
 
-## Development Roadmap (Phases 1–11)
+## Development Roadmap (Phases 1–12)
 
 1. ✅ **Bootstrap** – Tooling, CI, hello-world executable
 2. ✅ **Rendering Core** – Vulkan renderer, windowing, swapchain management
 3. ✅ **Player Interaction** – Input system, first-person camera, fly-mode prototype
 4. ✅ **Physics & Collision** – Player entity with swept AABB, gravity, jumping, fly mode
 5. **World Generation** – Procedural terrain, biomes, caves, structure placement
-6. **Gameplay Systems** – Inventory, crafting tree, survival mechanics
-7. **Networking** – Deterministic simulation, rollback, dedicated server launcher
-8. **Asset Pipeline** – Texture packs, shader hot-reload, audio integration
-9. **Modding API** – Scripting bindings, Steam Workshop publishing, sandboxing
-10. **Tooling & UX** – In-engine editors, profiling HUD, telemetry dashboards
-11. **Optimization & QA** – Performance budgets, regression suites, fuzzing harnesses
-12. **Release Polish** – Localization, accessibility, certification, storefront launch assets
+6. ✅ **Block Interaction** – DDA raycasting, block breaking/placement, hotbar inventory
+7. **Gameplay Systems** – Inventory expansion, crafting tree, survival mechanics
+8. **Networking** – Deterministic simulation, rollback, dedicated server launcher
+9. **Asset Pipeline** – Texture packs, shader hot-reload, audio integration
+10. **Modding API** – Scripting bindings, Steam Workshop publishing, sandboxing
+11. **Tooling & UX** – In-engine editors, profiling HUD, telemetry dashboards
+12. **Optimization & QA** – Performance budgets, regression suites, fuzzing harnesses
+13. **Release Polish** – Localization, accessibility, certification, storefront launch assets
 
 ## Contributing
 

@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 
 #include <glm/glm.hpp>
+#include <memory>
 
 namespace poorcraft::world {
 
@@ -65,6 +66,28 @@ TEST_F(RaycasterTest, RaycastHitsSolidBlock) {
     EXPECT_EQ(hit.blockType, BlockType::Stone);
 }
 
+TEST_F(RaycasterTest, RaycastHitDistance) {
+    const glm::ivec3 blockPos(0, 61, 0);
+    chunkManager->setBlockAt(blockPos.x, blockPos.y, blockPos.z, BlockType::Stone);
+
+    const glm::vec3 origin(0.5f, 55.0f, 0.5f);
+    const glm::vec3 direction(0.0f, 1.0f, 0.0f);
+
+    for(float reach : {2.0f, 5.0f, 10.0f})
+    {
+        const auto hit = Raycaster::raycast(origin, direction, reach, *chunkManager);
+        if(reach >= 6.0f)
+        {
+            ASSERT_TRUE(hit.hit);
+            EXPECT_EQ(hit.blockPosition, blockPos);
+        }
+        else
+        {
+            EXPECT_FALSE(hit.hit);
+        }
+    }
+}
+
 TEST_F(RaycasterTest, RaycastPreviousBlockPosition) {
     const glm::ivec3 blockPos(0, 60, 0);
     chunkManager->setBlockAt(blockPos.x, blockPos.y, blockPos.z, BlockType::Dirt);
@@ -102,15 +125,34 @@ TEST_F(RaycasterTest, RaycastNormalDirections) {
     EXPECT_EQ(hitZ.normal, glm::vec3(0.0f, 0.0f, -1.0f));
 }
 
-TEST_F(RaycasterTest, RaycastRespectsMaxDistance) {
+TEST_F(RaycasterTest, RaycastMaxDistance) {
     const glm::ivec3 blockPos(0, 60, 5);
     chunkManager->setBlockAt(blockPos.x, blockPos.y, blockPos.z, BlockType::Stone);
 
     const glm::vec3 origin(0.5f, 60.5f, 0.5f);
     const glm::vec3 direction(0.0f, 0.0f, 1.0f);
-    const auto hit = Raycaster::raycast(origin, direction, 4.0f, *chunkManager);
+    const auto hitWithin = Raycaster::raycast(origin, direction, 6.0f, *chunkManager);
+    ASSERT_TRUE(hitWithin.hit);
+    EXPECT_EQ(hitWithin.blockPosition, blockPos);
 
-    EXPECT_FALSE(hit.hit);
+    const auto hitBeyond = Raycaster::raycast(origin, direction, 4.0f, *chunkManager);
+    EXPECT_FALSE(hitBeyond.hit);
+}
+
+TEST_F(RaycasterTest, RaycastThroughAirGaps) {
+    const glm::ivec3 firstBlock(0, 60, 2);
+    const glm::ivec3 secondBlock(0, 60, 5);
+    chunkManager->setBlockAt(firstBlock.x, firstBlock.y, firstBlock.z, BlockType::Grass);
+    chunkManager->setBlockAt(secondBlock.x, secondBlock.y, secondBlock.z, BlockType::Stone);
+    chunkManager->setBlockAt(firstBlock.x, firstBlock.y, firstBlock.z, BlockType::Air);
+
+    const glm::vec3 origin(0.5f, 60.5f, 0.5f);
+    const glm::vec3 direction(0.0f, 0.0f, 1.0f);
+    const auto hit = Raycaster::raycast(origin, direction, 10.0f, *chunkManager);
+
+    ASSERT_TRUE(hit.hit);
+    EXPECT_EQ(hit.blockPosition, secondBlock);
+    EXPECT_EQ(hit.blockType, BlockType::Stone);
 }
 
 } // namespace poorcraft::world
