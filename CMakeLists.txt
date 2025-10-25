@@ -18,6 +18,7 @@ option(POORCRAFT_BUILD_TESTS "Build the PoorCraft test suite" ON)
 option(POORCRAFT_UNITY_BUILD "Enable unity builds for compilation speed" OFF)
 option(POORCRAFT_ENABLE_VULKAN "Enable the Vulkan renderer backend" ON)
 option(POORCRAFT_ENABLE_OPENGL "Enable the OpenGL renderer backend" ON)
+option(POORCRAFT_BUILD_IMGUI_DEMO "Build the Dear ImGui demo window" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -26,6 +27,24 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include(FetchContent)
+
+set(_poorcraft_vulkan_available FALSE CACHE BOOL "Vulkan SDK available for PoorCraft" FORCE)
+set(_poorcraft_opengl_available TRUE)
+
+if(POORCRAFT_ENABLE_VULKAN)
+    find_package(Vulkan QUIET)
+    if(Vulkan_FOUND)
+        set(_poorcraft_vulkan_available TRUE CACHE BOOL "Vulkan SDK available for PoorCraft" FORCE)
+    else()
+        set(_poorcraft_vulkan_available FALSE CACHE BOOL "Vulkan SDK available for PoorCraft" FORCE)
+    endif()
+else()
+    set(Vulkan_FOUND FALSE)
+endif()
+
+if(NOT POORCRAFT_ENABLE_OPENGL)
+    set(_poorcraft_opengl_available FALSE)
+endif()
 
 find_package(SDL2 CONFIG QUIET)
 if(NOT SDL2_FOUND)
@@ -78,25 +97,63 @@ else()
     message(STATUS "FastNoise2 fetched via FetchContent")
 endif()
 
-set(_poorcraft_vulkan_available FALSE CACHE BOOL "Vulkan SDK available for PoorCraft" FORCE)
-if(POORCRAFT_ENABLE_VULKAN)
-    find_package(Vulkan QUIET)
-    if(Vulkan_FOUND)
-        set(_poorcraft_vulkan_available TRUE CACHE BOOL "Vulkan SDK available for PoorCraft" FORCE)
-    else()
-        set(_poorcraft_vulkan_available FALSE CACHE BOOL "Vulkan SDK available for PoorCraft" FORCE)
+find_package(imgui CONFIG QUIET)
+if(imgui_FOUND)
+    message(STATUS "Dear ImGui package found: ${imgui_DIR}")
+    if(TARGET imgui::imgui AND NOT TARGET imgui)
+        add_library(imgui ALIAS imgui::imgui)
     endif()
 else()
-    set(Vulkan_FOUND FALSE)
+    message(STATUS "Dear ImGui package not found, fetching from source...")
+    FetchContent_Declare(
+        imgui
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        GIT_TAG v1.91.9
+        GIT_SHALLOW TRUE
+        SYSTEM
+    )
+    FetchContent_MakeAvailable(imgui)
+    message(STATUS "Dear ImGui fetched via FetchContent")
 endif()
 
-set(_poorcraft_opengl_available TRUE)
+if(NOT TARGET imgui)
+    if(NOT DEFINED imgui_SOURCE_DIR)
+        message(FATAL_ERROR "Dear ImGui source directory not available for building bundled target.")
+    endif()
 
-if(NOT POORCRAFT_ENABLE_VULKAN)
-    set(_poorcraft_vulkan_available FALSE)
-endif()
-if(NOT POORCRAFT_ENABLE_OPENGL)
-    set(_poorcraft_opengl_available FALSE)
+    add_library(imgui STATIC)
+
+    target_sources(
+        imgui
+        PRIVATE
+            ${imgui_SOURCE_DIR}/imgui.cpp
+            ${imgui_SOURCE_DIR}/imgui_draw.cpp
+            ${imgui_SOURCE_DIR}/imgui_tables.cpp
+            ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    )
+
+    if(POORCRAFT_BUILD_IMGUI_DEMO)
+        target_sources(imgui PRIVATE ${imgui_SOURCE_DIR}/imgui_demo.cpp)
+    endif()
+
+    if(POORCRAFT_ENABLE_VULKAN AND Vulkan_FOUND)
+        target_sources(imgui PRIVATE ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp)
+        target_compile_definitions(imgui PUBLIC IMGUI_IMPL_VULKAN_NO_PROTOTYPES)
+    endif()
+
+    if(POORCRAFT_ENABLE_OPENGL)
+        target_sources(imgui PRIVATE ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp)
+        target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_CUSTOM)
+    endif()
+
+    target_sources(imgui PRIVATE ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp)
+
+    target_include_directories(
+        imgui
+        PUBLIC
+            ${imgui_SOURCE_DIR}
+            ${imgui_SOURCE_DIR}/backends
+    )
 endif()
 
 if(POORCRAFT_ENABLE_VULKAN AND _poorcraft_vulkan_available AND _poorcraft_opengl_available)

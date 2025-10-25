@@ -3,6 +3,10 @@
 #include "poorcraft/world/Chunk.h"
 #include "poorcraft/world/ChunkMesh.h"
 
+namespace poorcraft::rendering {
+class TextureAtlas;
+} // namespace poorcraft::rendering
+
 namespace poorcraft::world {
 
 class ChunkMesher {
@@ -17,7 +21,12 @@ public:
         Count
     };
 
-    static void generateMesh(const Chunk& chunk, ChunkMesh& outMesh, const Chunk* neighbors[6]);
+    static void generateMesh(
+        const Chunk& chunk,
+        ChunkMesh& outMesh,
+        const Chunk* neighbors[6],
+        const rendering::TextureAtlas& atlas
+    );
 
 private:
     static bool shouldCreateFace(
@@ -35,6 +44,16 @@ private:
         const Chunk& chunk,
         FaceDirection direction,
         ChunkMesh& outMesh,
+        const Chunk* neighbors[6],
+        const rendering::TextureAtlas& atlas
+    );
+
+    static float calculateVertexAO(
+        const Chunk& chunk,
+        const glm::ivec3& blockPos,
+        const glm::ivec3& normal,
+        const glm::ivec3& tangent,
+        const glm::ivec3& bitangent,
         const Chunk* neighbors[6]
     );
 };

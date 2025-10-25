@@ -38,6 +38,8 @@ add_executable(
     raycaster_test.cpp
     inventory_test.cpp
     block_interaction_test.cpp
+    game_state_test.cpp
+    ui_manager_test.cpp
 )
 
 target_compile_features(poorcraft_tests PRIVATE cxx_std_17)
@@ -56,6 +58,7 @@ target_link_libraries(
         SDL2::SDL2
         glm::glm-header-only
         FastNoise
+        imgui
 )
 
 if(POORCRAFT_ENABLE_VULKAN AND _poorcraft_vulkan_available)

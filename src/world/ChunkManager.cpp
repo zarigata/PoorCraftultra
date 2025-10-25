@@ -1,7 +1,8 @@
 #include "poorcraft/world/ChunkManager.h"
 
 #include "poorcraft/rendering/Renderer.h"
-#include "poorcraft/world/Block.h"
+#include "poorcraft/world/ChunkManager.h"
+#include "poorcraft/rendering/TextureAtlas.h"
 #include "poorcraft/world/ChunkMesher.h"
 
 #include <algorithm>
@@ -27,8 +28,13 @@ int floorDivInt(int value, int divisor) {
 }
 }
 
-ChunkManager::ChunkManager(rendering::Renderer& renderer, std::uint32_t seed)
+ChunkManager::ChunkManager(
+    rendering::Renderer& renderer,
+    rendering::TextureAtlas& atlas,
+    std::uint32_t seed
+)
     : m_renderer(renderer)
+    , m_textureAtlas(atlas)
     , m_terrainGenerator(std::make_unique<TerrainGenerator>(seed)) {}
 
 void ChunkManager::update(const glm::vec3& cameraPosition) {
@@ -263,7 +269,7 @@ void ChunkManager::meshChunk(ChunkData& data) {
     }
 
     data.mesh->clear();
-    ChunkMesher::generateMesh(*data.chunk, *data.mesh, neighborChunks);
+    ChunkMesher::generateMesh(*data.chunk, *data.mesh, neighborChunks, m_textureAtlas);
 
     if (data.mesh->isEmpty()) {
         return;

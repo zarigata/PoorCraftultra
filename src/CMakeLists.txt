@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.31)
 add_executable(
     poorcraft
     main.cpp
+    core/GameState.cpp
     core/Window.cpp
     core/GPUInfo.cpp
     core/Timer.cpp
@@ -13,6 +14,11 @@ add_executable(
     rendering/VulkanRenderer.cpp
     rendering/OpenGLRenderer.cpp
     rendering/RendererFactory.cpp
+    ui/UIManager.cpp
+    ui/MainMenuUI.cpp
+    ui/PauseMenuUI.cpp
+    ui/SettingsUI.cpp
+    ui/HUD.cpp
     world/Block.cpp
     world/Chunk.cpp
     world/ChunkMesh.cpp
@@ -47,6 +53,7 @@ target_link_libraries(
         SDL2::SDL2main
         glm::glm-header-only
         FastNoise
+        imgui
 )
 
 if(POORCRAFT_ENABLE_VULKAN AND _poorcraft_vulkan_available)

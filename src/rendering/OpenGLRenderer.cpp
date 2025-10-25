@@ -13,6 +13,10 @@
 #    include <iostream>
 #    include <string>
 
+#    include <imgui.h>
+#    include <backends/imgui_impl_sdl2.h>
+#    include <backends/imgui_impl_opengl3.h>
+
 namespace poorcraft::rendering
 {
 namespace
@@ -107,6 +111,78 @@ OpenGLRenderer::OpenGLRenderer(core::Window& window)
     : m_window(window)
 {}
 
+bool OpenGLRenderer::initializeUI()
+{
+    if(m_imguiInitialized)
+    {
+        return true;
+    }
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+
+    if(!ImGui_ImplSDL2_InitForOpenGL(m_window.getSDLWindow(), m_glContext))
+    {
+        std::cerr << "ImGui_ImplSDL2_InitForOpenGL failed\n";
+        return false;
+    }
+
+    if(!ImGui_ImplOpenGL3_Init("#version 330"))
+    {
+        std::cerr << "ImGui_ImplOpenGL3_Init failed\n";
+        return false;
+    }
+
+    m_imguiInitialized = true;
+    return true;
+}
+
+void OpenGLRenderer::shutdownUI()
+{
+    if(!m_imguiInitialized)
+    {
+        return;
+    }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
+    m_imguiInitialized = false;
+}
+
+void OpenGLRenderer::beginUIPass()
+{
+    if(!m_imguiInitialized)
+    {
+        return;
+    }
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
+}
+
+void OpenGLRenderer::renderUI()
+{
+    if(!m_imguiInitialized)
+    {
+        return;
+    }
+
+    ImGui::Render();
+    ImDrawData* drawData = ImGui::GetDrawData();
+    if(drawData == nullptr)
+    {
+        return;
+    }
+
+    ImGui_ImplOpenGL3_RenderDrawData(drawData);
+}
+
 bool OpenGLRenderer::initialize()
 {
     if(!createGLContext())
@@ -146,12 +222,20 @@ bool OpenGLRenderer::initialize()
         s_glEnable(GL_DEPTH_TEST_CONST);
     }
 
+    if(!initializeUI())
+    {
+        std::cerr << "Failed to initialize ImGui for OpenGL\n";
+        return false;
+    }
+
     applyVSync();
     return true;
 }
 
 void OpenGLRenderer::shutdown()
 {
+    shutdownUI();
+
     for(auto& [handle, resource] : m_vertexBuffers)
     {
         if(resource.buffer != 0 && s_glDeleteBuffers != nullptr)
@@ -276,6 +360,11 @@ RendererCapabilities OpenGLRenderer::getCapabilities() const
 
     capabilities.supportsRayTracing = false;
     return capabilities;
+}
+
+bool OpenGLRenderer::isVSyncEnabled() const
+{
+    return m_vsyncEnabled;
 }
 
 void OpenGLRenderer::setVSync(bool enabled)

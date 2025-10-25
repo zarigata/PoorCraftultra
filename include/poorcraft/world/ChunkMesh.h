@@ -11,6 +11,7 @@ struct ChunkVertex {
     glm::vec3 position{};
     glm::vec3 normal{};
     glm::vec2 texCoord{};
+    float ao{1.0f};
 };
 
 class ChunkMesh {
@@ -18,7 +19,13 @@ public:
     ChunkMesh() = default;
 
     void clear();
-    void addQuad(const glm::vec3 corners[4], const glm::vec3& normal, const glm::vec2 uvs[4]);
+    // aoValues contains per-vertex ambient occlusion factors in [0, 1] calculated by the ChunkMesher.
+    void addQuad(
+        const glm::vec3 corners[4],
+        const glm::vec3& normal,
+        const glm::vec2 uvs[4],
+        const float aoValues[4]
+    );
 
     [[nodiscard]] const std::vector<ChunkVertex>& getVertices() const noexcept { return m_vertices; }
     [[nodiscard]] const std::vector<std::uint32_t>& getIndices() const noexcept { return m_indices; }

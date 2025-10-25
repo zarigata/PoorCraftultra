@@ -1,7 +1,9 @@
 #include "poorcraft/world/ChunkMesher.h"
 
+#include "poorcraft/rendering/TextureAtlas.h"
 #include "poorcraft/world/Block.h"
 
+#include <algorithm>
 #include <array>
 #include <vector>
 
@@ -43,6 +45,38 @@ glm::ivec3 directionVector(ChunkMesher::FaceDirection direction) {
     }
 }
 
+glm::ivec3 tangentVector(ChunkMesher::FaceDirection direction) {
+    switch (direction) {
+    case ChunkMesher::FaceDirection::PosX:
+    case ChunkMesher::FaceDirection::NegX:
+        return {0, 0, 1};
+    case ChunkMesher::FaceDirection::PosY:
+    case ChunkMesher::FaceDirection::NegY:
+        return {1, 0, 0};
+    case ChunkMesher::FaceDirection::PosZ:
+    case ChunkMesher::FaceDirection::NegZ:
+        return {1, 0, 0};
+    default:
+        return {0, 0, 0};
+    }
+}
+
+glm::ivec3 bitangentVector(ChunkMesher::FaceDirection direction) {
+    switch (direction) {
+    case ChunkMesher::FaceDirection::PosX:
+    case ChunkMesher::FaceDirection::NegX:
+        return {0, 1, 0};
+    case ChunkMesher::FaceDirection::PosY:
+    case ChunkMesher::FaceDirection::NegY:
+        return {0, 0, 1};
+    case ChunkMesher::FaceDirection::PosZ:
+    case ChunkMesher::FaceDirection::NegZ:
+        return {0, 1, 0};
+    default:
+        return {0, 0, 0};
+    }
+}
+
 int neighborIndexFromDirection(ChunkMesher::FaceDirection direction) {
     switch (direction) {
     case ChunkMesher::FaceDirection::PosX:
@@ -66,13 +100,71 @@ inline bool blockVisible(BlockType type) {
     return block::isSolid(type);
 }
 
+BlockType sampleBlockWithNeighbors(
+    const Chunk& chunk,
+    const glm::ivec3& position,
+    const Chunk* neighbors[6]
+) {
+    glm::ivec3 pos = position;
+    const Chunk* currentChunk = &chunk;
+
+    if (pos.y < 0 || pos.y >= CHUNK_SIZE_Y) {
+        return BlockType::Air;
+    }
+
+    if (pos.x < 0) {
+        if (const Chunk* neighbor = neighbors[neighborIndexFromDirection(ChunkMesher::FaceDirection::NegX)]) {
+            currentChunk = neighbor;
+            pos.x += CHUNK_SIZE_X;
+        } else {
+            return BlockType::Air;
+        }
+    } else if (pos.x >= CHUNK_SIZE_X) {
+        if (const Chunk* neighbor = neighbors[neighborIndexFromDirection(ChunkMesher::FaceDirection::PosX)]) {
+            currentChunk = neighbor;
+            pos.x -= CHUNK_SIZE_X;
+        } else {
+            return BlockType::Air;
+        }
+    }
+
+    if (pos.z < 0) {
+        if (currentChunk != &chunk) {
+            return BlockType::Air; // Diagonal neighbor not tracked
+        }
+        if (const Chunk* neighbor = neighbors[neighborIndexFromDirection(ChunkMesher::FaceDirection::NegZ)]) {
+            currentChunk = neighbor;
+            pos.z += CHUNK_SIZE_Z;
+        } else {
+            return BlockType::Air;
+        }
+    } else if (pos.z >= CHUNK_SIZE_Z) {
+        if (currentChunk != &chunk) {
+            return BlockType::Air;
+        }
+        if (const Chunk* neighbor = neighbors[neighborIndexFromDirection(ChunkMesher::FaceDirection::PosZ)]) {
+            currentChunk = neighbor;
+            pos.z -= CHUNK_SIZE_Z;
+        } else {
+            return BlockType::Air;
+        }
+    }
+
+    return currentChunk->getBlock(pos.x, pos.y, pos.z);
+}
+
 } // namespace
 
-void ChunkMesher::generateMesh(const Chunk& chunk, ChunkMesh& outMesh, const Chunk* neighbors[6]) {
+void ChunkMesher::generateMesh(
+    const Chunk& chunk,
+    ChunkMesh& outMesh,
+    const Chunk* neighbors[6],
+    const rendering::TextureAtlas& atlas
+) {
     outMesh.clear();
 
     for (int direction = 0; direction < static_cast<int>(FaceDirection::Count); ++direction) {
-        generateFaceQuads(chunk, static_cast<FaceDirection>(direction), outMesh, neighbors);
+        generateFaceQuads(chunk, static_cast<FaceDirection>(direction), outMesh, neighbors, atlas);
     }
 }
 
@@ -132,7 +224,8 @@ void ChunkMesher::generateFaceQuads(
     const Chunk& chunk,
     FaceDirection direction,
     ChunkMesh& outMesh,
-    const Chunk* neighbors[6]
+    const Chunk* neighbors[6],
+    const rendering::TextureAtlas& atlas
 ) {
     const auto axes = FACE_AXES[static_cast<int>(direction)];
     const glm::ivec3 dirVec = directionVector(direction);
@@ -225,16 +318,93 @@ void ChunkMesher::generateFaceQuads(
                     corners[i] *= BLOCK_SIZE;
                 }
 
-                uvs[0] = glm::vec2(0.0f, 0.0f);
-                uvs[1] = glm::vec2(static_cast<float>(width), 0.0f);
-                uvs[2] = glm::vec2(static_cast<float>(width), static_cast<float>(height));
-                uvs[3] = glm::vec2(0.0f, static_cast<float>(height));
+                const rendering::AtlasRegion region = atlas.getRegion(blockType, direction);
+                const glm::vec2 regionSpan = region.uvMax - region.uvMin;
+                const float widthF = static_cast<float>(width);
+                const float heightF = static_cast<float>(height);
+
+                auto mapUv = [&](float uCoord, float vCoord) {
+                    const float uNorm = widthF > 0.0f ? uCoord / widthF : 0.0f;
+                    const float vNorm = heightF > 0.0f ? vCoord / heightF : 0.0f;
+                    return region.uvMin + regionSpan * glm::vec2(uNorm, vNorm);
+                };
+
+                uvs[0] = mapUv(0.0f, 0.0f);
+                uvs[1] = mapUv(static_cast<float>(width), 0.0f);
+                uvs[2] = mapUv(static_cast<float>(width), static_cast<float>(height));
+                uvs[3] = mapUv(0.0f, static_cast<float>(height));
+
+                float aoValues[4]{};
+                const glm::ivec3 tangentAxis = tangentVector(direction);
+                const glm::ivec3 bitangentAxis = bitangentVector(direction);
+                glm::ivec3 blockPos{0};
+                blockPos[axes.uAxis] = u;
+                blockPos[axes.vAxis] = v;
+                blockPos[axes.wAxis] = w;
+
+                for (int i = 0; i < 4; ++i) {
+                    const bool positiveTangent = (i == 1 || i == 2);
+                    const bool positiveBitangent = (i == 2 || i == 3);
+
+                    glm::ivec3 vertexBlockPos = blockPos;
+                    if (positiveTangent) {
+                        vertexBlockPos += tangentAxis * (width - 1);
+                    }
+                    if (positiveBitangent) {
+                        vertexBlockPos += bitangentAxis * (height - 1);
+                    }
+
+                    const glm::ivec3 tangentDir = positiveTangent ? tangentAxis : -tangentAxis;
+                    const glm::ivec3 bitangentDir = positiveBitangent ? bitangentAxis : -bitangentAxis;
+
+                    aoValues[i] = calculateVertexAO(
+                        chunk,
+                        vertexBlockPos,
+                        dirVec,
+                        tangentDir,
+                        bitangentDir,
+                        neighbors
+                    );
+                }
 
                 glm::vec3 normal = glm::vec3(dirVec);
-                outMesh.addQuad(corners, normal, uvs);
+                outMesh.addQuad(corners, normal, uvs, aoValues);
             }
         }
     }
+}
+
+float ChunkMesher::calculateVertexAO(
+    const Chunk& chunk,
+    const glm::ivec3& blockPos,
+    const glm::ivec3& normal,
+    const glm::ivec3& tangent,
+    const glm::ivec3& bitangent,
+    const Chunk* neighbors[6]
+) {
+    std::array<glm::ivec3, 8> offsets{
+        tangent,
+        -tangent,
+        bitangent,
+        -bitangent,
+        tangent + bitangent,
+        tangent - bitangent,
+        -tangent + bitangent,
+        -tangent - bitangent
+    };
+
+    int solidCount = 0;
+    for (const auto& offset : offsets) {
+        const glm::ivec3 samplePos = blockPos + offset;
+        const BlockType sampleType = sampleBlockWithNeighbors(chunk, samplePos, neighbors);
+        if (block::isSolid(sampleType)) {
+            ++solidCount;
+        }
+    }
+
+    const float occlusion = static_cast<float>(solidCount) / 8.0f;
+    const float ao = 1.0f - (occlusion * 0.75f);
+    return std::clamp(ao, 0.0f, 1.0f);
 }
 
 } // namespace poorcraft::world

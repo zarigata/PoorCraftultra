@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <vector>
 
+struct ImDrawData;
+
 namespace poorcraft::core
 {
 class Window;
@@ -31,6 +33,7 @@ public:
     void endFrame() override;
 
     RendererCapabilities getCapabilities() const override;
+    bool isVSyncEnabled() const override;
     void setVSync(bool enabled) override;
 
     void setViewProjection(const glm::mat4& view, const glm::mat4& projection) override;
@@ -40,6 +43,11 @@ public:
     void destroyBuffer(BufferHandle handle) override;
 
     void drawIndexed(BufferHandle vertexBuffer, BufferHandle indexBuffer, std::uint32_t indexCount, const glm::mat4& modelMatrix) override;
+
+    bool initializeUI() override;
+    void shutdownUI() override;
+    void beginUIPass() override;
+    void renderUI() override;
 
 private:
     bool createGLContext();
@@ -68,6 +76,7 @@ private:
     core::Window& m_window;
     SDL_GLContext m_glContext{nullptr};
     bool m_vsyncEnabled{true};
+    bool m_imguiInitialized{false};
 
     unsigned int m_shaderProgram{0};
     int m_viewProjLocation{-1};

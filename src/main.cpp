@@ -1,5 +1,6 @@
 #include "poorcraft/core/Camera.h"
 #include "poorcraft/core/GPUInfo.h"
+#include "poorcraft/core/GameState.h"
 #include "poorcraft/core/Input.h"
 #include "poorcraft/core/Inventory.h"
 #include "poorcraft/core/Player.h"
@@ -8,6 +9,7 @@
 #include "poorcraft/rendering/RendererFactory.h"
 #include "poorcraft/rendering/VulkanRenderer.h"
 #include "poorcraft/world/ChunkManager.h"
+#include "poorcraft/ui/UIManager.h"
 #include "poorcraft/world/Raycaster.h"
 #include "poorcraft/world/Block.h"
 
@@ -106,6 +108,7 @@ int main()
 #endif
 
     Input input;
+    core::GameStateManager gameStateManager;
     Player player(glm::vec3(0.0f, 100.0f, 0.0f));
     Camera camera(player.getEyePosition(), 0.0f, 0.0f);
     Inventory inventory;
@@ -119,7 +122,13 @@ int main()
     Timer timer;
     int frameCounter = 0;
 
-    while(window->isOpen() && !window->shouldClose())
+    poorcraft::ui::UIManager uiManager(gameStateManager, *renderer, input, timer, inventory, chunkManager);
+    uiManager.initialize();
+
+    renderer->initializeUI();
+
+    bool running = true;
+    while(running && window->isOpen() && !window->shouldClose())
     {
         input.reset();
         window->pollEvents();
@@ -127,7 +136,29 @@ int main()
         SDL_Event event{};
         while(SDL_PollEvent(&event))
         {
-            input.processEvent(event);
+            if(event.type == SDL_QUIT)
+            {
+                running = false;
+                break;
+            }
+
+            uiManager.processEvent(event);
+
+            if(!uiManager.wantsCaptureMouse() && !uiManager.wantsCaptureKeyboard())
+            {
+                input.processEvent(event);
+            }
+        }
+
+        if(!running)
+        {
+            break;
+        }
+
+        if(gameStateManager.shouldQuit())
+        {
+            running = false;
+            break;
         }
 
         timer.tick();
@@ -137,17 +168,20 @@ int main()
 
         player.setViewOrientation(camera.getForward(), camera.getRight());
         // Input → Player physics → Camera follows player eye position
-        player.update(input, deltaTime, chunkManager);
+        if(gameStateManager.getCurrentState() == core::GameState::Playing)
+        {
+            player.update(input, deltaTime, chunkManager);
+        }
         camera.setPosition(player.getEyePosition());
 
         const auto mouseDelta = input.getMouseDelta();
-        if(input.isRelativeMouseMode())
+        if(input.isRelativeMouseMode() && !uiManager.wantsCaptureMouse())
         {
             camera.rotate(mouseDelta.x * kMouseSensitivity, -mouseDelta.y * kMouseSensitivity);
             player.setViewOrientation(camera.getForward(), camera.getRight());
         }
 
-        if(flyToggleThisFrame)
+        if(flyToggleThisFrame && gameStateManager.getCurrentState() == core::GameState::Playing)
         {
             const auto mode = player.getMovementMode();
             std::cout << "Fly mode " << (mode == Player::MovementMode::Fly ? "enabled" : "disabled") << std::endl;
@@ -155,7 +189,14 @@ int main()
 
         if(input.isKeyPressed(Input::KeyCode::Escape))
         {
-            input.setRelativeMouseMode(false);
+            if(gameStateManager.getCurrentState() == core::GameState::Playing)
+            {
+                gameStateManager.pushState(core::GameState::Paused);
+            }
+            else if(gameStateManager.getCurrentState() == core::GameState::Paused)
+            {
+                gameStateManager.popState();
+            }
         }
 
         const auto raycastHit = poorcraft::world::Raycaster::raycast(
@@ -166,7 +207,8 @@ int main()
 
         if(raycastHit.hit)
         {
-            if(input.isMouseButtonPressed(Input::MouseButton::Left))
+            if(gameStateManager.getCurrentState() == core::GameState::Playing &&
+               input.isMouseButtonPressed(Input::MouseButton::Left))
             {
                 if(chunkManager.setBlockAt(raycastHit.blockPosition.x,
                                             raycastHit.blockPosition.y,
@@ -180,7 +222,8 @@ int main()
                 }
             }
 
-            if(input.isMouseButtonPressed(Input::MouseButton::Right))
+            if(gameStateManager.getCurrentState() == core::GameState::Playing &&
+               input.isMouseButtonPressed(Input::MouseButton::Right))
             {
                 const poorcraft::world::BlockType selectedBlock = inventory.getSelectedBlock();
                 if(selectedBlock != poorcraft::world::BlockType::Air)
@@ -234,7 +277,10 @@ int main()
             }
         }
 
-        chunkManager.update(camera.getPosition());
+        if(gameStateManager.getCurrentState() == core::GameState::Playing)
+        {
+            chunkManager.update(camera.getPosition());
+        }
 
         const float aspectRatio = static_cast<float>(window->getWidth()) /
                                   static_cast<float>(window->getHeight());
@@ -245,6 +291,7 @@ int main()
         renderer->clear(kClearColorR, kClearColorG, kClearColorB, kClearColorA);
         renderer->setViewProjection(viewMatrix, projectionMatrix);
         chunkManager.render();
+        uiManager.render();
         renderer->endFrame();
 
         ++frameCounter;
@@ -262,6 +309,8 @@ int main()
         }
     }
 
+    uiManager.shutdown();
+    renderer->shutdownUI();
     renderer->shutdown();
     renderer.reset();
     window.reset();

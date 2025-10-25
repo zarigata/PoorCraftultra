@@ -2,13 +2,15 @@
 #define POORCRAFT_RENDERING_VULKANRENDERER_H
 
 #include "poorcraft/rendering/Renderer.h"
+#include <vulkan/vulkan.h>
 #include <cstdint>
 #include <limits>
 #include <unordered_map>
 #include <vector>
 
 #include <glm/mat4x4.hpp>
-#include <vulkan/vulkan.h>
+
+struct ImDrawData;
 
 namespace poorcraft::core
 {
@@ -31,6 +33,7 @@ public:
     void endFrame() override;
 
     RendererCapabilities getCapabilities() const override;
+    bool isVSyncEnabled() const override;
     void setVSync(bool enabled) override;
 
     void setViewProjection(const glm::mat4& view, const glm::mat4& projection) override;
@@ -41,8 +44,14 @@ public:
 
     void drawIndexed(BufferHandle vertexBuffer, BufferHandle indexBuffer, std::uint32_t indexCount, const glm::mat4& modelMatrix) override;
 
+    bool initializeUI() override;
+    void shutdownUI() override;
+    void beginUIPass() override;
+    void renderUI() override;
+
     VkInstance getInstance() const { return m_instance; }
     VkPhysicalDevice getPhysicalDevice() const { return m_physicalDevice; }
+    core::Window& getWindow() const { return m_window; }
 
 private:
     bool createInstance();
@@ -58,6 +67,11 @@ private:
     bool createDepthResources();
     bool createFramebuffers();
     bool recreateSwapchain();
+
+    bool createImGuiDescriptorPool();
+    bool uploadImGuiFonts();
+    bool recreateImGuiBackend();
+    void destroyImGuiDescriptorPool();
 
     void destroySwapchain();
     void destroyPipeline();
@@ -104,6 +118,7 @@ private:
     uint32_t m_currentImageIndex{std::numeric_limits<uint32_t>::max()};
     bool m_framebufferResized{false};
     bool m_vsyncEnabled{true};
+    bool m_imguiInitialized{false};
 
     VkRenderPass m_renderPass{VK_NULL_HANDLE};
     VkPipelineLayout m_pipelineLayout{VK_NULL_HANDLE};
@@ -133,6 +148,10 @@ private:
     BufferHandle m_nextBufferHandle{1};
     std::unordered_map<BufferHandle, BufferResource> m_vertexBuffers;
     std::unordered_map<BufferHandle, BufferResource> m_indexBuffers;
+
+    VkDescriptorPool m_imguiDescriptorPool{VK_NULL_HANDLE};
+    ImDrawData* m_pendingUiDrawData{nullptr};
+    bool m_uiRenderPending{false};
 };
 } // namespace poorcraft::rendering
 

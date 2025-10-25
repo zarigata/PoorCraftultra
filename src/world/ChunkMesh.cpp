@@ -1,5 +1,7 @@
 #include "poorcraft/world/ChunkMesh.h"
 
+#include <algorithm>
+
 namespace poorcraft::world {
 
 void ChunkMesh::clear() {
@@ -8,13 +10,20 @@ void ChunkMesh::clear() {
     m_uploaded = false;
 }
 
-void ChunkMesh::addQuad(const glm::vec3 corners[4], const glm::vec3& normal, const glm::vec2 uvs[4]) {
+void ChunkMesh::addQuad(
+    const glm::vec3 corners[4],
+    const glm::vec3& normal,
+    const glm::vec2 uvs[4],
+    const float aoValues[4]
+) {
     const std::uint32_t baseIndex = static_cast<std::uint32_t>(m_vertices.size());
     for (int i = 0; i < 4; ++i) {
         ChunkVertex vertex{};
         vertex.position = corners[i];
         vertex.normal = normal;
         vertex.texCoord = uvs[i];
+        const float clampedAo = std::clamp(aoValues[i], 0.0f, 1.0f);
+        vertex.ao = clampedAo;
         m_vertices.push_back(vertex);
     }
 

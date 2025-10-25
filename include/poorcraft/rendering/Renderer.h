@@ -27,6 +27,7 @@ class Renderer
 {
 public:
     using BufferHandle = std::uint32_t;
+    using TextureHandle = std::uint32_t;
 
     virtual ~Renderer() = default;
 
@@ -38,7 +39,9 @@ public:
     virtual void endFrame() = 0;
 
     virtual RendererCapabilities getCapabilities() const = 0;
+    virtual bool isVSyncEnabled() const = 0;
     virtual void setVSync(bool enabled) = 0;
+    virtual bool isVSyncSupported() const { return true; }
 
     virtual void setViewProjection(const glm::mat4& view, const glm::mat4& projection) = 0;
 
@@ -46,7 +49,31 @@ public:
     virtual BufferHandle createIndexBuffer(const void* data, std::size_t size) = 0;
     virtual void destroyBuffer(BufferHandle handle) = 0;
 
+    // Textures use RGBA8 data; slot 0 reserved for block atlas.
+    virtual TextureHandle createTexture(const void* data, std::uint32_t width, std::uint32_t height, std::uint32_t channels) = 0;
+    virtual void destroyTexture(TextureHandle handle) = 0;
+    virtual void bindTexture(TextureHandle handle, std::uint32_t slot) = 0;
+
+    struct LightingParams {
+        glm::vec3 sunDirection{0.0f, -1.0f, 0.0f};
+        glm::vec3 sunColor{1.0f};
+        float sunIntensity{1.0f};
+        glm::vec3 ambientColor{0.2f, 0.3f, 0.4f};
+        float ambientIntensity{0.2f};
+    };
+
+    virtual void setLightingParams(const LightingParams& params) = 0;
+
     virtual void drawIndexed(BufferHandle vertexBuffer, BufferHandle indexBuffer, std::uint32_t indexCount, const glm::mat4& modelMatrix) = 0;
+
+    /**
+     * UI rendering happens after the 3D world render pass but before presentation.
+     * The application issues ImGui::NewFrame/Render; the renderer binds backend state.
+     */
+    virtual bool initializeUI() = 0;
+    virtual void shutdownUI() = 0;
+    virtual void beginUIPass() = 0;
+    virtual void renderUI() = 0;
 
 protected:
     Renderer() = default;

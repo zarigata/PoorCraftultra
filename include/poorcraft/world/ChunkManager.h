@@ -1,10 +1,10 @@
 #pragma once
 
+#include "poorcraft/rendering/Renderer.h"
+#include "poorcraft/rendering/TextureAtlas.h"
 #include "poorcraft/world/Chunk.h"
 #include "poorcraft/world/ChunkMesh.h"
 #include "poorcraft/world/TerrainGenerator.h"
-
-#include "poorcraft/rendering/Renderer.h"
 
 #include <glm/glm.hpp>
 
@@ -23,7 +23,11 @@ struct ChunkData {
 
 class ChunkManager {
 public:
-    ChunkManager(rendering::Renderer& renderer, std::uint32_t seed);
+    ChunkManager(
+        rendering::Renderer& renderer,
+        rendering::TextureAtlas& atlas,
+        std::uint32_t seed
+    );
     virtual ~ChunkManager() = default;
 
     void update(const glm::vec3& cameraPosition);
@@ -49,6 +53,7 @@ private:
     [[nodiscard]] std::vector<ChunkPosition> getChunksInRadius(const ChunkPosition& center, int radius) const;
 
     rendering::Renderer& m_renderer;
+    rendering::TextureAtlas& m_textureAtlas;
     std::unique_ptr<TerrainGenerator> m_terrainGenerator;
     std::unordered_map<ChunkPosition, ChunkData, ChunkPositionHash> m_chunks;
     int m_renderDistance{8};

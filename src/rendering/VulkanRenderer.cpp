@@ -21,6 +21,10 @@
 #    include <tuple>
 #    include <utility>
 
+#    include <imgui.h>
+#    include <backends/imgui_impl_sdl2.h>
+#    include <backends/imgui_impl_vulkan.h>
+
 namespace poorcraft::rendering
 {
 namespace
@@ -96,6 +100,51 @@ bool checkValidationLayerSupport()
             return false;
         }
     }
+    return true;
+}
+
+bool VulkanRenderer::recreateImGuiBackend()
+{
+    if(!m_imguiInitialized)
+    {
+        return false;
+    }
+
+    ImGui_ImplVulkan_Shutdown();
+
+    const auto queues = findQueueFamilies(m_physicalDevice, m_surface);
+    if(!queues.graphicsFamily.has_value())
+    {
+        std::cerr << "Failed to locate graphics queue family for ImGui backend recreation\n";
+        return false;
+    }
+
+    ImGui_ImplVulkan_InitInfo initInfo{};
+    initInfo.Instance = m_instance;
+    initInfo.PhysicalDevice = m_physicalDevice;
+    initInfo.Device = m_device;
+    initInfo.QueueFamily = queues.graphicsFamily.value();
+    initInfo.Queue = m_graphicsQueue;
+    initInfo.DescriptorPool = m_imguiDescriptorPool;
+    initInfo.MinImageCount = static_cast<uint32_t>(m_swapchainImages.size());
+    initInfo.ImageCount = static_cast<uint32_t>(m_swapchainImages.size());
+    initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    initInfo.CheckVkResultFn = nullptr;
+
+    if(!ImGui_ImplVulkan_Init(&initInfo, m_renderPass))
+    {
+        std::cerr << "ImGui_ImplVulkan_Init failed during backend recreation\n";
+        return false;
+    }
+
+    if(!uploadImGuiFonts())
+    {
+        std::cerr << "Failed to upload ImGui fonts during backend recreation\n";
+        return false;
+    }
+
+    m_uiRenderPending = false;
+    m_pendingUiDrawData = nullptr;
     return true;
 }
 
@@ -345,6 +394,18 @@ bool VulkanRenderer::initialize()
         return false;
     }
 
+    if(!createImGuiDescriptorPool())
+    {
+        std::cerr << "Failed to create ImGui descriptor pool\n";
+        return false;
+    }
+
+    if(!initializeUI())
+    {
+        std::cerr << "Failed to initialize ImGui backend\n";
+        return false;
+    }
+
     return true;
 }
 
@@ -356,6 +417,9 @@ void VulkanRenderer::shutdown()
     }
 
     vkDeviceWaitIdle(m_device);
+
+    shutdownUI();
+    destroyImGuiDescriptorPool();
 
     for(size_t i = 0; i < m_imageAvailableSemaphores.size(); ++i)
     {
@@ -526,6 +590,13 @@ void VulkanRenderer::endFrame()
     }
     m_drawCommands.clear();
 
+    if(m_uiRenderPending && m_pendingUiDrawData != nullptr)
+    {
+        ImGui_ImplVulkan_RenderDrawData(m_pendingUiDrawData, commandBuffer);
+    }
+    m_pendingUiDrawData = nullptr;
+    m_uiRenderPending = false;
+
     vkCmdEndRenderPass(commandBuffer);
 
     vkEndCommandBuffer(commandBuffer);
@@ -655,6 +726,11 @@ RendererCapabilities VulkanRenderer::getCapabilities() const
         capabilities.supportsRayTracing = rayFeatures.rayTracingPipeline == VK_TRUE;
     }
     return capabilities;
+}
+
+bool VulkanRenderer::isVSyncEnabled() const
+{
+    return m_vsyncEnabled;
 }
 
 void VulkanRenderer::setVSync(bool enabled)
@@ -1334,6 +1410,15 @@ bool VulkanRenderer::recreateSwapchain()
         return false;
     }
 
+    if(m_imguiInitialized)
+    {
+        ImGui_ImplVulkan_SetMinImageCount(static_cast<uint32_t>(m_swapchainImages.size()));
+        if(!recreateImGuiBackend())
+        {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -1483,6 +1568,110 @@ bool VulkanRenderer::createFramebuffers()
     return true;
 }
 
+bool VulkanRenderer::initializeUI()
+{
+    if(m_imguiInitialized)
+    {
+        return true;
+    }
+
+    if(m_imguiDescriptorPool == VK_NULL_HANDLE)
+    {
+        if(!createImGuiDescriptorPool())
+        {
+            return false;
+        }
+    }
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+
+    if(!ImGui_ImplSDL2_InitForVulkan(m_window.getSDLWindow()))
+    {
+        std::cerr << "ImGui_ImplSDL2_InitForVulkan failed\n";
+        return false;
+    }
+
+    const auto queues = findQueueFamilies(m_physicalDevice, m_surface);
+    if(!queues.graphicsFamily.has_value())
+    {
+        std::cerr << "Failed to locate graphics queue family for ImGui\n";
+        return false;
+    }
+
+    ImGui_ImplVulkan_InitInfo initInfo{};
+    initInfo.Instance = m_instance;
+    initInfo.PhysicalDevice = m_physicalDevice;
+    initInfo.Device = m_device;
+    initInfo.QueueFamily = queues.graphicsFamily.value();
+    initInfo.Queue = m_graphicsQueue;
+    initInfo.DescriptorPool = m_imguiDescriptorPool;
+    initInfo.MinImageCount = static_cast<uint32_t>(m_swapchainImages.size());
+    initInfo.ImageCount = static_cast<uint32_t>(m_swapchainImages.size());
+    initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    initInfo.CheckVkResultFn = nullptr;
+
+    if(!ImGui_ImplVulkan_Init(&initInfo, m_renderPass))
+    {
+        std::cerr << "ImGui_ImplVulkan_Init failed\n";
+        return false;
+    }
+
+    if(!uploadImGuiFonts())
+    {
+        std::cerr << "Failed to upload ImGui fonts\n";
+        return false;
+    }
+
+    m_imguiInitialized = true;
+    m_uiRenderPending = false;
+    m_pendingUiDrawData = nullptr;
+    return true;
+}
+
+void VulkanRenderer::shutdownUI()
+{
+    if(!m_imguiInitialized)
+    {
+        return;
+    }
+
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
+    m_imguiInitialized = false;
+    m_uiRenderPending = false;
+    m_pendingUiDrawData = nullptr;
+}
+
+void VulkanRenderer::beginUIPass()
+{
+    if(!m_imguiInitialized)
+    {
+        return;
+    }
+
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
+}
+
+void VulkanRenderer::renderUI()
+{
+    if(!m_imguiInitialized)
+    {
+        return;
+    }
+
+    ImGui::Render();
+    m_pendingUiDrawData = ImGui::GetDrawData();
+    m_uiRenderPending = (m_pendingUiDrawData != nullptr);
+}
+
 bool VulkanRenderer::createDeviceLocalBuffer(const void* data, std::size_t size, VkBufferUsageFlags usage, BufferResource& outBuffer)
 {
     VkBuffer stagingBuffer = VK_NULL_HANDLE;
@@ -1548,15 +1737,6 @@ bool VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, V
 }
 
 void VulkanRenderer::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
-{
-    VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = m_commandPool;
-    allocInfo.commandBufferCount = 1;
-
-    VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
