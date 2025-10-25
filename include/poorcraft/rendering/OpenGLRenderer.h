@@ -1,0 +1,87 @@
+#ifndef POORCRAFT_RENDERING_OPENGLRENDERER_H
+#define POORCRAFT_RENDERING_OPENGLRENDERER_H
+
+#include "poorcraft/rendering/Renderer.h"
+
+#include <SDL2/SDL.h>
+
+#include <glm/mat4x4.hpp>
+
+#include <unordered_map>
+#include <vector>
+
+namespace poorcraft::core
+{
+class Window;
+}
+
+namespace poorcraft::rendering
+{
+class OpenGLRenderer : public Renderer
+{
+public:
+    explicit OpenGLRenderer(core::Window& window);
+    ~OpenGLRenderer() override = default;
+
+    bool initialize() override;
+    void shutdown() override;
+
+    void beginFrame() override;
+    void clear(float r, float g, float b, float a) override;
+    void endFrame() override;
+
+    RendererCapabilities getCapabilities() const override;
+    void setVSync(bool enabled) override;
+
+    void setViewProjection(const glm::mat4& view, const glm::mat4& projection) override;
+
+    BufferHandle createVertexBuffer(const void* data, std::size_t size) override;
+    BufferHandle createIndexBuffer(const void* data, std::size_t size) override;
+    void destroyBuffer(BufferHandle handle) override;
+
+    void drawIndexed(BufferHandle vertexBuffer, BufferHandle indexBuffer, std::uint32_t indexCount, const glm::mat4& modelMatrix) override;
+
+private:
+    bool createGLContext();
+    bool loadGLFunctions();
+    void applyVSync();
+    bool createShaderProgram();
+    void destroyShaderProgram();
+    void updateProjection();
+
+    struct BufferResource
+    {
+        unsigned int buffer{0};
+        std::size_t size{0};
+        unsigned int target{0};
+        unsigned int vao{0};
+    };
+
+    struct DrawCommand
+    {
+        BufferHandle vertexBuffer{};
+        BufferHandle indexBuffer{};
+        std::uint32_t indexCount{};
+        glm::mat4 modelMatrix{1.0f};
+    };
+
+    core::Window& m_window;
+    SDL_GLContext m_glContext{nullptr};
+    bool m_vsyncEnabled{true};
+
+    unsigned int m_shaderProgram{0};
+    int m_viewProjLocation{-1};
+    int m_modelLocation{-1};
+
+    glm::mat4 m_viewMatrix{1.0f};
+    glm::mat4 m_projectionMatrix{1.0f};
+    glm::mat4 m_viewProjection{1.0f};
+
+    BufferHandle m_nextBufferHandle{1};
+    std::unordered_map<BufferHandle, BufferResource> m_vertexBuffers;
+    std::unordered_map<BufferHandle, BufferResource> m_indexBuffers;
+    std::vector<DrawCommand> m_drawCommands;
+};
+} // namespace poorcraft::rendering
+
+#endif // POORCRAFT_RENDERING_OPENGLRENDERER_H
