@@ -44,6 +44,11 @@ public:
 
     void drawIndexed(BufferHandle vertexBuffer, BufferHandle indexBuffer, std::uint32_t indexCount, const glm::mat4& modelMatrix) override;
 
+    TextureHandle createTexture(const void* data, std::uint32_t width, std::uint32_t height, std::uint32_t channels) override;
+    void destroyTexture(TextureHandle handle) override;
+    void bindTexture(TextureHandle handle, std::uint32_t slot) override;
+    void setLightingParams(const LightingParams& params) override;
+
     bool initializeUI() override;
     void shutdownUI() override;
     void beginUIPass() override;
@@ -64,6 +69,14 @@ private:
     bool createSyncObjects();
     bool createRenderPass();
     bool createPipeline();
+    bool createDescriptorSetLayout();
+    bool createDescriptorPool();
+    bool createDescriptorSets();
+    bool createLightingUniformBuffer();
+    void updateLightingUniformBuffer();
+    bool createTextureSampler(VkSampler& sampler);
+    void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
     bool createDepthResources();
     bool createFramebuffers();
     bool recreateSwapchain();
@@ -149,6 +162,27 @@ private:
     std::unordered_map<BufferHandle, BufferResource> m_vertexBuffers;
     std::unordered_map<BufferHandle, BufferResource> m_indexBuffers;
 
+    struct TextureResource {
+        VkImage image{VK_NULL_HANDLE};
+        VkDeviceMemory memory{VK_NULL_HANDLE};
+        VkImageView imageView{VK_NULL_HANDLE};
+        VkSampler sampler{VK_NULL_HANDLE};
+        uint32_t width{0};
+        uint32_t height{0};
+    };
+
+    TextureHandle m_nextTextureHandle{1};
+    std::unordered_map<TextureHandle, TextureResource> m_textures;
+
+    VkDescriptorSetLayout m_descriptorSetLayout{VK_NULL_HANDLE};
+    VkDescriptorPool m_descriptorPool{VK_NULL_HANDLE};
+    std::vector<VkDescriptorSet> m_descriptorSets;
+
+    VkBuffer m_lightingUniformBuffer{VK_NULL_HANDLE};
+    VkDeviceMemory m_lightingUniformMemory{VK_NULL_HANDLE};
+    void* m_lightingUniformMapped{nullptr};
+    LightingParams m_lightingParams{};
+
     VkDescriptorPool m_imguiDescriptorPool{VK_NULL_HANDLE};
     ImDrawData* m_pendingUiDrawData{nullptr};
     bool m_uiRenderPending{false};
@@ -156,3 +190,9 @@ private:
 } // namespace poorcraft::rendering
 
 #endif // POORCRAFT_RENDERING_VULKANRENDERER_H
+
+
+
+
+
+// DEATH TO ALL COMUNISTS
