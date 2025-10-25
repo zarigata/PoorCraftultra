@@ -154,6 +154,6 @@ TEST_F(CollisionTest, PlayerCannotWalkThroughSolidBlock) {
         input.reset();
     }
 
-    const float playerMaxX = player.getPosition().x + player.getAABB().max.x;
+    const float playerMaxX = player.getAABB().max.x;
     EXPECT_LE(playerMaxX, groundCenter.x + 0.5f + 1e-2f);
 }

@@ -34,7 +34,9 @@ public:
     [[nodiscard]] std::size_t getLoadedChunkCount() const noexcept { return m_chunks.size(); }
 
     [[nodiscard]] virtual BlockType getBlockAt(const glm::vec3& worldPosition) const;
+    [[nodiscard]] virtual BlockType getBlockAt(int blockX, int blockY, int blockZ) const;
     [[nodiscard]] virtual bool isBlockSolid(const glm::vec3& worldPosition) const;
+    [[nodiscard]] virtual bool isBlockSolidAt(int blockX, int blockY, int blockZ) const;
 
 private:
     [[nodiscard]] ChunkPosition worldToChunkPosition(const glm::vec3& worldPos) const;

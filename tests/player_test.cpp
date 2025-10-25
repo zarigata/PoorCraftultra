@@ -72,11 +72,11 @@ public:
     poorcraft::world::BlockType getBlockAt(const glm::vec3& worldPosition) const override {
         const glm::vec3 scaled = worldPosition / poorcraft::world::BLOCK_SIZE;
         const glm::vec3 floored = glm::floor(scaled);
-        const glm::ivec3 block{
-            static_cast<int>(floored.x),
-            static_cast<int>(floored.y),
-            static_cast<int>(floored.z)
-        };
+        return getBlockAt(static_cast<int>(floored.x), static_cast<int>(floored.y), static_cast<int>(floored.z));
+    }
+
+    poorcraft::world::BlockType getBlockAt(int blockX, int blockY, int blockZ) const override {
+        const glm::ivec3 block{blockX, blockY, blockZ};
         if (block.y < 0) {
             return poorcraft::world::BlockType::Stone;
         }
@@ -86,11 +86,11 @@ public:
     bool isBlockSolid(const glm::vec3& worldPosition) const override {
         const glm::vec3 scaled = worldPosition / poorcraft::world::BLOCK_SIZE;
         const glm::vec3 floored = glm::floor(scaled);
-        const glm::ivec3 block{
-            static_cast<int>(floored.x),
-            static_cast<int>(floored.y),
-            static_cast<int>(floored.z)
-        };
+        return isBlockSolidAt(static_cast<int>(floored.x), static_cast<int>(floored.y), static_cast<int>(floored.z));
+    }
+
+    bool isBlockSolidAt(int blockX, int blockY, int blockZ) const override {
+        const glm::ivec3 block{blockX, blockY, blockZ};
         if (block.y < 0) {
             return true;
         }
@@ -166,13 +166,13 @@ TEST(PlayerTest, Jump) {
     ASSERT_TRUE(player.isOnGround());
 
     input.reset();
-    sendKeyEvent(input, SDL_SCANCODE_SPACE, true);
+    sendKeyEvent(input, poorcraft::core::Input::KeyCode::Space, true);
     player.update(input, deltaTime, chunkManager);
     EXPECT_GT(player.getVelocity().y, 0.0f);
     EXPECT_FALSE(player.isOnGround());
 
     input.reset();
-    sendKeyEvent(input, SDL_SCANCODE_SPACE, false);
+    sendKeyEvent(input, poorcraft::core::Input::KeyCode::Space, false);
     player.update(input, deltaTime, chunkManager);
 }
 
@@ -194,7 +194,7 @@ TEST(PlayerTest, WallCollision) {
         input.reset();
     }
 
-    const float playerRight = player.getPosition().x + player.getAABB().max.x;
+    const float playerRight = player.getAABB().max.x;
     EXPECT_LE(playerRight, 1.0f + 1e-3f);
 
     input.reset();

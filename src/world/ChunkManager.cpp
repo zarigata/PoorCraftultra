@@ -17,6 +17,14 @@ int distanceSquared(const ChunkPosition& a, const ChunkPosition& b) {
     const int dz = a.z - b.z;
     return dx * dx + dz * dz;
 }
+
+int floorDivInt(int value, int divisor) {
+    int quotient = value / divisor;
+    if (value < 0 && (value % divisor)) {
+        --quotient;
+    }
+    return quotient;
+}
 }
 
 ChunkManager::ChunkManager(rendering::Renderer& renderer, std::uint32_t seed)
@@ -71,12 +79,10 @@ void ChunkManager::render() {
 }
 
 ChunkPosition ChunkManager::worldToChunkPosition(const glm::vec3& worldPos) const {
-    auto floorDiv = [](float value, int size) {
-        int result = static_cast<int>(std::floor(value / static_cast<float>(size)));
-        return result;
-    };
+    const int blockX = static_cast<int>(std::floor(worldPos.x / BLOCK_SIZE));
+    const int blockZ = static_cast<int>(std::floor(worldPos.z / BLOCK_SIZE));
 
-    return {floorDiv(worldPos.x, CHUNK_SIZE_X), floorDiv(worldPos.z, CHUNK_SIZE_Z)};
+    return {floorDivInt(blockX, CHUNK_SIZE_X), floorDivInt(blockZ, CHUNK_SIZE_Z)};
 }
 
 BlockType ChunkManager::getBlockAt(const glm::vec3& worldPosition) const {
@@ -84,13 +90,19 @@ BlockType ChunkManager::getBlockAt(const glm::vec3& worldPosition) const {
     const int blockY = static_cast<int>(std::floor(worldPosition.y / BLOCK_SIZE));
     const int blockZ = static_cast<int>(std::floor(worldPosition.z / BLOCK_SIZE));
 
+    return getBlockAt(blockX, blockY, blockZ);
+}
+
+BlockType ChunkManager::getBlockAt(int blockX, int blockY, int blockZ) const {
     if (blockY < 0 || blockY >= CHUNK_SIZE_Y) {
         return BlockType::Air;
     }
 
-    const ChunkPosition chunkPos = worldToChunkPosition(worldPosition);
+    const ChunkPosition chunkPos{floorDivInt(blockX, CHUNK_SIZE_X), floorDivInt(blockZ, CHUNK_SIZE_Z)};
     const auto chunkIt = m_chunks.find(chunkPos);
     if (chunkIt == m_chunks.end() || !chunkIt->second.chunk) {
+        // Treat missing chunks as empty space to keep player movement responsive while streaming; callers should ensure
+        // nearby chunks are requested early enough to avoid noticeable gaps.
         return BlockType::Air;
     }
 
@@ -104,7 +116,15 @@ BlockType ChunkManager::getBlockAt(const glm::vec3& worldPosition) const {
 }
 
 bool ChunkManager::isBlockSolid(const glm::vec3& worldPosition) const {
-    return block::isSolid(getBlockAt(worldPosition));
+    const int blockX = static_cast<int>(std::floor(worldPosition.x / BLOCK_SIZE));
+    const int blockY = static_cast<int>(std::floor(worldPosition.y / BLOCK_SIZE));
+    const int blockZ = static_cast<int>(std::floor(worldPosition.z / BLOCK_SIZE));
+
+    return isBlockSolidAt(blockX, blockY, blockZ);
+}
+
+bool ChunkManager::isBlockSolidAt(int blockX, int blockY, int blockZ) const {
+    return block::isSolid(getBlockAt(blockX, blockY, blockZ));
 }
 
 void ChunkManager::loadChunk(const ChunkPosition& position) {

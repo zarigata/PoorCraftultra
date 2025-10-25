@@ -4,6 +4,7 @@
 #include "poorcraft/world/ChunkManager.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 
 namespace poorcraft::core {
@@ -210,8 +211,7 @@ void Player::resolveCollisions(float deltaTime, const world::ChunkManager& chunk
         const auto blocks = getBlocksInAABB(aabb);
 
         for (const auto& block : blocks) {
-            const glm::vec3 blockCenter = glm::vec3(block) * world::BLOCK_SIZE + glm::vec3(world::BLOCK_SIZE * 0.5f);
-            if (!chunkManager.isBlockSolid(blockCenter)) {
+            if (!chunkManager.isBlockSolidAt(block.x, block.y, block.z)) {
                 continue;
             }
 
@@ -239,8 +239,32 @@ void Player::resolveCollisions(float deltaTime, const world::ChunkManager& chunk
 
 void Player::checkGroundCollision(const world::ChunkManager& chunkManager) {
     const float epsilon = 0.05f;
-    const glm::vec3 samplePoint = m_position + glm::vec3(0.0f, m_localAABB.min.y - epsilon, 0.0f);
-    m_onGround = chunkManager.isBlockSolid(samplePoint);
+    const float inset = 0.02f;
+    const AABB worldAABB = getWorldAABB();
+    const float sampleY = worldAABB.min.y - epsilon;
+
+    float minX = worldAABB.min.x + inset;
+    float maxX = worldAABB.max.x - inset;
+    float minZ = worldAABB.min.z + inset;
+    float maxZ = worldAABB.max.z - inset;
+
+    if (minX > maxX) {
+        minX = maxX = (worldAABB.min.x + worldAABB.max.x) * 0.5f;
+    }
+    if (minZ > maxZ) {
+        minZ = maxZ = (worldAABB.min.z + worldAABB.max.z) * 0.5f;
+    }
+
+    const std::array<glm::vec3, 4> samplePoints = {
+        glm::vec3(minX, sampleY, minZ),
+        glm::vec3(minX, sampleY, maxZ),
+        glm::vec3(maxX, sampleY, minZ),
+        glm::vec3(maxX, sampleY, maxZ)
+    };
+
+    m_onGround = std::any_of(samplePoints.begin(), samplePoints.end(), [&](const glm::vec3& point) {
+        return chunkManager.isBlockSolid(point);
+    });
 }
 
 } // namespace poorcraft::core
