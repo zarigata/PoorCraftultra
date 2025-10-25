@@ -127,6 +127,59 @@ bool ChunkManager::isBlockSolidAt(int blockX, int blockY, int blockZ) const {
     return block::isSolid(getBlockAt(blockX, blockY, blockZ));
 }
 
+bool ChunkManager::setBlockAt(const glm::vec3& worldPosition, BlockType type) {
+    const int blockX = static_cast<int>(std::floor(worldPosition.x / BLOCK_SIZE));
+    const int blockY = static_cast<int>(std::floor(worldPosition.y / BLOCK_SIZE));
+    const int blockZ = static_cast<int>(std::floor(worldPosition.z / BLOCK_SIZE));
+    return setBlockAt(blockX, blockY, blockZ, type);
+}
+
+bool ChunkManager::setBlockAt(int blockX, int blockY, int blockZ, BlockType type) {
+    if (blockY < 0 || blockY >= CHUNK_SIZE_Y) {
+        return false;
+    }
+
+    const ChunkPosition chunkPos{floorDivInt(blockX, CHUNK_SIZE_X), floorDivInt(blockZ, CHUNK_SIZE_Z)};
+    const auto chunkIt = m_chunks.find(chunkPos);
+    if (chunkIt == m_chunks.end() || !chunkIt->second.chunk || !chunkIt->second.chunk->isGenerated()) {
+        return false;
+    }
+
+    const int chunkOriginX = chunkPos.x * CHUNK_SIZE_X;
+    const int chunkOriginZ = chunkPos.z * CHUNK_SIZE_Z;
+    const int localX = blockX - chunkOriginX;
+    const int localZ = blockZ - chunkOriginZ;
+    const int localY = blockY;
+
+    if (localX < 0 || localX >= CHUNK_SIZE_X || localZ < 0 || localZ >= CHUNK_SIZE_Z) {
+        return false;
+    }
+
+    chunkIt->second.chunk->setBlock(localX, localY, localZ, type);
+
+    const auto markNeighborDirty = [this](const ChunkPosition& neighborPos) {
+        const auto neighborIt = m_chunks.find(neighborPos);
+        if (neighborIt != m_chunks.end() && neighborIt->second.chunk) {
+            neighborIt->second.chunk->setDirty(true);
+        }
+    };
+
+    if (localX == 0) {
+        markNeighborDirty({chunkPos.x - 1, chunkPos.z});
+    } else if (localX == CHUNK_SIZE_X - 1) {
+        markNeighborDirty({chunkPos.x + 1, chunkPos.z});
+    }
+
+    if (localZ == 0) {
+        markNeighborDirty({chunkPos.x, chunkPos.z - 1});
+    } else if (localZ == CHUNK_SIZE_Z - 1) {
+        markNeighborDirty({chunkPos.x, chunkPos.z + 1});
+    }
+
+    chunkIt->second.chunk->setDirty(true);
+    return true;
+}
+
 void ChunkManager::loadChunk(const ChunkPosition& position) {
     ChunkData data{};
     data.chunk = std::make_unique<Chunk>(position);

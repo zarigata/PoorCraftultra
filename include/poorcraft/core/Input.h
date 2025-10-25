@@ -22,7 +22,16 @@ public:
         LeftCtrl = SDL_SCANCODE_LCTRL,
         Escape = SDL_SCANCODE_ESCAPE,
         Tab = SDL_SCANCODE_TAB,
-        F = SDL_SCANCODE_F
+        F = SDL_SCANCODE_F,
+        Key1 = SDL_SCANCODE_1,
+        Key2 = SDL_SCANCODE_2,
+        Key3 = SDL_SCANCODE_3,
+        Key4 = SDL_SCANCODE_4,
+        Key5 = SDL_SCANCODE_5,
+        Key6 = SDL_SCANCODE_6,
+        Key7 = SDL_SCANCODE_7,
+        Key8 = SDL_SCANCODE_8,
+        Key9 = SDL_SCANCODE_9
     };
 
     enum class MouseButton

@@ -1,12 +1,15 @@
 #include "poorcraft/core/Camera.h"
 #include "poorcraft/core/GPUInfo.h"
 #include "poorcraft/core/Input.h"
+#include "poorcraft/core/Inventory.h"
 #include "poorcraft/core/Player.h"
 #include "poorcraft/core/Timer.h"
 #include "poorcraft/core/Window.h"
 #include "poorcraft/rendering/RendererFactory.h"
 #include "poorcraft/rendering/VulkanRenderer.h"
 #include "poorcraft/world/ChunkManager.h"
+#include "poorcraft/world/Raycaster.h"
+#include "poorcraft/world/Block.h"
 
 #include <glm/glm.hpp>
 
@@ -23,6 +26,7 @@ using poorcraft::core::Window;
 using poorcraft::core::gpu::enumerateGPUs;
 using poorcraft::core::gpu::getGPUInfoFromOpenGL;
 using poorcraft::core::gpu::vendorToString;
+using poorcraft::core::Inventory;
 using poorcraft::rendering::Renderer;
 using poorcraft::rendering::RendererBackend;
 using poorcraft::rendering::RendererCapabilities;
@@ -34,6 +38,8 @@ constexpr float kClearColorR = 0.39f;
 constexpr float kClearColorG = 0.58f;
 constexpr float kClearColorB = 0.93f;
 constexpr float kClearColorA = 1.0f;
+constexpr float kBlockReachDistance = 5.0f;
+constexpr float kBlockPlacementOffset = 0.1f;
 } // namespace
 
 int main()
@@ -102,6 +108,7 @@ int main()
     Input input;
     Player player(glm::vec3(0.0f, 100.0f, 0.0f));
     Camera camera(player.getEyePosition(), 0.0f, 0.0f);
+    Inventory inventory;
     constexpr float kMouseSensitivity = 0.002f;
     constexpr float kFieldOfView = glm::radians(60.0f);
     constexpr float kNearPlane = 0.1f;
@@ -151,6 +158,82 @@ int main()
             input.setRelativeMouseMode(false);
         }
 
+        const auto raycastHit = poorcraft::world::Raycaster::raycast(
+            camera.getPosition(),
+            camera.getForward(),
+            kBlockReachDistance,
+            chunkManager);
+
+        if(raycastHit.hit)
+        {
+            if(input.isMouseButtonPressed(Input::MouseButton::Left))
+            {
+                if(chunkManager.setBlockAt(raycastHit.blockPosition.x,
+                                            raycastHit.blockPosition.y,
+                                            raycastHit.blockPosition.z,
+                                            poorcraft::world::BlockType::Air))
+                {
+                    std::cout << "Broke block at ("
+                              << raycastHit.blockPosition.x << ", "
+                              << raycastHit.blockPosition.y << ", "
+                              << raycastHit.blockPosition.z << ")\n";
+                }
+            }
+
+            if(input.isMouseButtonPressed(Input::MouseButton::Right))
+            {
+                const poorcraft::world::BlockType selectedBlock = inventory.getSelectedBlock();
+                if(selectedBlock != poorcraft::world::BlockType::Air)
+                {
+                    const glm::ivec3 placementBlock = raycastHit.previousBlockPosition;
+                    const glm::vec3 blockMin = glm::vec3(placementBlock) * poorcraft::world::BLOCK_SIZE;
+                    const glm::vec3 blockMax = blockMin + glm::vec3(poorcraft::world::BLOCK_SIZE);
+
+                    const auto playerAABB = player.getAABB();
+                    const glm::vec3 expandedMin = blockMin - glm::vec3(kBlockPlacementOffset);
+                    const glm::vec3 expandedMax = blockMax + glm::vec3(kBlockPlacementOffset);
+
+                    const bool intersectsPlayer =
+                        (expandedMax.x > playerAABB.min.x && expandedMin.x < playerAABB.max.x) &&
+                        (expandedMax.y > playerAABB.min.y && expandedMin.y < playerAABB.max.y) &&
+                        (expandedMax.z > playerAABB.min.z && expandedMin.z < playerAABB.max.z);
+
+                    if(!intersectsPlayer)
+                    {
+                        if(chunkManager.setBlockAt(placementBlock.x,
+                                                    placementBlock.y,
+                                                    placementBlock.z,
+                                                    selectedBlock))
+                        {
+                            std::cout << "Placed " << poorcraft::world::block::getName(selectedBlock)
+                                      << " at (" << placementBlock.x << ", "
+                                      << placementBlock.y << ", "
+                                      << placementBlock.z << ")\n";
+                        }
+                    }
+                }
+            }
+        }
+
+        const Input::KeyCode hotbarKeys[9] = {
+            Input::KeyCode::Key1,
+            Input::KeyCode::Key2,
+            Input::KeyCode::Key3,
+            Input::KeyCode::Key4,
+            Input::KeyCode::Key5,
+            Input::KeyCode::Key6,
+            Input::KeyCode::Key7,
+            Input::KeyCode::Key8,
+            Input::KeyCode::Key9};
+
+        for(int i = 0; i < 9; ++i)
+        {
+            if(input.isKeyPressed(hotbarKeys[i]))
+            {
+                inventory.setSelectedSlot(i);
+            }
+        }
+
         chunkManager.update(camera.getPosition());
 
         const float aspectRatio = static_cast<float>(window->getWidth()) /
@@ -171,7 +254,10 @@ int main()
             std::cout << "FPS: " << timer.getFPS() << " | Chunks: " << chunkManager.getLoadedChunkCount()
                       << " | Player: (" << playerPosition.x << ", "
                       << playerPosition.y << ", " << playerPosition.z << ")"
-                      << " | OnGround: " << (player.isOnGround() ? "Yes" : "No") << std::endl;
+                      << " | OnGround: " << (player.isOnGround() ? "Yes" : "No")
+                      << " | Hotbar Slot: " << (inventory.getSelectedSlot() + 1)
+                      << " (" << poorcraft::world::block::getName(inventory.getSelectedBlock()) << ")"
+                      << std::endl;
             frameCounter = 0;
         }
     }

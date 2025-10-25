@@ -10,11 +10,11 @@ class ChunkManager;
 
 struct RaycastHit {
     bool hit{false};
-    glm::ivec3 blockPosition{};            // Solid block that was intersected
-    glm::ivec3 previousBlockPosition{};    // Empty block immediately before the hit, used for placement
+    glm::ivec3 blockPosition{};            // Solid block intersected by the ray
+    glm::ivec3 previousBlockPosition{};    // Last empty voxel visited before the hit (placement target)
     BlockType blockType{BlockType::Air};
-    glm::vec3 hitPoint{};                  // World-space hit position
-    glm::vec3 normal{};                    // Normal of the face that was hit
+    glm::vec3 hitPoint{};                  // World-space intersection point on the block face
+    glm::vec3 normal{};                    // Outward facing normal of the impacted face (unit vector)
 };
 
 class Raycaster {
@@ -23,9 +23,11 @@ public:
 
     /**
      * Perform voxel raycasting using the Digital Differential Analyzer (DDA) algorithm.
-     * DDA walks through the voxel grid one block boundary at a time, advancing to the
-     * next cell along the ray direction while tracking the last empty position. The
-     * first solid block encountered within the given maxDistance is returned.
+     * The algorithm marches the ray through the voxel grid by stepping from boundary
+     * to boundary, visiting cells in the exact order the ray crosses them. Each step
+     * keeps track of the previously empty voxel so the caller can determine a valid
+     * placement position adjacent to the hit block. The first solid block encountered
+     * within maxDistance is returned; otherwise hit will be false.
      */
     static RaycastHit raycast(const glm::vec3& origin,
                               const glm::vec3& direction,

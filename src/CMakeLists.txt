@@ -9,6 +9,7 @@ add_executable(
     core/Input.cpp
     core/Camera.cpp
     core/Player.cpp
+    core/Inventory.cpp
     rendering/VulkanRenderer.cpp
     rendering/OpenGLRenderer.cpp
     rendering/RendererFactory.cpp
@@ -18,6 +19,7 @@ add_executable(
     world/ChunkMesher.cpp
     world/TerrainGenerator.cpp
     world/ChunkManager.cpp
+    world/Raycaster.cpp
 )
 
 set_target_properties(

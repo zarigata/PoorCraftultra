@@ -35,6 +35,9 @@ add_executable(
     chunk_manager_test.cpp
     player_test.cpp
     collision_test.cpp
+    raycaster_test.cpp
+    inventory_test.cpp
+    block_interaction_test.cpp
 )
 
 target_compile_features(poorcraft_tests PRIVATE cxx_std_17)

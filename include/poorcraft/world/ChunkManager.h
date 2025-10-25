@@ -38,6 +38,9 @@ public:
     [[nodiscard]] virtual bool isBlockSolid(const glm::vec3& worldPosition) const;
     [[nodiscard]] virtual bool isBlockSolidAt(int blockX, int blockY, int blockZ) const;
 
+    bool setBlockAt(const glm::vec3& worldPosition, BlockType type);
+    bool setBlockAt(int blockX, int blockY, int blockZ, BlockType type);
+
 private:
     [[nodiscard]] ChunkPosition worldToChunkPosition(const glm::vec3& worldPos) const;
     void loadChunk(const ChunkPosition& position);
