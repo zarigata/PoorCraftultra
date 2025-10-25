@@ -1,6 +1,7 @@
 #include "poorcraft/world/ChunkManager.h"
 
 #include "poorcraft/rendering/Renderer.h"
+#include "poorcraft/world/Block.h"
 #include "poorcraft/world/ChunkMesher.h"
 
 #include <algorithm>
@@ -76,6 +77,34 @@ ChunkPosition ChunkManager::worldToChunkPosition(const glm::vec3& worldPos) cons
     };
 
     return {floorDiv(worldPos.x, CHUNK_SIZE_X), floorDiv(worldPos.z, CHUNK_SIZE_Z)};
+}
+
+BlockType ChunkManager::getBlockAt(const glm::vec3& worldPosition) const {
+    const int blockX = static_cast<int>(std::floor(worldPosition.x / BLOCK_SIZE));
+    const int blockY = static_cast<int>(std::floor(worldPosition.y / BLOCK_SIZE));
+    const int blockZ = static_cast<int>(std::floor(worldPosition.z / BLOCK_SIZE));
+
+    if (blockY < 0 || blockY >= CHUNK_SIZE_Y) {
+        return BlockType::Air;
+    }
+
+    const ChunkPosition chunkPos = worldToChunkPosition(worldPosition);
+    const auto chunkIt = m_chunks.find(chunkPos);
+    if (chunkIt == m_chunks.end() || !chunkIt->second.chunk) {
+        return BlockType::Air;
+    }
+
+    const int chunkOriginX = chunkPos.x * CHUNK_SIZE_X;
+    const int chunkOriginZ = chunkPos.z * CHUNK_SIZE_Z;
+    const int localX = blockX - chunkOriginX;
+    const int localY = blockY;
+    const int localZ = blockZ - chunkOriginZ;
+
+    return chunkIt->second.chunk->getBlock(localX, localY, localZ);
+}
+
+bool ChunkManager::isBlockSolid(const glm::vec3& worldPosition) const {
+    return block::isSolid(getBlockAt(worldPosition));
 }
 
 void ChunkManager::loadChunk(const ChunkPosition& position) {

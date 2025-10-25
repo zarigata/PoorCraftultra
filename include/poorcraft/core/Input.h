@@ -21,7 +21,8 @@ public:
         LeftShift = SDL_SCANCODE_LSHIFT,
         LeftCtrl = SDL_SCANCODE_LCTRL,
         Escape = SDL_SCANCODE_ESCAPE,
-        Tab = SDL_SCANCODE_TAB
+        Tab = SDL_SCANCODE_TAB,
+        F = SDL_SCANCODE_F
     };
 
     enum class MouseButton

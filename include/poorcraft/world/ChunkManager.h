@@ -32,6 +32,9 @@ public:
     [[nodiscard]] int getRenderDistance() const noexcept { return m_renderDistance; }
     [[nodiscard]] std::size_t getLoadedChunkCount() const noexcept { return m_chunks.size(); }
 
+    [[nodiscard]] BlockType getBlockAt(const glm::vec3& worldPosition) const;
+    [[nodiscard]] bool isBlockSolid(const glm::vec3& worldPosition) const;
+
 private:
     [[nodiscard]] ChunkPosition worldToChunkPosition(const glm::vec3& worldPos) const;
     void loadChunk(const ChunkPosition& position);
