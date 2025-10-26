@@ -74,7 +74,37 @@ jobs:
 
       - name: Create installer
         shell: pwsh
-        run: makensis /DVERSION=${{ env.VERSION }} build/windows/installer.nsi
+        env:
+          VI_NUM_VERSION: ${{ env.VI_NUM_VERSION }}
+        run: |
+          if (-not $env:VI_NUM_VERSION) {
+            throw "VI_NUM_VERSION environment variable not set."
+          }
+          makensis /DVERSION=${{ env.VERSION }} /DVI_NUM_VERSION=$env:VI_NUM_VERSION build/windows/installer.nsi
+
+      - name: Generate checksums
+        shell: pwsh
+        run: |
+          $artifacts = @(
+            "build/windows/output/PoorCraftUltra-v${{ env.VERSION }}-windows-x64-portable.zip",
+            "build/windows/output/PoorCraftUltra-v${{ env.VERSION }}-windows-x64-installer.exe"
+          )
+          $hashEntries = foreach ($artifact in $artifacts) {
+            if (-not (Test-Path $artifact)) { throw "Artifact not found: $artifact" }
+            $hash = (Get-FileHash -Algorithm SHA256 -Path $artifact).Hash
+            "${hash}  $(Split-Path $artifact -Leaf)"
+          }
+          $hashEntries | Out-File -FilePath build/windows/output/checksums.txt -Encoding utf8
+
+      - name: Upload Windows checksums
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: build/windows/output/checksums.txt
+          asset_name: PoorCraftUltra-v${{ env.VERSION }}-windows-checksums.txt
+          asset_content_type: text/plain
 
       - name: Upload portable ZIP
         uses: actions/upload-release-asset@v1
@@ -121,6 +151,26 @@ jobs:
 
       - name: Run Linux build script
         run: bash build/linux/build.sh
+
+      - name: Generate checksums
+        run: |
+          set -e
+          cd build/linux/output
+          sha256sum \
+            poorcraftultra_${{ env.VERSION }}_amd64.deb \
+            PoorCraftUltra-v${{ env.VERSION }}-linux-x86_64.AppImage \
+            PoorCraftUltra-v${{ env.VERSION }}-linux-x64-portable.tar.gz \
+            > checksums.txt
+
+      - name: Upload Linux checksums
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: build/linux/output/checksums.txt
+          asset_name: PoorCraftUltra-v${{ env.VERSION }}-linux-checksums.txt
+          asset_content_type: text/plain
 
       - name: Upload Debian package
         uses: actions/upload-release-asset@v1
@@ -172,6 +222,25 @@ jobs:
 
       - name: Run macOS build script
         run: bash build/macos/build.sh
+
+      - name: Generate checksums
+        run: |
+          set -e
+          cd build/macos/output
+          shasum -a 256 \
+            PoorCraftUltra-v${{ env.VERSION }}-macos-x64.dmg \
+            PoorCraftUltra-v${{ env.VERSION }}-macos-x64-portable.zip \
+            > checksums.txt
+
+      - name: Upload macOS checksums
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: build/macos/output/checksums.txt
+          asset_name: PoorCraftUltra-v${{ env.VERSION }}-macos-checksums.txt
+          asset_content_type: text/plain
 
       - name: Upload DMG
         uses: actions/upload-release-asset@v1
