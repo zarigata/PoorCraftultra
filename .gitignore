@@ -1,0 +1,35 @@
+# Build outputs
+bin/
+obj/
+out/
+*.dll
+*.exe
+*.pdb
+
+# IDE and editor settings
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.sln.docstates
+
+# NuGet packages
+packages/
+*.nupkg
+*.snupkg
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
