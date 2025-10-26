@@ -17,7 +17,7 @@ PoorCraftUltra is a cross-platform, moddable voxel game engine inspired by sandb
 For Windows PowerShell or Command Prompt:
 
 ```cmd
-cmd /c gradlew.bat build
+gradlew.bat build
 ```
 
 ## Running
@@ -29,7 +29,7 @@ cmd /c gradlew.bat build
 For Windows PowerShell or Command Prompt:
 
 ```cmd
-cmd /c gradlew.bat run
+gradlew.bat run
 ```
 
 ## Current Status
