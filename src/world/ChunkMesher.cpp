@@ -112,6 +112,7 @@ BlockType sampleBlockWithNeighbors(
         return BlockType::Air;
     }
 
+    // Handle X axis crossing
     if (pos.x < 0) {
         if (const Chunk* neighbor = neighbors[neighborIndexFromDirection(ChunkMesher::FaceDirection::NegX)]) {
             currentChunk = neighbor;
@@ -128,9 +129,20 @@ BlockType sampleBlockWithNeighbors(
         }
     }
 
+    // Handle Z axis crossing (including diagonals)
     if (pos.z < 0) {
+        // If we already crossed X boundary, approximate diagonal by checking edge neighbors
         if (currentChunk != &chunk) {
-            return BlockType::Air; // Diagonal neighbor not tracked
+            // We're in an X neighbor; check if both edge samples are solid
+            const glm::ivec3 xEdge = position;
+            const glm::ivec3 zEdge = {chunk.getPosition().x * CHUNK_SIZE_X + position.x, position.y, chunk.getPosition().z * CHUNK_SIZE_Z};
+            const BlockType xSample = sampleBlockWithNeighbors(chunk, xEdge, neighbors);
+            const BlockType zSample = sampleBlockWithNeighbors(chunk, {position.x, position.y, -1}, neighbors);
+            // If both edges are solid, treat diagonal as solid to avoid under-occlusion
+            if (block::isSolid(xSample) && block::isSolid(zSample)) {
+                return xSample;
+            }
+            return BlockType::Air;
         }
         if (const Chunk* neighbor = neighbors[neighborIndexFromDirection(ChunkMesher::FaceDirection::NegZ)]) {
             currentChunk = neighbor;
@@ -140,6 +152,14 @@ BlockType sampleBlockWithNeighbors(
         }
     } else if (pos.z >= CHUNK_SIZE_Z) {
         if (currentChunk != &chunk) {
+            // Diagonal approximation for +Z
+            const glm::ivec3 xEdge = position;
+            const glm::ivec3 zEdge = {chunk.getPosition().x * CHUNK_SIZE_X + position.x, position.y, chunk.getPosition().z * CHUNK_SIZE_Z + CHUNK_SIZE_Z};
+            const BlockType xSample = sampleBlockWithNeighbors(chunk, xEdge, neighbors);
+            const BlockType zSample = sampleBlockWithNeighbors(chunk, {position.x, position.y, CHUNK_SIZE_Z}, neighbors);
+            if (block::isSolid(xSample) && block::isSolid(zSample)) {
+                return xSample;
+            }
             return BlockType::Air;
         }
         if (const Chunk* neighbor = neighbors[neighborIndexFromDirection(ChunkMesher::FaceDirection::PosZ)]) {
@@ -319,56 +339,63 @@ void ChunkMesher::generateFaceQuads(
                 }
 
                 const rendering::AtlasRegion region = atlas.getRegion(blockType, direction);
-                const glm::vec2 regionSpan = region.uvMax - region.uvMin;
-                const float widthF = static_cast<float>(width);
-                const float heightF = static_cast<float>(height);
-
-                auto mapUv = [&](float uCoord, float vCoord) {
-                    const float uNorm = widthF > 0.0f ? uCoord / widthF : 0.0f;
-                    const float vNorm = heightF > 0.0f ? vCoord / heightF : 0.0f;
-                    return region.uvMin + regionSpan * glm::vec2(uNorm, vNorm);
-                };
-
-                uvs[0] = mapUv(0.0f, 0.0f);
-                uvs[1] = mapUv(static_cast<float>(width), 0.0f);
-                uvs[2] = mapUv(static_cast<float>(width), static_cast<float>(height));
-                uvs[3] = mapUv(0.0f, static_cast<float>(height));
-
-                float aoValues[4]{};
                 const glm::ivec3 tangentAxis = tangentVector(direction);
                 const glm::ivec3 bitangentAxis = bitangentVector(direction);
-                glm::ivec3 blockPos{0};
-                blockPos[axes.uAxis] = u;
-                blockPos[axes.vAxis] = v;
-                blockPos[axes.wAxis] = w;
-
-                for (int i = 0; i < 4; ++i) {
-                    const bool positiveTangent = (i == 1 || i == 2);
-                    const bool positiveBitangent = (i == 2 || i == 3);
-
-                    glm::ivec3 vertexBlockPos = blockPos;
-                    if (positiveTangent) {
-                        vertexBlockPos += tangentAxis * (width - 1);
-                    }
-                    if (positiveBitangent) {
-                        vertexBlockPos += bitangentAxis * (height - 1);
-                    }
-
-                    const glm::ivec3 tangentDir = positiveTangent ? tangentAxis : -tangentAxis;
-                    const glm::ivec3 bitangentDir = positiveBitangent ? bitangentAxis : -bitangentAxis;
-
-                    aoValues[i] = calculateVertexAO(
-                        chunk,
-                        vertexBlockPos,
-                        dirVec,
-                        tangentDir,
-                        bitangentDir,
-                        neighbors
-                    );
-                }
-
                 glm::vec3 normal = glm::vec3(dirVec);
-                outMesh.addQuad(corners, normal, uvs, aoValues);
+
+                // Split merged quad into 1x1 tiles to ensure proper texture tiling
+                for (int tileV = 0; tileV < height; ++tileV) {
+                    for (int tileU = 0; tileU < width; ++tileU) {
+                        glm::vec3 tileCorners[4];
+                        glm::vec2 tileUvs[4];
+                        float tileAoValues[4];
+
+                        // Compute tile corners
+                        auto setTileCorner = [&](int cornerIndex, int uOffset, int vOffset) {
+                            glm::ivec3 cornerPos = {0, 0, 0};
+                            cornerPos[axes.uAxis] = u + tileU + uOffset;
+                            cornerPos[axes.vAxis] = v + tileV + vOffset;
+                            cornerPos[axes.wAxis] = w + front;
+                            tileCorners[cornerIndex] = glm::vec3(cornerPos) * BLOCK_SIZE;
+                        };
+
+                        setTileCorner(0, 0, 0);
+                        setTileCorner(1, 1, 0);
+                        setTileCorner(2, 1, 1);
+                        setTileCorner(3, 0, 1);
+
+                        // Full atlas region UVs for each 1x1 tile
+                        tileUvs[0] = region.uvMin;
+                        tileUvs[1] = glm::vec2(region.uvMax.x, region.uvMin.y);
+                        tileUvs[2] = region.uvMax;
+                        tileUvs[3] = glm::vec2(region.uvMin.x, region.uvMax.y);
+
+                        // Calculate AO for each corner of the tile
+                        for (int i = 0; i < 4; ++i) {
+                            const bool positiveTangent = (i == 1 || i == 2);
+                            const bool positiveBitangent = (i == 2 || i == 3);
+
+                            glm::ivec3 vertexBlockPos{0};
+                            vertexBlockPos[axes.uAxis] = u + tileU + (positiveTangent ? 1 : 0);
+                            vertexBlockPos[axes.vAxis] = v + tileV + (positiveBitangent ? 1 : 0);
+                            vertexBlockPos[axes.wAxis] = w;
+
+                            const glm::ivec3 tangentDir = positiveTangent ? tangentAxis : -tangentAxis;
+                            const glm::ivec3 bitangentDir = positiveBitangent ? bitangentAxis : -bitangentAxis;
+
+                            tileAoValues[i] = calculateVertexAO(
+                                chunk,
+                                vertexBlockPos,
+                                dirVec,
+                                tangentDir,
+                                bitangentDir,
+                                neighbors
+                            );
+                        }
+
+                        outMesh.addQuad(tileCorners, normal, tileUvs, tileAoValues);
+                    }
+                }
             }
         }
     }

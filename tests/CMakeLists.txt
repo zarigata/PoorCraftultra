@@ -40,6 +40,33 @@ add_executable(
     block_interaction_test.cpp
     game_state_test.cpp
     ui_manager_test.cpp
+    texture_atlas_test.cpp
+    chunk_mesher_ao_test.cpp
+    renderer_texture_test.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/GameState.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/Window.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/GPUInfo.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/Timer.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/Input.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/Camera.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/Player.cpp
+    ${PROJECT_SOURCE_DIR}/src/core/Inventory.cpp
+    ${PROJECT_SOURCE_DIR}/src/rendering/VulkanRenderer.cpp
+    ${PROJECT_SOURCE_DIR}/src/rendering/OpenGLRenderer.cpp
+    ${PROJECT_SOURCE_DIR}/src/rendering/RendererFactory.cpp
+    ${PROJECT_SOURCE_DIR}/src/rendering/TextureAtlas.cpp
+    ${PROJECT_SOURCE_DIR}/src/ui/UIManager.cpp
+    ${PROJECT_SOURCE_DIR}/src/ui/MainMenuUI.cpp
+    ${PROJECT_SOURCE_DIR}/src/ui/PauseMenuUI.cpp
+    ${PROJECT_SOURCE_DIR}/src/ui/SettingsUI.cpp
+    ${PROJECT_SOURCE_DIR}/src/ui/HUD.cpp
+    ${PROJECT_SOURCE_DIR}/src/world/Block.cpp
+    ${PROJECT_SOURCE_DIR}/src/world/Chunk.cpp
+    ${PROJECT_SOURCE_DIR}/src/world/ChunkMesh.cpp
+    ${PROJECT_SOURCE_DIR}/src/world/ChunkMesher.cpp
+    ${PROJECT_SOURCE_DIR}/src/world/TerrainGenerator.cpp
+    ${PROJECT_SOURCE_DIR}/src/world/ChunkManager.cpp
+    ${PROJECT_SOURCE_DIR}/src/world/Raycaster.cpp
 )
 
 target_compile_features(poorcraft_tests PRIVATE cxx_std_17)

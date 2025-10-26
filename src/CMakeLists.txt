@@ -14,6 +14,7 @@ add_executable(
     rendering/VulkanRenderer.cpp
     rendering/OpenGLRenderer.cpp
     rendering/RendererFactory.cpp
+    rendering/TextureAtlas.cpp
     ui/UIManager.cpp
     ui/MainMenuUI.cpp
     ui/PauseMenuUI.cpp

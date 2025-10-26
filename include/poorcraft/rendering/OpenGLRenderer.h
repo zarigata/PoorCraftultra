@@ -7,6 +7,7 @@
 
 #include <glm/mat4x4.hpp>
 
+#include <array>
 #include <unordered_map>
 #include <vector>
 
@@ -44,6 +45,11 @@ public:
 
     void drawIndexed(BufferHandle vertexBuffer, BufferHandle indexBuffer, std::uint32_t indexCount, const glm::mat4& modelMatrix) override;
 
+    TextureHandle createTexture(const void* data, std::uint32_t width, std::uint32_t height, std::uint32_t channels) override;
+    void destroyTexture(TextureHandle handle) override;
+    void bindTexture(TextureHandle handle, std::uint32_t slot) override;
+    void setLightingParams(const LightingParams& params) override;
+
     bool initializeUI() override;
     void shutdownUI() override;
     void beginUIPass() override;
@@ -56,6 +62,8 @@ private:
     bool createShaderProgram();
     void destroyShaderProgram();
     void updateProjection();
+    void applyLightingUniforms();
+    TextureHandle createDefaultTexture();
 
     struct BufferResource
     {
@@ -73,6 +81,13 @@ private:
         glm::mat4 modelMatrix{1.0f};
     };
 
+    struct TextureResource
+    {
+        unsigned int id{0};
+        std::uint32_t width{0};
+        std::uint32_t height{0};
+    };
+
     core::Window& m_window;
     SDL_GLContext m_glContext{nullptr};
     bool m_vsyncEnabled{true};
@@ -81,6 +96,12 @@ private:
     unsigned int m_shaderProgram{0};
     int m_viewProjLocation{-1};
     int m_modelLocation{-1};
+    int m_textureLocation{-1};
+    int m_sunDirLocation{-1};
+    int m_sunColorLocation{-1};
+    int m_sunIntensityLocation{-1};
+    int m_ambientColorLocation{-1};
+    int m_ambientIntensityLocation{-1};
 
     glm::mat4 m_viewMatrix{1.0f};
     glm::mat4 m_projectionMatrix{1.0f};
@@ -90,6 +111,13 @@ private:
     std::unordered_map<BufferHandle, BufferResource> m_vertexBuffers;
     std::unordered_map<BufferHandle, BufferResource> m_indexBuffers;
     std::vector<DrawCommand> m_drawCommands;
+
+    TextureHandle m_nextTextureHandle{1};
+    std::unordered_map<TextureHandle, TextureResource> m_textures;
+    std::array<TextureHandle, 8> m_activeTextures{};
+    Renderer::LightingParams m_lightingParams{};
+    bool m_lightingDirty{true};
+    TextureHandle m_defaultTexture{0};
 };
 } // namespace poorcraft::rendering
 

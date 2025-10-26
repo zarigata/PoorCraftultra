@@ -53,7 +53,16 @@ using PFN_glDeleteBuffers = void (*)(int, const unsigned int*);
 using PFN_glEnableVertexAttribArray = void (*)(unsigned int);
 using PFN_glVertexAttribPointer = void (*)(unsigned int, int, unsigned int, bool, int, const void*);
 using PFN_glUniform1i = void (*)(int, int);
+using PFN_glUniform1f = void (*)(int, float);
+using PFN_glUniform3f = void (*)(int, float, float, float);
+using PFN_glUniform4f = void (*)(int, float, float, float, float);
 using PFN_glDrawElements = void (*)(unsigned int, int, unsigned int, const void*);
+using PFN_glGenTextures = void (*)(int, unsigned int*);
+using PFN_glDeleteTextures = void (*)(int, const unsigned int*);
+using PFN_glBindTexture = void (*)(unsigned int, unsigned int);
+using PFN_glTexParameteri = void (*)(unsigned int, unsigned int, int);
+using PFN_glTexImage2D = void (*)(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*);
+using PFN_glActiveTexture = void (*)(unsigned int);
 
 PFN_glClearColor s_glClearColor = nullptr;
 PFN_glClear s_glClear = nullptr;
@@ -86,7 +95,17 @@ PFN_glBufferData s_glBufferData = nullptr;
 PFN_glDeleteBuffers s_glDeleteBuffers = nullptr;
 PFN_glEnableVertexAttribArray s_glEnableVertexAttribArray = nullptr;
 PFN_glVertexAttribPointer s_glVertexAttribPointer = nullptr;
+PFN_glUniform1i s_glUniform1i = nullptr;
+PFN_glUniform1f s_glUniform1f = nullptr;
+PFN_glUniform3f s_glUniform3f = nullptr;
+PFN_glUniform4f s_glUniform4f = nullptr;
 PFN_glDrawElements s_glDrawElements = nullptr;
+PFN_glGenTextures s_glGenTextures = nullptr;
+PFN_glDeleteTextures s_glDeleteTextures = nullptr;
+PFN_glBindTexture s_glBindTexture = nullptr;
+PFN_glTexParameteri s_glTexParameteri = nullptr;
+PFN_glTexImage2D s_glTexImage2D = nullptr;
+PFN_glActiveTexture s_glActiveTexture = nullptr;
 
 constexpr unsigned int GL_COLOR_BUFFER_BIT_CONST = 0x00004000;
 constexpr unsigned int GL_DEPTH_BUFFER_BIT_CONST = 0x00000100;
@@ -105,11 +124,123 @@ constexpr unsigned int GL_FLOAT_CONST = 0x1406;
 constexpr unsigned int GL_TRIANGLES_CONST = 0x0004;
 constexpr unsigned int GL_UNSIGNED_INT_CONST = 0x1405;
 constexpr unsigned int GL_DEPTH_TEST_CONST = 0x0B71;
+constexpr unsigned int GL_TEXTURE_2D_CONST = 0x0DE1;
+constexpr unsigned int GL_RGBA_CONST = 0x1908;
+constexpr unsigned int GL_RGB_CONST = 0x1907;
+constexpr unsigned int GL_UNSIGNED_BYTE_CONST = 0x1401;
+constexpr unsigned int GL_TEXTURE_MIN_FILTER_CONST = 0x2801;
+constexpr unsigned int GL_TEXTURE_MAG_FILTER_CONST = 0x2800;
+constexpr unsigned int GL_TEXTURE_WRAP_S_CONST = 0x2802;
+constexpr unsigned int GL_TEXTURE_WRAP_T_CONST = 0x2803;
+constexpr unsigned int GL_NEAREST_CONST = 0x2600;
+constexpr unsigned int GL_LINEAR_CONST = 0x2601;
+constexpr unsigned int GL_REPEAT_CONST = 0x2901;
+constexpr unsigned int GL_TEXTURE0_CONST = 0x84C0;
 } // namespace
 
 OpenGLRenderer::OpenGLRenderer(core::Window& window)
     : m_window(window)
 {}
+
+Renderer::TextureHandle OpenGLRenderer::createTexture(const void* data, std::uint32_t width, std::uint32_t height, std::uint32_t channels)
+{
+    if(s_glGenTextures == nullptr || s_glBindTexture == nullptr || s_glTexParameteri == nullptr || s_glTexImage2D == nullptr)
+    {
+        return 0;
+    }
+
+    if(width == 0 || height == 0 || data == nullptr)
+    {
+        return 0;
+    }
+
+    unsigned int textureId = 0;
+    s_glGenTextures(1, &textureId);
+    if(textureId == 0)
+    {
+        return 0;
+    }
+
+    s_glBindTexture(GL_TEXTURE_2D_CONST, textureId);
+    s_glTexParameteri(GL_TEXTURE_2D_CONST, GL_TEXTURE_MIN_FILTER_CONST, GL_NEAREST_CONST);
+    s_glTexParameteri(GL_TEXTURE_2D_CONST, GL_TEXTURE_MAG_FILTER_CONST, GL_NEAREST_CONST);
+    s_glTexParameteri(GL_TEXTURE_2D_CONST, GL_TEXTURE_WRAP_S_CONST, GL_REPEAT_CONST);
+    s_glTexParameteri(GL_TEXTURE_2D_CONST, GL_TEXTURE_WRAP_T_CONST, GL_REPEAT_CONST);
+
+    const unsigned int format = channels >= 4 ? GL_RGBA_CONST : GL_RGB_CONST;
+    s_glTexImage2D(
+        GL_TEXTURE_2D_CONST,
+        0,
+        static_cast<int>(format),
+        static_cast<int>(width),
+        static_cast<int>(height),
+        0,
+        format,
+        GL_UNSIGNED_BYTE_CONST,
+        data);
+
+    s_glBindTexture(GL_TEXTURE_2D_CONST, 0);
+
+    const TextureHandle handle = m_nextTextureHandle++;
+    m_textures.emplace(handle, TextureResource{textureId, width, height});
+    return handle;
+}
+
+void OpenGLRenderer::destroyTexture(TextureHandle handle)
+{
+    if(handle == 0 || handle == m_defaultTexture)
+    {
+        return;
+    }
+
+    if(auto it = m_textures.find(handle); it != m_textures.end())
+    {
+        if(it->second.id != 0 && s_glDeleteTextures != nullptr)
+        {
+            s_glDeleteTextures(1, &it->second.id);
+        }
+        m_textures.erase(it);
+    }
+}
+
+void OpenGLRenderer::bindTexture(TextureHandle handle, std::uint32_t slot)
+{
+    if(s_glActiveTexture == nullptr || s_glBindTexture == nullptr)
+    {
+        return;
+    }
+
+    if(slot >= m_activeTextures.size())
+    {
+        return;
+    }
+
+    TextureHandle resolvedHandle = handle;
+    if(auto it = m_textures.find(handle); it == m_textures.end())
+    {
+        resolvedHandle = m_defaultTexture;
+    }
+
+    const auto resourceIt = m_textures.find(resolvedHandle);
+    if(resourceIt == m_textures.end())
+    {
+        return;
+    }
+
+    s_glActiveTexture(GL_TEXTURE0_CONST + slot);
+    s_glBindTexture(GL_TEXTURE_2D_CONST, resourceIt->second.id);
+    m_activeTextures[slot] = resolvedHandle;
+}
+
+void OpenGLRenderer::setLightingParams(const LightingParams& params)
+{
+    m_lightingParams = params;
+    if(glm::length(m_lightingParams.sunDirection) > 0.0f)
+    {
+        m_lightingParams.sunDirection = glm::normalize(m_lightingParams.sunDirection);
+    }
+    m_lightingDirty = true;
+}
 
 bool OpenGLRenderer::initializeUI()
 {
@@ -229,6 +360,19 @@ bool OpenGLRenderer::initialize()
     }
 
     applyVSync();
+
+    m_activeTextures.fill(0);
+    m_defaultTexture = createDefaultTexture();
+    if(m_defaultTexture == 0)
+    {
+        std::cerr << "Failed to create default texture\n";
+        return false;
+    }
+    for(std::size_t i = 0; i < m_activeTextures.size(); ++i)
+    {
+        bindTexture(m_defaultTexture, static_cast<std::uint32_t>(i));
+    }
+
     return true;
 }
 
@@ -258,6 +402,17 @@ void OpenGLRenderer::shutdown()
     }
     m_indexBuffers.clear();
 
+    for(auto& [handle, resource] : m_textures)
+    {
+        if(resource.id != 0 && s_glDeleteTextures != nullptr)
+        {
+            s_glDeleteTextures(1, &resource.id);
+        }
+    }
+    m_textures.clear();
+    m_nextTextureHandle = 1;
+    m_defaultTexture = 0;
+
     destroyShaderProgram();
 
     if(m_glContext != nullptr)
@@ -272,6 +427,7 @@ void OpenGLRenderer::beginFrame()
     if(s_glUseProgram != nullptr && m_shaderProgram != 0)
     {
         s_glUseProgram(m_shaderProgram);
+        applyLightingUniforms();
     }
 }
 
@@ -443,7 +599,16 @@ bool OpenGLRenderer::loadGLFunctions()
     s_glDeleteBuffers = reinterpret_cast<PFN_glDeleteBuffers>(SDL_GL_GetProcAddress("glDeleteBuffers"));
     s_glEnableVertexAttribArray = reinterpret_cast<PFN_glEnableVertexAttribArray>(SDL_GL_GetProcAddress("glEnableVertexAttribArray"));
     s_glVertexAttribPointer = reinterpret_cast<PFN_glVertexAttribPointer>(SDL_GL_GetProcAddress("glVertexAttribPointer"));
+    s_glUniform1i = reinterpret_cast<PFN_glUniform1i>(SDL_GL_GetProcAddress("glUniform1i"));
+    s_glUniform1f = reinterpret_cast<PFN_glUniform1f>(SDL_GL_GetProcAddress("glUniform1f"));
+    s_glUniform3f = reinterpret_cast<PFN_glUniform3f>(SDL_GL_GetProcAddress("glUniform3f"));
     s_glDrawElements = reinterpret_cast<PFN_glDrawElements>(SDL_GL_GetProcAddress("glDrawElements"));
+    s_glGenTextures = reinterpret_cast<PFN_glGenTextures>(SDL_GL_GetProcAddress("glGenTextures"));
+    s_glDeleteTextures = reinterpret_cast<PFN_glDeleteTextures>(SDL_GL_GetProcAddress("glDeleteTextures"));
+    s_glBindTexture = reinterpret_cast<PFN_glBindTexture>(SDL_GL_GetProcAddress("glBindTexture"));
+    s_glTexParameteri = reinterpret_cast<PFN_glTexParameteri>(SDL_GL_GetProcAddress("glTexParameteri"));
+    s_glTexImage2D = reinterpret_cast<PFN_glTexImage2D>(SDL_GL_GetProcAddress("glTexImage2D"));
+    s_glActiveTexture = reinterpret_cast<PFN_glActiveTexture>(SDL_GL_GetProcAddress("glActiveTexture"));
 
     return s_glClearColor != nullptr && s_glClear != nullptr && s_glGetString != nullptr && s_glGetIntegerv != nullptr &&
            s_glEnable != nullptr && s_glCreateShader != nullptr && s_glShaderSource != nullptr && s_glCompileShader != nullptr &&
@@ -452,7 +617,7 @@ bool OpenGLRenderer::loadGLFunctions()
            s_glGetUniformLocation != nullptr && s_glUniformMatrix4fv != nullptr && s_glGenVertexArrays != nullptr &&
            s_glBindVertexArray != nullptr && s_glGenBuffers != nullptr && s_glBindBuffer != nullptr && s_glBufferData != nullptr &&
            s_glDeleteBuffers != nullptr && s_glEnableVertexAttribArray != nullptr && s_glVertexAttribPointer != nullptr &&
-           s_glDrawElements != nullptr;
+           s_glUniform1i != nullptr && s_glUniform1f != nullptr && s_glUniform3f != nullptr && s_glDrawElements != nullptr;
 }
 
 void OpenGLRenderer::applyVSync()
@@ -505,6 +670,8 @@ Renderer::BufferHandle OpenGLRenderer::createVertexBuffer(const void* data, std:
     s_glVertexAttribPointer(1, 3, GL_FLOAT_CONST, false, stride, reinterpret_cast<const void*>(offsetof(poorcraft::world::ChunkVertex, normal)));
     s_glEnableVertexAttribArray(2);
     s_glVertexAttribPointer(2, 2, GL_FLOAT_CONST, false, stride, reinterpret_cast<const void*>(offsetof(poorcraft::world::ChunkVertex, texCoord)));
+    s_glEnableVertexAttribArray(3);
+    s_glVertexAttribPointer(3, 1, GL_FLOAT_CONST, false, stride, reinterpret_cast<const void*>(offsetof(poorcraft::world::ChunkVertex, ao)));
 
     s_glBindBuffer(GL_ARRAY_BUFFER_CONST, 0);
     s_glBindVertexArray(0);
@@ -589,7 +756,7 @@ bool OpenGLRenderer::createShaderProgram()
     if(s_glCreateShader == nullptr || s_glShaderSource == nullptr || s_glCompileShader == nullptr || s_glGetShaderiv == nullptr ||
        s_glGetShaderInfoLog == nullptr || s_glCreateProgram == nullptr || s_glAttachShader == nullptr || s_glLinkProgram == nullptr ||
        s_glGetProgramiv == nullptr || s_glGetProgramInfoLog == nullptr || s_glDeleteShader == nullptr || s_glUseProgram == nullptr ||
-       s_glGetUniformLocation == nullptr)
+       s_glGetUniformLocation == nullptr || s_glUniform1i == nullptr)
     {
         return false;
     }
@@ -599,17 +766,21 @@ bool OpenGLRenderer::createShaderProgram()
         layout(location = 0) in vec3 aPosition;
         layout(location = 1) in vec3 aNormal;
         layout(location = 2) in vec2 aTexCoord;
+        layout(location = 3) in float aAO;
 
         uniform mat4 uViewProjection;
         uniform mat4 uModel;
 
         out vec3 vNormal;
         out vec2 vTexCoord;
+        out float vAO;
 
         void main()
         {
-            vNormal = aNormal;
+            mat3 normalMatrix = mat3(transpose(inverse(uModel)));
+            vNormal = normalize(normalMatrix * aNormal);
             vTexCoord = aTexCoord;
+            vAO = aAO;
             gl_Position = uViewProjection * uModel * vec4(aPosition, 1.0);
         }
     )GLSL";
@@ -618,13 +789,26 @@ bool OpenGLRenderer::createShaderProgram()
         #version 330 core
         in vec3 vNormal;
         in vec2 vTexCoord;
+        in float vAO;
 
         out vec4 FragColor;
 
+        uniform sampler2D uTexture;
+        uniform vec3 uSunDirection;
+        uniform vec3 uSunColor;
+        uniform float uSunIntensity;
+        uniform vec3 uAmbientColor;
+        uniform float uAmbientIntensity;
+
         void main()
         {
-            vec3 lighting = normalize(vNormal) * 0.5 + 0.5;
-            FragColor = vec4(lighting, 1.0);
+            vec4 texSample = texture(uTexture, vTexCoord);
+            vec3 normal = normalize(vNormal);
+            float diffuse = max(dot(normal, -uSunDirection), 0.0);
+            vec3 lighting = uAmbientColor * uAmbientIntensity + uSunColor * uSunIntensity * diffuse;
+            float ao = clamp(vAO, 0.0, 1.0);
+            vec3 color = texSample.rgb * lighting * ao;
+            FragColor = vec4(color, texSample.a);
         }
     )GLSL";
 
@@ -683,9 +867,20 @@ bool OpenGLRenderer::createShaderProgram()
     m_shaderProgram = program;
     m_viewProjLocation = s_glGetUniformLocation(program, "uViewProjection");
     m_modelLocation = s_glGetUniformLocation(program, "uModel");
+    m_textureLocation = s_glGetUniformLocation(program, "uTexture");
+    m_sunDirLocation = s_glGetUniformLocation(program, "uSunDirection");
+    m_sunColorLocation = s_glGetUniformLocation(program, "uSunColor");
+    m_sunIntensityLocation = s_glGetUniformLocation(program, "uSunIntensity");
+    m_ambientColorLocation = s_glGetUniformLocation(program, "uAmbientColor");
+    m_ambientIntensityLocation = s_glGetUniformLocation(program, "uAmbientIntensity");
 
     s_glUseProgram(m_shaderProgram);
+    if(m_textureLocation >= 0)
+    {
+        s_glUniform1i(m_textureLocation, 0);
+    }
     updateProjection();
+    applyLightingUniforms();
 
     return true;
 }
@@ -708,6 +903,54 @@ void OpenGLRenderer::updateProjection()
 
     s_glUseProgram(m_shaderProgram);
     s_glUniformMatrix4fv(m_viewProjLocation, 1, false, glm::value_ptr(m_viewProjection));
+}
+
+void OpenGLRenderer::applyLightingUniforms()
+{
+    if(m_shaderProgram == 0 || !m_lightingDirty)
+    {
+        return;
+    }
+
+    if(s_glUseProgram == nullptr || s_glUniform3f == nullptr || s_glUniform1f == nullptr || s_glUniform1i == nullptr)
+    {
+        return;
+    }
+
+    s_glUseProgram(m_shaderProgram);
+
+    if(m_sunDirLocation >= 0)
+    {
+        s_glUniform3f(m_sunDirLocation, m_lightingParams.sunDirection.x, m_lightingParams.sunDirection.y, m_lightingParams.sunDirection.z);
+    }
+    if(m_sunColorLocation >= 0)
+    {
+        s_glUniform3f(m_sunColorLocation, m_lightingParams.sunColor.x, m_lightingParams.sunColor.y, m_lightingParams.sunColor.z);
+    }
+    if(m_sunIntensityLocation >= 0)
+    {
+        s_glUniform1f(m_sunIntensityLocation, m_lightingParams.sunIntensity);
+    }
+    if(m_ambientColorLocation >= 0)
+    {
+        s_glUniform3f(m_ambientColorLocation, m_lightingParams.ambientColor.x, m_lightingParams.ambientColor.y, m_lightingParams.ambientColor.z);
+    }
+    if(m_ambientIntensityLocation >= 0)
+    {
+        s_glUniform1f(m_ambientIntensityLocation, m_lightingParams.ambientIntensity);
+    }
+    if(m_textureLocation >= 0)
+    {
+        s_glUniform1i(m_textureLocation, 0);
+    }
+
+    m_lightingDirty = false;
+}
+
+Renderer::TextureHandle OpenGLRenderer::createDefaultTexture()
+{
+    constexpr std::uint32_t kWhitePixel = 0xFFFFFFFF;
+    return createTexture(&kWhitePixel, 1, 1, 4);
 }
 } // namespace poorcraft::rendering
 
