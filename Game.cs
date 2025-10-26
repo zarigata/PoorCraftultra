@@ -1,7 +1,10 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using PoorCraftUltra.Core;
 using PoorCraftUltra.Input;
 using Serilog;
+using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 
@@ -16,35 +19,38 @@ public sealed class Game : IDisposable
 
     private static readonly ILogger _logger = Logger.ForContext<Game>();
 
+    private readonly WindowOptions _windowOptions;
     private readonly GameWindow _window;
     private readonly GameTime _gameTime = new();
+    private readonly TaskCompletionSource<InputManager> _inputReadyTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private InputManager? _inputManager;
     private bool _isRunning;
     private double _accumulator;
     private int _frameCounter;
 
-    public Game()
+    public event Action? Loaded;
+    public event Action<double>? Updated;
+    public event Action<double>? FixedUpdated;
+    public event Action<double>? Rendered;
+    public event Action? Stopped;
+
+    public Game(WindowOptions? windowOptions = null)
     {
         _logger.Information("Initializing game...");
 
-        var options = WindowOptions.Default;
-        options.Title = WindowTitle;
-        options.Size = new Vector2D<int>(WindowWidth, WindowHeight);
-        options.WindowBorder = WindowBorder.Resizable;
-        options.IsVisible = true;
-        options.VSync = false;
+        _windowOptions = windowOptions ?? CreateDefaultWindowOptions();
 
         _logger.Debug("Window configuration: Title={Title}, Size={Width}x{Height}, Border={Border}, VSync={VSync}",
-            options.Title,
-            options.Size.X,
-            options.Size.Y,
-            options.WindowBorder,
-            options.VSync);
+            _windowOptions.Title,
+            _windowOptions.Size.X,
+            _windowOptions.Size.Y,
+            _windowOptions.WindowBorder,
+            _windowOptions.VSync);
 
         try
         {
-            _window = new GameWindow(options);
+            _window = new GameWindow(_windowOptions);
         }
         catch (Exception ex)
         {
@@ -58,6 +64,36 @@ public sealed class Game : IDisposable
         _window.Closing += OnClosing;
 
         _logger.Information("Game initialized successfully");
+    }
+
+    public WindowOptions WindowOptions => _windowOptions;
+
+    public bool IsRunning => _isRunning;
+
+    internal InputManager? InputManager => _inputManager;
+
+    internal Task<InputManager> WaitForInputManagerAsync(TimeSpan? timeout = null, CancellationToken cancellationToken = default)
+    {
+        if (_inputManager is not null)
+        {
+            return Task.FromResult(_inputManager);
+        }
+
+        var task = _inputReadyTcs.Task;
+
+        if (timeout is { } timeoutValue)
+        {
+            return task.WaitAsync(timeoutValue, cancellationToken);
+        }
+
+        return task.WaitAsync(cancellationToken);
+    }
+
+    internal async Task SimulateKeyPressAsync(Key key, CancellationToken cancellationToken = default)
+    {
+        var manager = await WaitForInputManagerAsync(null, cancellationToken).ConfigureAwait(false);
+        manager.SimulateKeyDown(key);
+        manager.SimulateKeyUp(key);
     }
 
     public void Run()
@@ -79,6 +115,18 @@ public sealed class Game : IDisposable
         }
     }
 
+    public void RequestExit(string reason = "Exit requested")
+    {
+        if (!_isRunning)
+        {
+            return;
+        }
+
+        _logger.Information("Exit requested programmatically: {Reason}", reason);
+        _isRunning = false;
+        _window.Close();
+    }
+
     private void OnLoad()
     {
         try
@@ -91,13 +139,17 @@ public sealed class Game : IDisposable
             _isRunning = true;
 
             _inputManager = new InputManager(_window.CreateInput());
+            _inputReadyTcs.TrySetResult(_inputManager);
             _logger.Information("Input manager initialized");
 
             _logger.Information("Game loaded and ready");
+
+            Loaded?.Invoke();
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "Error during game load");
+            _inputReadyTcs.TrySetException(ex);
             throw;
         }
     }
@@ -139,10 +191,13 @@ public sealed class Game : IDisposable
                 _logger.Debug("FPS: {ActualFps:F2}, Accumulator: {Accumulator:F4}s", actualFps, _accumulator);
             }
 
+            Updated?.Invoke(elapsedSeconds);
+
             if (!_isRunning)
             {
                 _logger.Information("Game stopping...");
                 _window.Close();
+                Stopped?.Invoke();
             }
         }
         catch (Exception ex)
@@ -167,6 +222,8 @@ public sealed class Game : IDisposable
         }
 
         // Future game logic will be placed here using fixedDeltaTime.
+
+        FixedUpdated?.Invoke(fixedDeltaTime);
     }
 
     private void OnRender(double _)
@@ -188,6 +245,8 @@ public sealed class Game : IDisposable
             Render(alpha);
 
             _gameTime.CalculateFramePacing();
+
+            Rendered?.Invoke(alpha);
         }
         catch (Exception ex)
         {
@@ -219,6 +278,19 @@ public sealed class Game : IDisposable
         _inputManager?.Dispose();
         _window.Dispose();
 
+        _inputReadyTcs.TrySetCanceled();
+
         _logger.Information("Game disposed");
+    }
+
+    internal static WindowOptions CreateDefaultWindowOptions()
+    {
+        var options = WindowOptions.Default;
+        options.Title = WindowTitle;
+        options.Size = new Vector2D<int>(WindowWidth, WindowHeight);
+        options.WindowBorder = WindowBorder.Resizable;
+        options.IsVisible = true;
+        options.VSync = false;
+        return options;
     }
 }

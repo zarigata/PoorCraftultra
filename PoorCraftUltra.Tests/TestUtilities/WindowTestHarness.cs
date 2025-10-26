@@ -1,18 +1,15 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
 using PoorCraftUltra.Core;
-using Serilog;
+using Silk.NET.Maths;
 using Silk.NET.Windowing;
 
 namespace PoorCraftUltra.Tests.TestUtilities;
 
 public sealed class WindowTestHarness : IDisposable
 {
-    private static readonly ILogger _logger = Logger.ForContext<WindowTestHarness>();
-
-    private readonly GameWindow _window;
+    private readonly IWindow _window;
     private readonly CancellationTokenSource _cts = new();
 
     private Task? _windowTask;
@@ -20,26 +17,25 @@ public sealed class WindowTestHarness : IDisposable
 
     public WindowTestHarness(WindowOptions? options = null)
     {
-        Logger.Initialize();
-        _logger.Information("Creating window test harness...");
-
         var opts = options ?? WindowOptions.Default;
+        if (options is null)
+        {
+            opts.Size = new Vector2D<int>(800, 600);
+        }
         opts.IsVisible = false;
         opts.Title ??= "Test Window";
 
-        _window = new GameWindow(opts);
+        _window = Window.Create(opts);
         _window.Load += OnWindowLoad;
         _window.Render += OnWindowRender;
         _window.Closing += OnWindowClosing;
-
-        _logger.Information("Window test harness created");
     }
 
     public bool IsWindowOpen { get; private set; }
 
-    public int WindowWidth => _window.Width;
+    public int WindowWidth => _window.Size.X;
 
-    public int WindowHeight => _window.Height;
+    public int WindowHeight => _window.Size.Y;
 
     public int FrameCount { get; private set; }
 
@@ -54,7 +50,6 @@ public sealed class WindowTestHarness : IDisposable
             throw new InvalidOperationException("Window already started");
         }
 
-        _logger.Information("Starting test window on background thread...");
         _loadCompletion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         _windowTask = Task.Run(() =>
@@ -65,7 +60,6 @@ public sealed class WindowTestHarness : IDisposable
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "Window run loop threw an exception");
                 _loadCompletion?.TrySetException(ex);
             }
         }, _cts.Token);
@@ -80,18 +74,15 @@ public sealed class WindowTestHarness : IDisposable
 
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(5);
 
-        _logger.Information("Waiting for window to signal ready state (timeout: {Timeout}ms)...", effectiveTimeout.TotalMilliseconds);
         using var timeoutCts = new CancellationTokenSource(effectiveTimeout);
 
         var completedTask = await Task.WhenAny(_loadCompletion.Task, Task.Delay(Timeout.InfiniteTimeSpan, timeoutCts.Token)).ConfigureAwait(false);
         if (completedTask != _loadCompletion.Task)
         {
-            _logger.Error("Window failed to load within {Timeout}ms", effectiveTimeout.TotalMilliseconds);
             throw new TimeoutException("Window did not become ready within the allotted timeout");
         }
 
         await _loadCompletion.Task.ConfigureAwait(false);
-        _logger.Information("Window ready");
     }
 
     public async Task StopWindowAsync(TimeSpan? timeout = null)
@@ -101,23 +92,19 @@ public sealed class WindowTestHarness : IDisposable
             return;
         }
 
-        _logger.Information("Stopping test window...");
         _window.Close();
 
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(5);
         var completed = await Task.WhenAny(_windowTask, Task.Delay(effectiveTimeout)).ConfigureAwait(false);
         if (completed != _windowTask)
         {
-            _logger.Error("Window did not close within {Timeout}ms", effectiveTimeout.TotalMilliseconds);
             throw new TimeoutException("Window did not close within the allotted timeout");
         }
 
-        _logger.Information("Window stopped");
     }
 
     public async Task<double> MeasureFpsAsync(TimeSpan duration)
     {
-        _logger.Information("Measuring FPS over {Duration}ms", duration.TotalMilliseconds);
         var startFrame = FrameCount;
         var startTime = DateTime.UtcNow;
 
@@ -127,7 +114,6 @@ public sealed class WindowTestHarness : IDisposable
         var elapsed = DateTime.UtcNow - startTime;
         var fps = frames / elapsed.TotalSeconds;
 
-        _logger.Information("Measured FPS: {Fps:F2} over {Elapsed}ms", fps, elapsed.TotalMilliseconds);
         return fps;
     }
 
@@ -137,40 +123,38 @@ public sealed class WindowTestHarness : IDisposable
         var effectiveTimeout = timeout ?? TimeSpan.FromSeconds(5);
         var start = DateTime.UtcNow;
 
-        _logger.Information("Waiting for {FrameCount} frames to render", frameCount);
-
         while (FrameCount < targetFrame)
         {
             if (DateTime.UtcNow - start > effectiveTimeout)
             {
-                _logger.Error("Timed out waiting for frames");
                 throw new TimeoutException("Timed out waiting for frames");
             }
 
             await Task.Delay(10).ConfigureAwait(false);
         }
-
-        _logger.Information("Frame wait complete");
     }
 
-    public Task SimulateKeyPressAsync(Silk.NET.Input.Key key)
+    public async Task SimulateKeyPressAsync(Game game, Silk.NET.Input.Key key, CancellationToken cancellationToken = default)
     {
-        _logger.Warning("Input simulation is not implemented. This method is a placeholder.");
-        return Task.CompletedTask;
+        if (game is null)
+        {
+            throw new ArgumentNullException(nameof(game));
+        }
+
+        await game.WaitForInputManagerAsync(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
+        await game.SimulateKeyPressAsync(key, cancellationToken).ConfigureAwait(false);
     }
 
     private void OnWindowLoad()
     {
         try
         {
-            _logger.Information("Test window load event received");
             IsWindowOpen = true;
             GameTimeInstance.Reset();
             _loadCompletion?.TrySetResult(true);
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Error in window load handler");
             _loadCompletion?.TrySetException(ex);
             throw;
         }
@@ -184,14 +168,11 @@ public sealed class WindowTestHarness : IDisposable
 
     private void OnWindowClosing()
     {
-        _logger.Information("Test window closing event received");
         IsWindowOpen = false;
     }
 
     public void Dispose()
     {
-        _logger.Information("Disposing window test harness...");
-
         _window.Load -= OnWindowLoad;
         _window.Render -= OnWindowRender;
         _window.Closing -= OnWindowClosing;
@@ -204,12 +185,10 @@ public sealed class WindowTestHarness : IDisposable
         }
         catch (Exception ex)
         {
-            _logger.Warning(ex, "Exception while waiting for window task during disposal");
+            _ = ex;
         }
 
         _window.Dispose();
         _cts.Dispose();
-
-        _logger.Information("Window test harness disposed");
     }
 }

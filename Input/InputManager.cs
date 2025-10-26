@@ -118,6 +118,22 @@ public sealed class InputManager : IDisposable
         return _mouse.IsButtonPressed(button);
     }
 
+    internal void SimulateKeyPress(Key key)
+    {
+        SimulateKeyDown(key);
+        SimulateKeyUp(key);
+    }
+
+    internal void SimulateKeyDown(Key key)
+    {
+        HandleKeyDown(null!, key, 0);
+    }
+
+    internal void SimulateKeyUp(Key key)
+    {
+        HandleKeyUp(null!, key, 0);
+    }
+
     private void HandleKeyDown(IKeyboard keyboard, Key key, int _)
     {
         try

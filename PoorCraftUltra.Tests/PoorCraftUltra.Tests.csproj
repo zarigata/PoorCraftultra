@@ -24,4 +24,10 @@
   <ItemGroup>
     <ProjectReference Include="..\PoorCraftUltra.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

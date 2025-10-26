@@ -1,0 +1,15 @@
+#!/bin/bash
+set -euo pipefail
+
+APPDIR="${APPDIR:-$(cd "$(dirname "$0")" && pwd)}"
+EXECUTABLE="${APPDIR}/usr/bin/PoorCraftUltra"
+LIB_DIR="${APPDIR}/usr/lib"
+
+if [[ ! -x "${EXECUTABLE}" ]]; then
+  echo "Error: Executable not found at ${EXECUTABLE}" >&2
+  exit 1
+fi
+
+export LD_LIBRARY_PATH="${LIB_DIR}:${LD_LIBRARY_PATH:-}"
+cd "${APPDIR}/usr/lib"
+exec "${EXECUTABLE}" "$@"

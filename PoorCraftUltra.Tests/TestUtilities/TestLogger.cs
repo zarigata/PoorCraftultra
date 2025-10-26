@@ -28,27 +28,33 @@ public static class TestLogger
 
     public static ILogger ConfigureForIntegrationTest(ITestOutputHelper output, string testName)
     {
+        if (output is null)
+        {
+            throw new ArgumentNullException(nameof(output));
+        }
+
         if (string.IsNullOrWhiteSpace(testName))
         {
             throw new ArgumentException("Test name must be provided", nameof(testName));
         }
 
-        var logger = ConfigureForTest(output).ForContext("TestName", testName);
+        OutputAccessor.Value = output;
 
         var logDirectory = Path.Combine(AppContext.BaseDirectory, "test-logs");
         Directory.CreateDirectory(logDirectory);
 
-        var fileLogger = new LoggerConfiguration()
-            .MinimumLevel.Verbose()
-            .WriteTo.Logger(lc => lc
-                .MinimumLevel.Verbose()
-                .WriteTo.XUnit(() => OutputAccessor.Value ?? output))
-            .WriteTo.File(
-                Path.Combine(logDirectory, $"{SanitizeFileName(testName)}-{DateTime.UtcNow:yyyyMMdd-HHmmss}.log"),
-                outputTemplate: "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-            .CreateLogger();
+        var logFilePath = Path.Combine(logDirectory, $"{SanitizeFileName(testName)}-{DateTime.UtcNow:yyyyMMdd-HHmmss}.log");
 
-        return logger.ForContext("InnerLogger", fileLogger);
+        return new LoggerConfiguration()
+            .MinimumLevel.Verbose()
+            .Enrich.WithProperty("TestName", testName)
+            .WriteTo.Debug(outputTemplate: "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .WriteTo.XUnit(() => OutputAccessor.Value ?? output)
+            .WriteTo.File(
+                logFilePath,
+                outputTemplate: "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+                shared: true)
+            .CreateLogger();
     }
 
     public static ILogger CreateTestContext<T>(ITestOutputHelper output)

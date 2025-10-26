@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=PoorCraft Ultra
+Comment=Open-source voxel game engine
+Exec=/usr/lib/poorcraftultra/PoorCraftUltra
+Icon=poorcraftultra
+Terminal=false
+Categories=Game;Simulation;
+Keywords=voxel;minecraft;sandbox;game;
+StartupNotify=true

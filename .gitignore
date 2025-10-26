@@ -33,3 +33,33 @@ desktop.ini
 *.log
 *.tmp
 *.temp
+logs/
+test-logs/
+coverage/
+coveragereport/
+*.coveragexml
+*.cobertura.xml
+
+# Build system outputs
+publish/
+build/windows/output/
+build/windows/installer-staging/
+build/linux/output/
+build/linux/deb-staging/
+build/linux/appimage-staging/
+build/linux/tools/
+build/macos/output/
+build/macos/PoorCraftUltra.app/
+build/macos/temp-dmg/
+
+# Packaged artifacts
+*.zip
+*.tar.gz
+*.AppImage
+*.deb
+*.dmg
+*.msi
+*.pkg
+
+# macOS bundles
+*.app/
