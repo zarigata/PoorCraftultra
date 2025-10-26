@@ -87,7 +87,11 @@ jobs:
 
       - name: Create installer
         shell: pwsh
-        run: makensis /DVERSION=${{ env.VERSION }} build/windows/installer.nsi
+        run: |
+          if (-not $env:VI_NUM_VERSION) {
+            throw "VI_NUM_VERSION environment variable not set."
+          }
+          makensis /DVERSION=${{ env.VERSION }} /DVI_NUM_VERSION=$env:VI_NUM_VERSION build/windows/installer.nsi
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4

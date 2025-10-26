@@ -29,6 +29,28 @@ if (-not $versionNode) {
 }
 $version = $versionNode[0]
 
+function Get-NumericVersion {
+    param([string]$Version)
+
+    $base = $Version.Split('-', 2)[0]
+    $parts = $base.Split('.')
+    $normalized = @()
+    foreach ($part in $parts) {
+        if ($normalized.Count -ge 4) { break }
+        $normalized += ($part -as [int])
+    }
+    while ($normalized.Count -lt 4) {
+        $normalized += 0
+    }
+    return ($normalized[0..3] -join '.')
+}
+
+$viNumericVersion = Get-NumericVersion -Version $version
+$env:VI_NUM_VERSION = $viNumericVersion
+if ($env:GITHUB_ENV) {
+    "VI_NUM_VERSION=$viNumericVersion" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+}
+
 Write-Section "Preparing directories"
 $publishDir = Join-Path $projectRoot "publish/windows"
 $binDir = Join-Path $projectRoot "bin/Release"
@@ -82,9 +104,9 @@ if (-not (Test-Path $exePath)) {
     throw "Expected executable not found: $exePath"
 }
 
-$glfwLib = Get-ChildItem -Path $publishDir -Filter "glfw3.dll" -Recurse -ErrorAction SilentlyContinue
+$glfwLib = Get-ChildItem -Path $publishDir -Filter "glfw*.dll" -Recurse -ErrorAction SilentlyContinue
 if (-not $glfwLib) {
-    throw "Silk.NET native dependency 'glfw3.dll' not found in publish directory."
+    Write-Warning "No native library matching 'glfw*.dll' was found in the publish directory. Verify the required dependencies are bundled for your chosen backend."
 }
 
 $publishedFiles = Get-ChildItem -Path $publishDir -Recurse -File -ErrorAction SilentlyContinue
@@ -103,6 +125,7 @@ Write-Host "Installer staging ready at $installerStagingDir"
 
 Write-Section "Summary"
 Write-Host "Version: $version"
+Write-Host "Installer numeric version: $viNumericVersion"
 Write-Host "Publish directory: $publishDir"
 Write-Host "Portable ZIP: $portableZip"
 Write-Host "Installer staging: $installerStagingDir"

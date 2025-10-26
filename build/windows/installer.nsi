@@ -4,11 +4,18 @@
   !define VERSION "0.1.0"
 !endif
 
+!ifndef VI_NUM_VERSION
+  !define VI_NUM_VERSION "0.1.0.0"
+endif
+
 !define PRODUCT_NAME "PoorCraft Ultra"
 !define COMPANY_NAME "PoorCraft Ultra Team"
 !define PRODUCT_PUBLISHER "PoorCraft Ultra Team"
 !define PRODUCT_WEB "https://github.com/yourusername/PoorCraftUltra"
-!define INSTALLER_ICON "${__FILEDIR__}\..\icons\poorcraftultra.ico"
+!define INSTALLER_ICON_PATH "${__FILEDIR__}\..\icons\poorcraftultra.ico"
+!ifexist "${INSTALLER_ICON_PATH}"
+  !define INSTALLER_ICON "${INSTALLER_ICON_PATH}"
+!endif
 !define STAGING_DIR "${__FILEDIR__}\installer-staging"
 !define OUTPUT_DIR "${__FILEDIR__}\output"
 
@@ -21,10 +28,12 @@ InstallDir "$PROGRAMFILES64\PoorCraftUltra"
 InstallDirRegKey HKLM "Software\PoorCraftUltra" "InstallLocation"
 ShowInstDetails show
 ShowUninstDetails show
+!ifdef INSTALLER_ICON
 Icon "${INSTALLER_ICON}"
 UninstallIcon "${INSTALLER_ICON}"
+!endif
 
-VIProductVersion "${VERSION}.0"
+VIProductVersion "${VI_NUM_VERSION}"
 VIAddVersionKey "ProductName" "${PRODUCT_NAME}"
 VIAddVersionKey "CompanyName" "${COMPANY_NAME}"
 VIAddVersionKey "FileDescription" "${PRODUCT_NAME} Installer"
@@ -32,8 +41,10 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 VIAddVersionKey "LegalCopyright" "Copyright © 2025 PoorCraft Ultra Team"
 
 !define MUI_ABORTWARNING
+!ifdef INSTALLER_ICON
 !define MUI_ICON "${INSTALLER_ICON}"
 !define MUI_UNICON "${INSTALLER_ICON}"
+!endif
 
 Var StartMenuFolder
 Var CreateDesktop

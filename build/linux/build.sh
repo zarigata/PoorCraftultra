@@ -102,7 +102,7 @@ mkdir -p \
 cp -r "${PUBLISH_DIR}/"* "${APPIMAGE_STAGING}/usr/lib/poorcraftultra/"
 ln -sf ../lib/poorcraftultra/PoorCraftUltra "${APPIMAGE_STAGING}/usr/bin/PoorCraftUltra"
 cp "${DESKTOP_FILE}" "${APPIMAGE_STAGING}/usr/share/applications/poorcraftultra.desktop"
-cp "${DESKTOP_FILE}" "${APPIMAGE_STAGING}/poorcraftultra.desktop"
+sed 's|^Exec=.*|Exec=PoorCraftUltra|' "${DESKTOP_FILE}" > "${APPIMAGE_STAGING}/poorcraftultra.desktop"
 cp "${ICON_DIR}/poorcraftultra-256.png" "${APPIMAGE_STAGING}/usr/share/icons/hicolor/256x256/apps/poorcraftultra.png"
 cp "${ICON_DIR}/poorcraftultra-512.png" "${APPIMAGE_STAGING}/poorcraftultra.png"
 cp "${APPRUN_FILE}" "${APPIMAGE_STAGING}/AppRun"
@@ -118,7 +118,7 @@ fi
 
 log "Building AppImage"
 APPIMAGE_OUTPUT="${OUTPUT_DIR}/PoorCraftUltra-v${VERSION}-linux-x86_64.AppImage"
-"${APPIMAGE_TOOL}" "${APPIMAGE_STAGING}" "${APPIMAGE_OUTPUT}"
+"${APPIMAGE_TOOL}" --appimage-extract-and-run "${APPIMAGE_STAGING}" "${APPIMAGE_OUTPUT}"
 
 log "Creating portable tarball"
 PORTABLE_TARBALL="${OUTPUT_DIR}/PoorCraftUltra-v${VERSION}-linux-x64-portable.tar.gz"
