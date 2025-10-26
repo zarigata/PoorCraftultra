@@ -1,22 +1,21 @@
 package com.poorcraftultra;
 
-import com.poorcraftultra.core.Game;
+import com.poorcraftultra.core.Engine;
 
-public final class Main {
-    private Main() {
-        throw new UnsupportedOperationException("Main is a utility class");
-    }
+/**
+ * Main entry point for PoorCraft Ultra game engine.
+ */
+public class Main {
 
     public static void main(String[] args) {
-        System.out.println("Starting PoorCraftUltra...");
+        Engine engine = new Engine();
         try {
-            Game game = new Game();
-            game.run();
-            System.out.println("PoorCraftUltra shut down gracefully.");
-        } catch (Exception exception) {
-            System.err.println("PoorCraftUltra encountered a fatal error.");
-            exception.printStackTrace();
-            System.exit(-1);
+            engine.run();
+        } catch (Exception e) {
+            System.err.println("Error running engine: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            engine.cleanup();
         }
     }
 }

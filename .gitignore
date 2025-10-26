@@ -1,39 +1,64 @@
 # Gradle
+build/
 .gradle/
-/build/
-out/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+.gradle/
+build/
 !gradle/wrapper/gradle-wrapper.jar
+
+# IDEs
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+
+# Logs
+*.log
+logs/
+
+# LWJGL natives
+lwjgl-natives/
+
+# Eclipse
+.classpath
+.project
+.settings/
 
 # IntelliJ IDEA
 .idea/
+*.iws
 *.iml
 *.ipr
-*.iws
 
-# Eclipse
-.project
-.classpath
-.settings/
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
 
 # VS Code
 .vscode/
 
-# OS-specific
-.DS_Store
-Thumbs.db
-
-# Java
-*.class
-
-# Logs
-*.log
-
-# Temp files
-*.tmp
-*.swp
-
-# JARs
-/*.jar
-
-# Other
-*.orig
+# Temporary files
+*.bak
+*.backup
+*~

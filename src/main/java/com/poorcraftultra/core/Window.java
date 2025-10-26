@@ -1,88 +1,101 @@
 package com.poorcraftultra.core;
 
-import org.lwjgl.glfw.Callbacks;
+import com.poorcraftultra.util.Constants;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
 
 import java.nio.IntBuffer;
 
-public final class Window {
-    private final String title;
-    private final int width;
-    private final int height;
-    private final boolean resizable;
-    private final boolean vSync;
+import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.system.MemoryStack.stackPush;
 
-    private long handle;
+/**
+ * Window management class using GLFW.
+ */
+public class Window {
 
-    public Window(String title, int width, int height) {
-        this.title = title;
-        this.width = width;
-        this.height = height;
-        this.resizable = false;
-        this.vSync = true;
-        this.handle = MemoryUtil.NULL;
-    }
+    private long windowHandle;
+    private int width;
+    private int height;
 
     public void init() {
-        GLFWErrorCallback.createPrint(System.err).set();
+        // Set GLFW window hints
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 
-        if (!GLFW.glfwInit()) {
-            throw new IllegalStateException("Unable to initialize GLFW \n(╯°□°)╯︵ ┻━┻");
+        // Create window
+        windowHandle = glfwCreateWindow(Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT,
+                                        Constants.WINDOW_TITLE, 0L, 0L);
+        if (windowHandle == 0L) {
+            throw new RuntimeException("Failed to create GLFW window");
         }
 
-        GLFW.glfwDefaultWindowHints();
-        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
-        GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 3);
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
-        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE);
+        // Make OpenGL context current
+        glfwMakeContextCurrent(windowHandle);
 
-        handle = GLFW.glfwCreateWindow(width, height, title, MemoryUtil.NULL, MemoryUtil.NULL);
-        if (handle == MemoryUtil.NULL) {
-            throw new IllegalStateException("Failed to create GLFW window \n(ಥ﹏ಥ)");
-        }
+        // Enable VSync
+        glfwSwapInterval(1);
 
-        setupKeyCallback();
+        // Center window on screen
         centerWindow();
 
-        GLFW.glfwMakeContextCurrent(handle);
-        if (vSync) {
-            GLFW.glfwSwapInterval(1);
-        }
+        // Store dimensions
+        this.width = Constants.WINDOW_WIDTH;
+        this.height = Constants.WINDOW_HEIGHT;
 
+        // Set up framebuffer size callback for window resizing
+        glfwSetFramebufferSizeCallback(windowHandle, (window, width, height) -> {
+            this.width = width;
+            this.height = height;
+            GL11.glViewport(0, 0, width, height);
+        });
+
+        // Create OpenGL capabilities
         GL.createCapabilities();
-        GLFW.glfwShowWindow(handle);
 
-        System.out.printf("Window created: %dx%d \n\\(^_^)/\n", width, height);
+        // Set initial viewport
+        GL11.glViewport(0, 0, width, height);
+    }
+
+    private void centerWindow() {
+        try (MemoryStack stack = stackPush()) {
+            IntBuffer pWidth = stack.mallocInt(1);
+            IntBuffer pHeight = stack.mallocInt(1);
+
+            glfwGetWindowSize(windowHandle, pWidth, pHeight);
+
+            GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+            glfwSetWindowPos(
+                windowHandle,
+                (vidmode.width() - pWidth.get(0)) / 2,
+                (vidmode.height() - pHeight.get(0)) / 2
+            );
+        }
     }
 
     public boolean shouldClose() {
-        return GLFW.glfwWindowShouldClose(handle);
+        return glfwWindowShouldClose(windowHandle);
     }
 
-    public void swapBuffers() {
-        GLFW.glfwSwapBuffers(handle);
-    }
-
-    public void pollEvents() {
-        GLFW.glfwPollEvents();
+    public void update() {
+        glfwSwapBuffers(windowHandle);
+        glfwPollEvents();
     }
 
     public void cleanup() {
-        Callbacks.glfwFreeCallbacks(handle);
-        GLFW.glfwDestroyWindow(handle);
-        GLFW.glfwTerminate();
-        GLFWErrorCallback previousCallback = GLFW.glfwSetErrorCallback(null);
-        if (previousCallback != null) {
-            previousCallback.free();
-        }
-        System.out.println("Window destroyed.\n(ノಠ益ಠ)ノ彡┻━┻");
+        glfwFreeCallbacks(windowHandle);
+        glfwDestroyWindow(windowHandle);
+    }
+
+    public long getWindowHandle() {
+        return windowHandle;
     }
 
     public int getWidth() {
@@ -91,33 +104,5 @@ public final class Window {
 
     public int getHeight() {
         return height;
-    }
-
-    public long getHandle() {
-        return handle;
-    }
-
-    private void setupKeyCallback() {
-        GLFW.glfwSetKeyCallback(handle, (window, key, scancode, action, mods) -> {
-            if (key == GLFW.GLFW_KEY_ESCAPE && action == GLFW.GLFW_RELEASE) {
-                GLFW.glfwSetWindowShouldClose(window, true);
-                System.out.println("ESC pressed, closing window.\n(ง'̀-'́)ง");
-            }
-        });
-    }
-
-    private void centerWindow() {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            IntBuffer pWidth = stack.mallocInt(1);
-            IntBuffer pHeight = stack.mallocInt(1);
-
-            GLFW.glfwGetWindowSize(handle, pWidth, pHeight);
-            GLFWVidMode videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
-            if (videoMode != null) {
-                int x = (videoMode.width() - pWidth.get(0)) / 2;
-                int y = (videoMode.height() - pHeight.get(0)) / 2;
-                GLFW.glfwSetWindowPos(handle, x, y);
-            }
-        }
     }
 }
