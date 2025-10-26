@@ -19,21 +19,30 @@ public final class Game {
     public void run() {
         try {
             init();
-            long lastTime = System.nanoTime();
+            long previousTime = System.nanoTime();
+            double accumulator = 0.0d;
 
             while (running) {
                 long frameStart = System.nanoTime();
-                double deltaTime = (frameStart - lastTime) / 1_000_000_000.0d;
-                lastTime = frameStart;
+                double frameTime = (frameStart - previousTime) / 1_000_000_000.0d;
+                previousTime = frameStart;
+                accumulator += frameTime;
 
-                update(deltaTime);
+                window.pollEvents();
+                if (window.shouldClose()) {
+                    running = false;
+                    break;
+                }
+
+                while (accumulator >= TARGET_FRAME_TIME && running) {
+                    update(TARGET_FRAME_TIME);
+                    accumulator -= TARGET_FRAME_TIME;
+                }
+
                 render();
 
-                long frameEnd = System.nanoTime();
-                double frameDuration = (frameEnd - frameStart) / 1_000_000_000.0d;
-                double sleepTime = TARGET_FRAME_TIME - frameDuration;
-                if (sleepTime > 0.0d) {
-                    sleepForDuration(sleepTime);
+                if (accumulator < TARGET_FRAME_TIME && running) {
+                    sleepForDuration(TARGET_FRAME_TIME - accumulator);
                 }
             }
         } finally {

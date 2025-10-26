@@ -73,6 +73,6 @@ run {
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
-        attributes('Main-Class': application.mainClass)
+        attributes('Main-Class': application.mainClass.get())
     }
 }

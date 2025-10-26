@@ -68,6 +68,9 @@ public final class Window {
 
     public void swapBuffers() {
         GLFW.glfwSwapBuffers(handle);
+    }
+
+    public void pollEvents() {
         GLFW.glfwPollEvents();
     }
 
