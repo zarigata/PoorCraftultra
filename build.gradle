@@ -1,0 +1,78 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.withType(JavaCompile).configureEach { task ->
+    task.options.encoding = 'UTF-8'
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    lwjglVersion = '3.3.3'
+    lwjglNatives = { String platform -> "natives-${platform}" }
+}
+
+def os = org.gradle.internal.os.OperatingSystem.current()
+if (os.isWindows()) {
+} else if (os.isLinux()) {
+} else if (os.isMacOsX()) {
+    // No-op: macOS specific handling is done per dependency resolution below.
+} else {
+    throw new IllegalStateException("Unsupported operating system: ${os.name}")
+}
+
+dependencies {
+    implementation platform("org.lwjgl:lwjgl-bom:${lwjglVersion}")
+
+    implementation 'org.lwjgl:lwjgl'
+    implementation 'org.lwjgl:lwjgl-glfw'
+    implementation 'org.lwjgl:lwjgl-opengl'
+    implementation 'org.lwjgl:lwjgl-stb'
+
+    runtimeOnly "org.lwjgl:lwjgl::${lwjglNatives('windows')}"
+    runtimeOnly "org.lwjgl:lwjgl::${lwjglNatives('linux')}"
+    runtimeOnly "org.lwjgl:lwjgl::${lwjglNatives('macos')}"
+    runtimeOnly "org.lwjgl:lwjgl::${lwjglNatives('macos-arm64')}"
+
+    runtimeOnly "org.lwjgl:lwjgl-glfw::${lwjglNatives('windows')}"
+    runtimeOnly "org.lwjgl:lwjgl-glfw::${lwjglNatives('linux')}"
+    runtimeOnly "org.lwjgl:lwjgl-glfw::${lwjglNatives('macos')}"
+    runtimeOnly "org.lwjgl:lwjgl-glfw::${lwjglNatives('macos-arm64')}"
+
+    runtimeOnly "org.lwjgl:lwjgl-opengl::${lwjglNatives('windows')}"
+    runtimeOnly "org.lwjgl:lwjgl-opengl::${lwjglNatives('linux')}"
+    runtimeOnly "org.lwjgl:lwjgl-opengl::${lwjglNatives('macos')}"
+    runtimeOnly "org.lwjgl:lwjgl-opengl::${lwjglNatives('macos-arm64')}"
+
+    runtimeOnly "org.lwjgl:lwjgl-stb::${lwjglNatives('windows')}"
+    runtimeOnly "org.lwjgl:lwjgl-stb::${lwjglNatives('linux')}"
+    runtimeOnly "org.lwjgl:lwjgl-stb::${lwjglNatives('macos')}"
+    runtimeOnly "org.lwjgl:lwjgl-stb::${lwjglNatives('macos-arm64')}"
+}
+
+application {
+    mainClass = 'com.poorcraftultra.Main'
+}
+
+run {
+    if (os.isMacOsX()) {
+        jvmArgs += '-XstartOnFirstThread'
+    }
+    jvmArgs += '-Xmx2G'
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes('Main-Class': application.mainClass)
+    }
+}

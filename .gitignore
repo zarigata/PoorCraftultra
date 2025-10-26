@@ -1,65 +1,39 @@
-# Build outputs
-bin/
-obj/
+# Gradle
+.gradle/
+/build/
 out/
-*.dll
-*.exe
-*.pdb
+!gradle/wrapper/gradle-wrapper.jar
 
-# IDE and editor settings
-.vs/
-.vscode/
+# IntelliJ IDEA
 .idea/
-*.user
-*.suo
-*.sln.docstates
+*.iml
+*.ipr
+*.iws
 
-# NuGet packages
-packages/
-*.nupkg
-*.snupkg
+# Eclipse
+.project
+.classpath
+.settings/
 
-# Test results
-TestResults/
-*.trx
-*.coverage
+# VS Code
+.vscode/
 
-# OS artifacts
+# OS-specific
 .DS_Store
 Thumbs.db
-desktop.ini
 
-# Logs and temporary files
+# Java
+*.class
+
+# Logs
 *.log
+
+# Temp files
 *.tmp
-*.temp
-logs/
-test-logs/
-coverage/
-coveragereport/
-*.coveragexml
-*.cobertura.xml
+*.swp
 
-# Build system outputs
-publish/
-build/windows/output/
-build/windows/installer-staging/
-build/linux/output/
-build/linux/deb-staging/
-build/linux/appimage-staging/
-build/linux/tools/
-build/macos/output/
-build/macos/PoorCraftUltra.app/
-build/macos/temp-dmg/
+# JARs
+/*.jar
 
-# Packaged artifacts
-*.zip
-*.tar.gz
-*.AppImage
-*.deb
-*.dmg
-*.msi
-*.pkg
-
-# macOS bundles
-*.app/
+# Other
+*.orig
