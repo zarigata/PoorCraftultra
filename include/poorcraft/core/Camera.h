@@ -4,6 +4,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+namespace poorcraft::rendering
+{
+class Frustum;
+}
+
 namespace poorcraft::core
 {
 // Camera implementing a right-handed coordinate system with Y-up (OpenGL/Vulkan convention).
@@ -24,6 +29,9 @@ public:
 
     glm::mat4 getViewMatrix() const;
     glm::mat4 getProjectionMatrix(float fovRadians, float aspectRatio, float nearPlane, float farPlane) const;
+    // Convenience for callers performing visibility tests; combines the camera's view matrix with a
+    // caller-supplied projection to produce the current view frustum on demand.
+    rendering::Frustum getFrustum(float fovRadians, float aspectRatio, float nearPlane, float farPlane) const;
 
     const glm::vec3& getForward() const;
     const glm::vec3& getRight() const;

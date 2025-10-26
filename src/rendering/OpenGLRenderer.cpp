@@ -8,6 +8,7 @@
 #    include <SDL2/SDL_opengl.h>
 #    include "poorcraft/world/ChunkMesh.h"
 #    include <glm/gtc/type_ptr.hpp>
+#    include <algorithm>
 #    include <array>
 #    include <cstddef>
 #    include <iostream>
@@ -63,6 +64,12 @@ using PFN_glBindTexture = void (*)(unsigned int, unsigned int);
 using PFN_glTexParameteri = void (*)(unsigned int, unsigned int, int);
 using PFN_glTexImage2D = void (*)(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*);
 using PFN_glActiveTexture = void (*)(unsigned int);
+using PFN_glGenQueries = void (*)(int, unsigned int*);
+using PFN_glDeleteQueries = void (*)(int, const unsigned int*);
+using PFN_glBeginQuery = void (*)(unsigned int, unsigned int);
+using PFN_glEndQuery = void (*)(unsigned int);
+using PFN_glGetQueryObjectiv = void (*)(unsigned int, unsigned int, int*);
+using PFN_glGetQueryObjectui64v = void (*)(unsigned int, unsigned int, unsigned long long*);
 
 PFN_glClearColor s_glClearColor = nullptr;
 PFN_glClear s_glClear = nullptr;
@@ -106,6 +113,12 @@ PFN_glBindTexture s_glBindTexture = nullptr;
 PFN_glTexParameteri s_glTexParameteri = nullptr;
 PFN_glTexImage2D s_glTexImage2D = nullptr;
 PFN_glActiveTexture s_glActiveTexture = nullptr;
+PFN_glGenQueries s_glGenQueries = nullptr;
+PFN_glDeleteQueries s_glDeleteQueries = nullptr;
+PFN_glBeginQuery s_glBeginQuery = nullptr;
+PFN_glEndQuery s_glEndQuery = nullptr;
+PFN_glGetQueryObjectiv s_glGetQueryObjectiv = nullptr;
+PFN_glGetQueryObjectui64v s_glGetQueryObjectui64v = nullptr;
 
 constexpr unsigned int GL_COLOR_BUFFER_BIT_CONST = 0x00004000;
 constexpr unsigned int GL_DEPTH_BUFFER_BIT_CONST = 0x00000100;
@@ -136,6 +149,8 @@ constexpr unsigned int GL_NEAREST_CONST = 0x2600;
 constexpr unsigned int GL_LINEAR_CONST = 0x2601;
 constexpr unsigned int GL_REPEAT_CONST = 0x2901;
 constexpr unsigned int GL_TEXTURE0_CONST = 0x84C0;
+constexpr unsigned int GL_QUERY_RESULT_CONST = 0x8866;
+constexpr unsigned int GL_TIME_ELAPSED_CONST = 0x88BF;
 } // namespace
 
 OpenGLRenderer::OpenGLRenderer(core::Window& window)
@@ -235,9 +250,14 @@ void OpenGLRenderer::bindTexture(TextureHandle handle, std::uint32_t slot)
 void OpenGLRenderer::setLightingParams(const LightingParams& params)
 {
     m_lightingParams = params;
-    if(glm::length(m_lightingParams.sunDirection) > 0.0f)
+    // Normalize sun direction (xyz components of sunDirAndIntensity)
+    glm::vec3 sunDir = glm::vec3(m_lightingParams.sunDirAndIntensity);
+    if(glm::length(sunDir) > 0.0f)
     {
-        m_lightingParams.sunDirection = glm::normalize(m_lightingParams.sunDirection);
+        sunDir = glm::normalize(sunDir);
+        m_lightingParams.sunDirAndIntensity.x = sunDir.x;
+        m_lightingParams.sunDirAndIntensity.y = sunDir.y;
+        m_lightingParams.sunDirAndIntensity.z = sunDir.z;
     }
     m_lightingDirty = true;
 }
@@ -491,6 +511,115 @@ void OpenGLRenderer::endFrame()
     m_drawCommands.clear();
 
     SDL_GL_SwapWindow(m_window.getSDLWindow());
+}
+
+void OpenGLRenderer::beginPerformanceCapture()
+{
+    m_frameCaptureStart = std::chrono::high_resolution_clock::now();
+    m_currentMetrics = {};
+    if(!m_timerQueriesSupported && !createTimerQueries())
+    {
+        return;
+    }
+
+    if(m_timerQueriesSupported && s_glGenQueries != nullptr)
+    {
+        s_glQueryCounter(m_timerQueries[0], GL_TIMESTAMP_CONST);
+    }
+}
+
+void OpenGLRenderer::endPerformanceCapture()
+{
+    const auto now = std::chrono::high_resolution_clock::now();
+    m_currentMetrics.cpu.frameTimeMs = std::chrono::duration<double, std::milli>(now - m_frameCaptureStart).count();
+    m_currentMetrics.fps = m_currentMetrics.cpu.frameTimeMs > 0.0 ? 1000.0 / m_currentMetrics.cpu.frameTimeMs : 0.0;
+
+    if(m_timerQueriesSupported && s_glGetQueryObjectiv != nullptr && s_glGetQueryObjectui64v != nullptr)
+    {
+        GLuint available = 0;
+        s_glGetQueryObjectiv(m_timerQueries[3], GL_QUERY_RESULT_AVAILABLE_CONST, reinterpret_cast<GLint*>(&available));
+        if(available != 0)
+        {
+            std::uint64_t startTimestamp = 0;
+            std::uint64_t endTimestamp = 0;
+            s_glGetQueryObjectui64v(m_timerQueries[0], GL_QUERY_RESULT_CONST, &startTimestamp);
+            s_glGetQueryObjectui64v(m_timerQueries[3], GL_QUERY_RESULT_CONST, &endTimestamp);
+            const double frameMs = static_cast<double>(endTimestamp - startTimestamp) / 1'000'000.0;
+            const double renderPassMs = getQueryResultMs(m_timerQueries[1]);
+            const double uiPassMs = getQueryResultMs(m_timerQueries[2]);
+
+            m_currentMetrics.gpu.available = true;
+            m_currentMetrics.gpu.renderPassTimeMs = renderPassMs;
+            m_currentMetrics.gpu.uiPassTimeMs = std::max(0.0, frameMs - renderPassMs - uiPassMs);
+        }
+    }
+
+    m_metricsHistory[m_metricsHistoryIndex] = m_currentMetrics;
+    m_metricsHistoryIndex = (m_metricsHistoryIndex + 1) % m_metricsHistory.size();
+
+    PerformanceMetrics accumulated{};
+    std::size_t count = 0;
+    for(const auto& metrics : m_metricsHistory)
+    {
+        if(metrics.cpu.frameTimeMs <= 0.0)
+        {
+            continue;
+        }
+        ++count;
+        accumulated.cpu.frameTimeMs += metrics.cpu.frameTimeMs;
+        accumulated.gpu.renderPassTimeMs += metrics.gpu.renderPassTimeMs;
+        accumulated.gpu.uiPassTimeMs += metrics.gpu.uiPassTimeMs;
+        accumulated.fps += metrics.fps;
+    }
+
+    if(count > 0)
+    {
+        m_currentMetrics.cpu.frameTimeMs = accumulated.cpu.frameTimeMs / static_cast<double>(count);
+        m_currentMetrics.gpu.renderPassTimeMs = accumulated.gpu.renderPassTimeMs / static_cast<double>(count);
+        m_currentMetrics.gpu.uiPassTimeMs = accumulated.gpu.uiPassTimeMs / static_cast<double>(count);
+        m_currentMetrics.fps = accumulated.fps / static_cast<double>(count);
+        m_currentMetrics.gpu.available = true;
+    }
+}
+
+PerformanceMetrics OpenGLRenderer::getPerformanceMetrics() const
+{
+    return m_currentMetrics;
+}
+
+bool OpenGLRenderer::createTimerQueries()
+{
+    if(s_glGenQueries == nullptr || s_glQueryCounter == nullptr || s_glGetQueryObjectiv == nullptr || s_glGetQueryObjectui64v == nullptr)
+    {
+        return false;
+    }
+
+    s_glGenQueries(static_cast<int>(std::size(m_timerQueries)), m_timerQueries);
+    m_timerQueriesSupported = true;
+    return true;
+}
+
+void OpenGLRenderer::destroyTimerQueries()
+{
+    if(!m_timerQueriesSupported || s_glDeleteQueries == nullptr)
+    {
+        return;
+    }
+
+    s_glDeleteQueries(static_cast<int>(std::size(m_timerQueries)), m_timerQueries);
+    m_timerQueriesSupported = false;
+}
+
+double OpenGLRenderer::getQueryResultMs(unsigned int query) const
+{
+    if(s_glGetQueryObjectui64v == nullptr)
+    {
+        return 0.0;
+    }
+
+    std::uint64_t result = 0;
+    s_glGetQueryObjectui64v(query, GL_QUERY_RESULT_CONST, &result);
+    return static_cast<double>(result) / 1'000'000.0;
 }
 
 RendererCapabilities OpenGLRenderer::getCapabilities() const
@@ -921,7 +1050,7 @@ void OpenGLRenderer::applyLightingUniforms()
 
     if(m_sunDirLocation >= 0)
     {
-        s_glUniform3f(m_sunDirLocation, m_lightingParams.sunDirection.x, m_lightingParams.sunDirection.y, m_lightingParams.sunDirection.z);
+        s_glUniform3f(m_sunDirLocation, m_lightingParams.sunDirAndIntensity.x, m_lightingParams.sunDirAndIntensity.y, m_lightingParams.sunDirAndIntensity.z);
     }
     if(m_sunColorLocation >= 0)
     {
@@ -929,15 +1058,15 @@ void OpenGLRenderer::applyLightingUniforms()
     }
     if(m_sunIntensityLocation >= 0)
     {
-        s_glUniform1f(m_sunIntensityLocation, m_lightingParams.sunIntensity);
+        s_glUniform1f(m_sunIntensityLocation, m_lightingParams.sunDirAndIntensity.w);
     }
     if(m_ambientColorLocation >= 0)
     {
-        s_glUniform3f(m_ambientColorLocation, m_lightingParams.ambientColor.x, m_lightingParams.ambientColor.y, m_lightingParams.ambientColor.z);
+        s_glUniform3f(m_ambientColorLocation, m_lightingParams.ambientColorAndIntensity.x, m_lightingParams.ambientColorAndIntensity.y, m_lightingParams.ambientColorAndIntensity.z);
     }
     if(m_ambientIntensityLocation >= 0)
     {
-        s_glUniform1f(m_ambientIntensityLocation, m_lightingParams.ambientIntensity);
+        s_glUniform1f(m_ambientIntensityLocation, m_lightingParams.ambientColorAndIntensity.w);
     }
     if(m_textureLocation >= 0)
     {

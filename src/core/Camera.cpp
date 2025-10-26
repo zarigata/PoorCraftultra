@@ -1,4 +1,5 @@
 #include "poorcraft/core/Camera.h"
+#include "poorcraft/rendering/Frustum.h"
 
 #include <cmath>
 
@@ -81,6 +82,20 @@ glm::mat4 Camera::getProjectionMatrix(float fovRadians, float aspectRatio, float
     }
 
     return glm::perspective(fovRadians, aspectRatio, nearPlane, farPlane);
+}
+
+rendering::Frustum Camera::getFrustum(float fovRadians, float aspectRatio, float nearPlane, float farPlane) const
+{
+    if(fovRadians <= 0.0f || aspectRatio <= 0.0f || nearPlane <= 0.0f || farPlane <= 0.0f || nearPlane >= farPlane)
+    {
+        return {};
+    }
+
+    const glm::mat4 view = getViewMatrix();
+    const glm::mat4 projection = getProjectionMatrix(fovRadians, aspectRatio, nearPlane, farPlane);
+    const glm::mat4 viewProjection = projection * view; // Column-major: projection applied after view.
+
+    return rendering::Frustum::fromViewProjection(viewProjection);
 }
 
 const glm::vec3& Camera::getForward() const

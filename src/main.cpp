@@ -101,11 +101,10 @@ int main()
     }
 
     Renderer::LightingParams lightingParams{};
-    lightingParams.sunDirection = glm::normalize(glm::vec3(0.45f, -1.0f, 0.35f));
-    lightingParams.sunColor = glm::vec3(1.0f, 0.96f, 0.85f);
-    lightingParams.sunIntensity = 1.2f;
-    lightingParams.ambientColor = glm::vec3(0.25f, 0.32f, 0.4f);
-    lightingParams.ambientIntensity = 0.35f;
+    glm::vec3 sunDir = glm::normalize(glm::vec3(0.45f, -1.0f, 0.35f));
+    lightingParams.sunDirAndIntensity = glm::vec4(sunDir, 1.2f);  // xyz = direction, w = intensity
+    lightingParams.sunColor = glm::vec4(1.0f, 0.96f, 0.85f, 0.0f);  // rgb = color, w unused
+    lightingParams.ambientColorAndIntensity = glm::vec4(0.25f, 0.32f, 0.4f, 0.35f);  // rgb = color, w = intensity
     renderer->setLightingParams(lightingParams);
 
     poorcraft::world::ChunkManager chunkManager(*renderer, textureAtlas, 12345u);

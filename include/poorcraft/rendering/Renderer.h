@@ -5,6 +5,11 @@
 #include <cstdint>
 #include <string>
 
+namespace poorcraft::rendering
+{
+struct PerformanceMetrics;
+}
+
 #include <glm/glm.hpp>
 
 namespace poorcraft::rendering
@@ -54,12 +59,11 @@ public:
     virtual void destroyTexture(TextureHandle handle) = 0;
     virtual void bindTexture(TextureHandle handle, std::uint32_t slot) = 0;
 
+    // Lighting parameters packed as vec4s for std140 alignment in shaders
     struct LightingParams {
-        glm::vec3 sunDirection{0.0f, -1.0f, 0.0f};
-        glm::vec3 sunColor{1.0f};
-        float sunIntensity{1.0f};
-        glm::vec3 ambientColor{0.2f, 0.3f, 0.4f};
-        float ambientIntensity{0.2f};
+        glm::vec4 sunDirAndIntensity{0.0f, -1.0f, 0.0f, 1.0f};  // xyz = direction, w = intensity
+        glm::vec4 sunColor{1.0f, 1.0f, 1.0f, 0.0f};              // rgb = color, w unused
+        glm::vec4 ambientColorAndIntensity{0.2f, 0.3f, 0.4f, 0.2f}; // rgb = color, w = intensity
     };
 
     virtual void setLightingParams(const LightingParams& params) = 0;
@@ -74,6 +78,10 @@ public:
     virtual void shutdownUI() = 0;
     virtual void beginUIPass() = 0;
     virtual void renderUI() = 0;
+
+    virtual void beginPerformanceCapture() = 0;
+    virtual void endPerformanceCapture() = 0;
+    virtual PerformanceMetrics getPerformanceMetrics() const = 0;
 
 protected:
     Renderer() = default;

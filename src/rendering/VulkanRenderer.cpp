@@ -352,6 +352,15 @@ bool VulkanRenderer::initialize()
         return false;
     }
 
+    VkPhysicalDeviceProperties properties{};
+    vkGetPhysicalDeviceProperties(m_physicalDevice, &properties);
+    m_timestampPeriodNs = properties.limits.timestampPeriod;
+    m_timestampsSupported = (properties.limits.timestampComputeAndGraphics == VK_TRUE);
+    if(!createTimestampQueryPool())
+    {
+        std::cerr << "Timestamp queries unavailable; GPU timings disabled\n";
+    }
+
     if(!createRenderPass())
     {
         std::cerr << "Failed to create Vulkan render pass\n";
@@ -435,6 +444,9 @@ bool VulkanRenderer::initialize()
 
 void VulkanRenderer::shutdown()
 {
+    destroyTimestampQueryPool();
+    destroySwapchain();
+
     if(m_device == VK_NULL_HANDLE)
     {
         return;
@@ -582,6 +594,12 @@ void VulkanRenderer::beginFrame()
 
     vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
+    if(m_performanceCaptureActive && m_timestampsSupported && m_timestampQueryPool != VK_NULL_HANDLE)
+    {
+        vkCmdResetQueryPool(commandBuffer, m_timestampQueryPool, 0, 4);
+        recordTimestamp(0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
+    }
+
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = m_renderPass;
@@ -612,6 +630,11 @@ void VulkanRenderer::beginFrame()
     scissor.offset = {0, 0};
     scissor.extent = m_swapchainExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+    if(m_performanceCaptureActive && m_timestampsSupported)
+    {
+        recordTimestamp(1, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+    }
 
     m_currentImageIndex = imageIndex;
 }
@@ -667,8 +690,20 @@ void VulkanRenderer::endFrame()
             &pushData);
 
         vkCmdDrawIndexed(commandBuffer, command.indexCount, 1, 0, 0, 0);
+
+        if(m_performanceCaptureActive)
+        {
+            ++m_lastDrawCallCount;
+            m_lastVertexCount += command.indexCount;
+            m_lastTriangleCount += command.indexCount / 3u;
+        }
     }
     m_drawCommands.clear();
+
+    if(m_performanceCaptureActive && m_timestampsSupported)
+    {
+        recordTimestamp(2, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+    }
 
     if(m_uiRenderPending && m_pendingUiDrawData != nullptr)
     {
@@ -678,6 +713,11 @@ void VulkanRenderer::endFrame()
     m_uiRenderPending = false;
 
     vkCmdEndRenderPass(commandBuffer);
+
+    if(m_performanceCaptureActive && m_timestampsSupported)
+    {
+        recordTimestamp(3, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+    }
 
     vkEndCommandBuffer(commandBuffer);
 
@@ -943,9 +983,14 @@ void VulkanRenderer::bindTexture(TextureHandle handle, std::uint32_t slot)
 void VulkanRenderer::setLightingParams(const LightingParams& params)
 {
     m_lightingParams = params;
-    if(glm::length(m_lightingParams.sunDirection) > 0.0f)
+    // Normalize sun direction (xyz components of sunDirAndIntensity)
+    glm::vec3 sunDir = glm::vec3(m_lightingParams.sunDirAndIntensity);
+    if(glm::length(sunDir) > 0.0f)
     {
-        m_lightingParams.sunDirection = glm::normalize(m_lightingParams.sunDirection);
+        sunDir = glm::normalize(sunDir);
+        m_lightingParams.sunDirAndIntensity.x = sunDir.x;
+        m_lightingParams.sunDirAndIntensity.y = sunDir.y;
+        m_lightingParams.sunDirAndIntensity.z = sunDir.z;
     }
     updateLightingUniformBuffer();
 }
@@ -1351,51 +1396,10 @@ bool VulkanRenderer::createRenderPass()
 
 bool VulkanRenderer::createPipeline()
 {
-    // Basic SPIR-V shaders compiled offline (layout matching ChunkVertex: vec3 position, vec3 normal, vec2 uv)
-    static constexpr uint32_t vertexShaderCode[] = {
-        0x07230203,0x00010000,0x0008000a,0x00000018,0x00000000,0x00020011,0x00000001,0x0006000b,
-        0x00000001,0x4c534c47,0x6474732e,0x3035342e,0x00000000,0x0003000e,0x00000000,0x00000001,
-        0x0007000f,0x00000000,0x00000004,0x6e69616d,0x00000000,0x00000009,0x0000000d,0x00030003,
-        0x00000002,0x000001c2,0x00040005,0x00000004,0x6e69616d,0x00000000,0x00050005,0x00000009,
-        0x6f505f69,0x69746973,0x00006e6f,0x00050005,0x0000000d,0x6f4e5f69,0x616d726f,0x0000006c,
-        0x00050005,0x00000010,0x70756c6d,0x6f4D5f76,0x006c6564,0x00050005,0x00000013,0x65766e69,
-        0x6f50775f,0x00000000,0x00050005,0x00000016,0x636f7250,0x6a65565f,0x00000000,0x00050048,
-        0x00000010,0x00000000,0x00000023,0x00000000,0x00050048,0x00000010,0x00000001,0x00000023,
-        0x00000040,0x00050048,0x00000010,0x00000002,0x00000023,0x00000080,0x00030047,0x00000010,
-        0x00000002,0x00040047,0x00000009,0x0000001e,0x00000000,0x00040047,0x0000000d,0x0000001e,
-        0x00000001,0x00040047,0x00000016,0x0000001e,0x00000002,0x00040047,0x00000013,0x0000001e,
-        0x00000001,0x00020013,0x00000002,0x00030021,0x00000003,0x00000002,0x00030016,0x00000006,
-        0x00000020,0x00040017,0x00000007,0x00000006,0x00000003,0x00040017,0x00000008,0x00000006,
-        0x00000002,0x00040020,0x00000009,0x00000001,0x00000007,0x00040020,0x0000000d,0x00000001,
-        0x00000007,0x0004002b,0x00000006,0x0000000f,0x3f800000,0x0006001e,0x00000010,0x00000007,
-        0x00000007,0x00000007,0x00000007,0x00040020,0x00000011,0x00000009,0x00000010,0x0004003b,
-        0x00000011,0x00000012,0x00000009,0x00040020,0x00000013,0x00000001,0x00000008,0x00040020,
-        0x00000016,0x00000001,0x00000008,0x00040017,0x00000017,0x00000006,0x00000004,0x00040020,
-        0x00000018,0x00000003,0x00000017,0x0004003b,0x00000018,0x00000019,0x00000003,0x00040017,
-        0x0000001a,0x00000006,0x00000004,0x00050036,0x00000002,0x00000004,0x00000000,0x00000003,
-        0x000200f8,0x00000005,0x0004003d,0x00000007,0x0000000a,0x00000009,0x00050051,0x00000006,
-        0x0000000b,0x0000000a,0x00000000,0x00050051,0x00000006,0x0000000c,0x0000000a,0x00000001,
-        0x00050051,0x00000006,0x0000000e,0x0000000a,0x00000002,0x00050083,0x00000006,0x0000000f,
-        0x0000000f,0x0000000e,0x00070050,0x00000017,0x00000014,0x0000000b,0x0000000c,0x0000000f,
-        0x0000000f,0x0004003d,0x00000010,0x00000015,0x00000012,0x0008004f,0x0000001a,0x0000001b,
-        0x00000015,0x00000015,0x00000000,0x00000001,0x00000002,0x00000003,0x00050091,0x0000001a,
-        0x0000001c,0x0000001b,0x00000014,0x0004003d,0x00000010,0x0000001d,0x00000012,0x0008004f,
-        0x0000001a,0x0000001e,0x0000001d,0x0000001d,0x00000004,0x00000005,0x00000006,0x00000007,
-        0x00050091,0x0000001a,0x0000001f,0x0000001e,0x0000001c,0x0003003e,0x00000019,0x0000001f,
-        0x000100fd,0x00010038};
-
-    static constexpr uint32_t fragmentShaderCode[] = {
-        0x07230203,0x00010000,0x0008000a,0x00000008,0x00000000,0x00020011,0x00000001,0x0006000b,
-        0x00000001,0x4c534c47,0x6474732e,0x3035342e,0x00000000,0x0003000e,0x00000000,0x00000001,
-        0x0007000f,0x00000004,0x00000004,0x6e69616d,0x00000000,0x00000005,0x00000006,0x00030003,
-        0x00000002,0x000001c2,0x00040005,0x00000004,0x6e69616d,0x00000000,0x00050005,0x00000005,
-        0x6f4e5f69,0x616d726f,0x0000006c,0x00050005,0x00000006,0x6f435f6f,0x726f6c6c,0x00000000,
-        0x00040047,0x00000005,0x0000001e,0x00000000,0x00040047,0x00000006,0x0000001e,0x00000000,
-        0x00020013,0x00000002,0x00030021,0x00000003,0x00000002,0x00030016,0x00000007,0x00000020,
-        0x00040017,0x00000008,0x00000007,0x00000004,0x00040020,0x00000005,0x00000001,0x00000008,
-        0x00040020,0x00000006,0x00000003,0x00000008,0x0004003b,0x00000006,0x00000007,0x00000003,
-        0x00050036,0x00000002,0x00000004,0x00000000,0x00000003,0x000200f8,0x00000005,0x0004003d,
-        0x00000008,0x00000006,0x00000005,0x0003003e,0x00000007,0x00000006,0x000100fd,0x00010038};
+    // SPIR-V shaders with texture atlas, lighting, and AO support
+    // Compiled from assets/shaders/chunk.vert and chunk.frag
+    // See assets/shaders/spirv_bytecode.h for source
+    #include "../../../assets/shaders/spirv_bytecode.h"
 
     VkShaderModuleCreateInfo vertCreateInfo{};
     vertCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -1525,6 +1529,16 @@ bool VulkanRenderer::createPipeline()
         return false;
     }
 
+    std::array<VkDynamicState, 2> dynamicStates = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR
+    };
+
+    VkPipelineDynamicStateCreateInfo dynamicState{};
+    dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+    dynamicState.pDynamicStates = dynamicStates.data();
+
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineInfo.stageCount = static_cast<uint32_t>(std::size(shaderStages));
@@ -1536,6 +1550,7 @@ bool VulkanRenderer::createPipeline()
     pipelineInfo.pMultisampleState = &multisampling;
     pipelineInfo.pDepthStencilState = &depthStencil;
     pipelineInfo.pColorBlendState = &colorBlending;
+    pipelineInfo.pDynamicState = &dynamicState;
     pipelineInfo.layout = m_pipelineLayout;
     pipelineInfo.renderPass = m_renderPass;
     pipelineInfo.subpass = 0;
@@ -1928,6 +1943,201 @@ void VulkanRenderer::renderUI()
     ImGui::Render();
     m_pendingUiDrawData = ImGui::GetDrawData();
     m_uiRenderPending = (m_pendingUiDrawData != nullptr);
+}
+
+void VulkanRenderer::beginPerformanceCapture()
+{
+    m_performanceCaptureActive = true;
+    m_frameCaptureStart = std::chrono::high_resolution_clock::now();
+    m_currentMetrics = {};
+    m_lastDrawCallCount = 0;
+    m_lastVertexCount = 0;
+    m_lastTriangleCount = 0;
+
+    if(m_timestampsSupported && m_timestampQueryPool == VK_NULL_HANDLE)
+    {
+        if(!createTimestampQueryPool())
+        {
+            m_timestampsSupported = false;
+        }
+    }
+
+    if(m_timestampsSupported && !m_timestampResults.empty())
+    {
+        std::fill(m_timestampResults.begin(), m_timestampResults.end(), 0ULL);
+    }
+}
+
+void VulkanRenderer::endPerformanceCapture()
+{
+    if(!m_performanceCaptureActive)
+    {
+        return;
+    }
+
+    m_performanceCaptureActive = false;
+
+    const auto now = std::chrono::high_resolution_clock::now();
+    m_currentMetrics.cpu.frameTimeMs = std::chrono::duration<double, std::milli>(now - m_frameCaptureStart).count();
+    m_currentMetrics.fps = m_currentMetrics.cpu.frameTimeMs > 0.0 ? 1000.0 / m_currentMetrics.cpu.frameTimeMs : 0.0;
+
+    m_currentMetrics.stats.drawCalls = m_lastDrawCallCount;
+    m_currentMetrics.stats.verticesRendered = m_lastVertexCount;
+    m_currentMetrics.stats.trianglesRendered = m_lastTriangleCount;
+
+    if(m_timestampsSupported && m_timestampQueryPool != VK_NULL_HANDLE && !m_timestampResults.empty())
+    {
+        const VkResult result = vkGetQueryPoolResults(
+            m_device,
+            m_timestampQueryPool,
+            0,
+            static_cast<uint32_t>(m_timestampResults.size()),
+            sizeof(uint64_t) * m_timestampResults.size(),
+            m_timestampResults.data(),
+            sizeof(uint64_t),
+            VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
+
+        if(result == VK_SUCCESS)
+        {
+            const double frameMs = computeTimestampDelta(0, 3);
+            const double renderPassMs = computeTimestampDelta(1, 2);
+            const double uiPassMs = computeTimestampDelta(2, 3);
+
+            if(frameMs > 0.0)
+            {
+                m_currentMetrics.gpu.available = true;
+                m_currentMetrics.gpu.renderPassTimeMs = renderPassMs;
+                m_currentMetrics.gpu.uiPassTimeMs = std::max(0.0, uiPassMs);
+            }
+            else
+            {
+                m_currentMetrics.gpu.available = false;
+                m_currentMetrics.gpu.renderPassTimeMs = 0.0;
+                m_currentMetrics.gpu.uiPassTimeMs = 0.0;
+            }
+        }
+        else
+        {
+            m_currentMetrics.gpu.available = false;
+            m_currentMetrics.gpu.renderPassTimeMs = 0.0;
+            m_currentMetrics.gpu.uiPassTimeMs = 0.0;
+        }
+    }
+
+    m_metricsHistory[m_metricsHistoryIndex] = m_currentMetrics;
+    m_metricsHistoryIndex = (m_metricsHistoryIndex + 1) % m_metricsHistory.size();
+    if(m_metricsHistoryCount < m_metricsHistory.size())
+    {
+        ++m_metricsHistoryCount;
+    }
+
+    PerformanceMetrics accumulated{};
+    std::size_t count = 0;
+    for(std::size_t i = 0; i < m_metricsHistoryCount; ++i)
+    {
+        const auto& metrics = m_metricsHistory[i];
+        if(metrics.cpu.frameTimeMs <= 0.0)
+        {
+            continue;
+        }
+
+        ++count;
+        accumulated.cpu.frameTimeMs += metrics.cpu.frameTimeMs;
+        accumulated.gpu.renderPassTimeMs += metrics.gpu.renderPassTimeMs;
+        accumulated.gpu.uiPassTimeMs += metrics.gpu.uiPassTimeMs;
+        accumulated.fps += metrics.fps;
+    }
+
+    if(count > 0)
+    {
+        m_smoothedMetrics.cpu.frameTimeMs = accumulated.cpu.frameTimeMs / static_cast<double>(count);
+        m_smoothedMetrics.gpu.renderPassTimeMs = accumulated.gpu.renderPassTimeMs / static_cast<double>(count);
+        m_smoothedMetrics.gpu.uiPassTimeMs = accumulated.gpu.uiPassTimeMs / static_cast<double>(count);
+        m_smoothedMetrics.gpu.available = m_currentMetrics.gpu.available;
+        m_smoothedMetrics.fps = accumulated.fps / static_cast<double>(count);
+        m_smoothedMetrics.stats = m_currentMetrics.stats;
+        m_currentMetrics = m_smoothedMetrics;
+    }
+    else
+    {
+        m_smoothedMetrics = m_currentMetrics;
+    }
+}
+
+PerformanceMetrics VulkanRenderer::getPerformanceMetrics() const
+{
+    return m_currentMetrics;
+}
+
+bool VulkanRenderer::createTimestampQueryPool()
+{
+    if(!m_timestampsSupported || m_device == VK_NULL_HANDLE)
+    {
+        return false;
+    }
+
+    if(m_timestampQueryPool != VK_NULL_HANDLE)
+    {
+        return true;
+    }
+
+    VkQueryPoolCreateInfo queryPoolInfo{};
+    queryPoolInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+    queryPoolInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
+    queryPoolInfo.queryCount = 4;
+
+    if(vkCreateQueryPool(m_device, &queryPoolInfo, nullptr, &m_timestampQueryPool) != VK_SUCCESS)
+    {
+        m_timestampQueryPool = VK_NULL_HANDLE;
+        return false;
+    }
+
+    m_timestampResults.resize(queryPoolInfo.queryCount, 0ULL);
+    return true;
+}
+
+void VulkanRenderer::destroyTimestampQueryPool()
+{
+    if(m_timestampQueryPool != VK_NULL_HANDLE)
+    {
+        vkDestroyQueryPool(m_device, m_timestampQueryPool, nullptr);
+        m_timestampQueryPool = VK_NULL_HANDLE;
+    }
+    m_timestampResults.clear();
+}
+
+void VulkanRenderer::recordTimestamp(std::uint32_t queryIndex, VkPipelineStageFlagBits stage)
+{
+    if(!m_performanceCaptureActive || !m_timestampsSupported || m_timestampQueryPool == VK_NULL_HANDLE)
+    {
+        return;
+    }
+
+    if(m_currentFrame >= m_commandBuffers.size())
+    {
+        return;
+    }
+
+    vkCmdWriteTimestamp(m_commandBuffers[m_currentFrame], stage, m_timestampQueryPool, queryIndex);
+}
+
+double VulkanRenderer::computeTimestampDelta(std::uint32_t startIndex, std::uint32_t endIndex) const
+{
+    if(startIndex >= m_timestampResults.size() || endIndex >= m_timestampResults.size())
+    {
+        return 0.0;
+    }
+
+    const std::uint64_t start = m_timestampResults[startIndex];
+    const std::uint64_t end = m_timestampResults[endIndex];
+
+    if(end <= start || m_timestampPeriodNs <= 0.0)
+    {
+        return 0.0;
+    }
+
+    const double deltaNs = static_cast<double>(end - start) * m_timestampPeriodNs;
+    return deltaNs / 1'000'000.0;
 }
 
 bool VulkanRenderer::createDeviceLocalBuffer(const void* data, std::size_t size, VkBufferUsageFlags usage, BufferResource& outBuffer)

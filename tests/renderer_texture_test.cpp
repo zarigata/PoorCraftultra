@@ -104,11 +104,9 @@ TEST_F(RendererTextureTest, LightingParametersCanBeSet) {
     }
 
     Renderer::LightingParams params;
-    params.sunDirection = glm::vec3(0.0f, -1.0f, 0.0f);
-    params.sunColor = glm::vec3(1.0f, 1.0f, 0.9f);
-    params.sunIntensity = 0.8f;
-    params.ambientColor = glm::vec3(0.5f, 0.5f, 0.6f);
-    params.ambientIntensity = 0.3f;
+    params.sunDirAndIntensity = glm::vec4(0.0f, -1.0f, 0.0f, 0.8f);
+    params.sunColor = glm::vec4(1.0f, 1.0f, 0.9f, 0.0f);
+    params.ambientColorAndIntensity = glm::vec4(0.5f, 0.5f, 0.6f, 0.3f);
 
     // Should not crash
     renderer->setLightingParams(params);
@@ -150,11 +148,10 @@ TEST_F(RendererTextureTest, AtlasIntegrationWithOpenGL) {
 
     // Set lighting
     Renderer::LightingParams params;
-    params.sunDirection = glm::normalize(glm::vec3(0.3f, -0.7f, 0.4f));
-    params.sunColor = glm::vec3(1.0f, 1.0f, 0.9f);
-    params.sunIntensity = 0.8f;
-    params.ambientColor = glm::vec3(0.4f, 0.4f, 0.5f);
-    params.ambientIntensity = 0.2f;
+    glm::vec3 sunDir = glm::normalize(glm::vec3(0.3f, -0.7f, 0.4f));
+    params.sunDirAndIntensity = glm::vec4(sunDir, 0.8f);
+    params.sunColor = glm::vec4(1.0f, 1.0f, 0.9f, 0.0f);
+    params.ambientColorAndIntensity = glm::vec4(0.4f, 0.4f, 0.5f, 0.2f);
     renderer->setLightingParams(params);
 
     // Begin frame to apply uniforms
@@ -201,11 +198,10 @@ TEST_F(RendererTextureTest, AtlasIntegrationWithVulkan) {
 
     // Set lighting
     Renderer::LightingParams params;
-    params.sunDirection = glm::normalize(glm::vec3(0.3f, -0.7f, 0.4f));
-    params.sunColor = glm::vec3(1.0f, 1.0f, 0.9f);
-    params.sunIntensity = 0.8f;
-    params.ambientColor = glm::vec3(0.4f, 0.4f, 0.5f);
-    params.ambientIntensity = 0.2f;
+    glm::vec3 sunDir = glm::normalize(glm::vec3(0.3f, -0.7f, 0.4f));
+    params.sunDirAndIntensity = glm::vec4(sunDir, 0.8f);
+    params.sunColor = glm::vec4(1.0f, 1.0f, 0.9f, 0.0f);
+    params.ambientColorAndIntensity = glm::vec4(0.4f, 0.4f, 0.5f, 0.2f);
     renderer->setLightingParams(params);
 
     // Cleanup

@@ -8,6 +8,7 @@
 #include <glm/mat4x4.hpp>
 
 #include <array>
+#include <chrono>
 #include <unordered_map>
 #include <vector>
 
@@ -54,6 +55,10 @@ public:
     void shutdownUI() override;
     void beginUIPass() override;
     void renderUI() override;
+
+    void beginPerformanceCapture() override;
+    void endPerformanceCapture() override;
+    PerformanceMetrics getPerformanceMetrics() const override;
 
 private:
     bool createGLContext();
@@ -118,6 +123,23 @@ private:
     Renderer::LightingParams m_lightingParams{};
     bool m_lightingDirty{true};
     TextureHandle m_defaultTexture{0};
+
+    unsigned int m_timerQueries[4]{0, 0, 0, 0};
+    bool m_timerQueriesSupported{false};
+    std::chrono::high_resolution_clock::time_point m_frameCaptureStart{};
+    bool m_performanceCaptureActive{false};
+    PerformanceMetrics m_currentMetrics{};
+    PerformanceMetrics m_smoothedMetrics{};
+    std::array<PerformanceMetrics, 60> m_metricsHistory{};
+    std::size_t m_metricsHistoryIndex{0};
+    std::size_t m_metricsHistoryCount{0};
+    std::uint32_t m_lastDrawCallCount{0};
+    std::uint64_t m_lastVertexCount{0};
+    std::uint64_t m_lastTriangleCount{0};
+
+    bool createTimerQueries();
+    void destroyTimerQueries();
+    double getQueryResultMs(unsigned int query) const;
 };
 } // namespace poorcraft::rendering
 

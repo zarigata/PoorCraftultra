@@ -1,12 +1,17 @@
 #ifndef POORCRAFT_RENDERING_VULKANRENDERER_H
 #define POORCRAFT_RENDERING_VULKANRENDERER_H
 
+#include "poorcraft/rendering/PerformanceMetrics.h"
 #include "poorcraft/rendering/Renderer.h"
 #include <vulkan/vulkan.h>
 #include <cstdint>
 #include <limits>
 #include <unordered_map>
 #include <vector>
+
+#include <array>
+
+#include <chrono>
 
 #include <glm/mat4x4.hpp>
 
@@ -53,6 +58,10 @@ public:
     void shutdownUI() override;
     void beginUIPass() override;
     void renderUI() override;
+
+    void beginPerformanceCapture() override;
+    void endPerformanceCapture() override;
+    PerformanceMetrics getPerformanceMetrics() const override;
 
     VkInstance getInstance() const { return m_instance; }
     VkPhysicalDevice getPhysicalDevice() const { return m_physicalDevice; }
@@ -186,6 +195,26 @@ private:
     VkDescriptorPool m_imguiDescriptorPool{VK_NULL_HANDLE};
     ImDrawData* m_pendingUiDrawData{nullptr};
     bool m_uiRenderPending{false};
+
+    VkQueryPool m_timestampQueryPool{VK_NULL_HANDLE};
+    std::vector<std::uint64_t> m_timestampResults;
+    bool m_timestampsSupported{false};
+    std::chrono::high_resolution_clock::time_point m_frameCaptureStart{};
+    PerformanceMetrics m_currentMetrics{};
+    PerformanceMetrics m_smoothedMetrics{};
+    std::array<PerformanceMetrics, 60> m_metricsHistory{};
+    std::size_t m_metricsHistoryIndex{0};
+    std::size_t m_metricsHistoryCount{0};
+    bool m_performanceCaptureActive{false};
+    double m_timestampPeriodNs{0.0};
+    std::uint32_t m_lastDrawCallCount{0};
+    std::uint64_t m_lastVertexCount{0};
+    std::uint64_t m_lastTriangleCount{0};
+
+    bool createTimestampQueryPool();
+    void destroyTimestampQueryPool();
+    void recordTimestamp(std::uint32_t queryIndex, VkPipelineStageFlagBits stage);
+    double computeTimestampDelta(std::uint32_t startIndex, std::uint32_t endIndex) const;
 };
 } // namespace poorcraft::rendering
 
