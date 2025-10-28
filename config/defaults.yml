@@ -1,0 +1,38 @@
+graphics:
+  resolution:
+    width: 1280
+    height: 720
+  fullscreen: false
+  vsync: true
+  msaa: 4
+  viewDistance: 8
+  fov: 75
+controls:
+  forward: W
+  back: S
+  left: A
+  right: D
+  jump: SPACE
+  crouch: LSHIFT
+  inventory: E
+  chat: T
+  command: "/"
+audio:
+  masterVolume: 1.0
+  musicVolume: 0.7
+  sfxVolume: 0.8
+network:
+  port: 25565
+  maxPlayers: 16
+  timeout: 30
+ai:
+  provider: OFF
+  model: ""
+  endpoints: {}
+  apiKeys: {}
+steam:
+  appId: 0
+  enabled: false
+discord:
+  appId: 0
+  enabled: false

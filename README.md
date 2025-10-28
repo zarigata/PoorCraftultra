@@ -1,211 +1,83 @@
-# PoorCraft Ultra
+# Poorcraft Ultra
 
-An open-source voxel game engine built with Java, LWJGL 3, and JOML.
+A production-grade, Java-based voxel sandbox game with Steam, Discord, multiplayer, and AI NPCs.
 
-## Current Phase
+## Features
+- Modular Java 17 architecture with Gradle multi-module build.
+- Custom voxel engine with planned world generation and chunk streaming.
+- Multiplayer support via jMonkeyEngine SpiderMonkey and Steam Networking.
+- Steamworks integration for achievements, overlay, and Workshop.
+- Discord Game SDK integration for Rich Presence and invites.
+- AI-driven NPCs powered by LLM adapters and speech recognition.
+- Extensible modding pipeline with resource packs and plugin API.
 
-**Phase 2 - OpenGL Rendering Pipeline + Single Cube**
+## Requirements
+- Java 17 LTS (Temurin, Zulu, or compatible distribution).
+- Gradle 8.5+ (wrapper included).
+- Supported platforms: Windows, Linux, macOS.
 
-This phase establishes the foundation with:
-- Gradle build system with LWJGL 3 and JOML dependencies
-- GLFW window creation (1280x720)
-- Keyboard input handling (WASD movement, ESC to exit)
-- Mouse input handling (first-person camera rotation)
-- First-person camera system with JOML math
-- Comprehensive unit and integration tests
+## Getting Started
+1. Clone the repository.
+2. Build the project:
+   - Linux/macOS: `./gradlew build`
+   - Windows: `gradlew.bat build`
+3. Run the client: `./gradlew :app:run`
+4. Execute tests: `./gradlew test`
 
-## Features Implemented
-
-### Core Engine
-- **Engine**: Main game loop orchestrating window, input, and camera
-- **Window**: GLFW-based window management with OpenGL context
-- **InputManager**: Coordinates keyboard and mouse input systems
-
-### Input System
-- **KeyboardInput**: WASD movement, sprint (Shift), ESC to close
-- **MouseInput**: First-person camera rotation with pitch clamping
-- Frame-rate independent movement with delta time
-
-### Rendering (Foundation)
-- **Camera**: First-person camera with view and projection matrices
-- Position, yaw/pitch rotation, movement vectors
-- JOML-based matrix calculations
-
-### Rendering Pipeline
-- **ShaderProgram**: GLSL shader management with compilation, linking, and uniform handling
-- **Mesh**: VAO/VBO/EBO buffer management for vertex data
-- **Renderer**: Orchestrates rendering pipeline with depth testing and draw calls
-- GLSL vertex and fragment shaders (version 330 core)
-- Single colored cube rendering in 3D space
-- Performance testing (60+ FPS verified)
-
-### Utilities
-- **Constants**: Game-wide configuration values
-- Window dimensions, camera settings, movement speeds, mouse sensitivity
-
-### Testing
-- Unit tests for Camera (JOML operations)
-- Integration tests for Window (GLFW initialization)
-- Integration tests for InputManager + Camera
-- Unit tests for ShaderProgram, Mesh, and Renderer (OpenGL context required)
-- Performance tests for 60+ FPS requirement
-- Visual tests for rendering correctness
-- Placeholder unit tests for input classes (GLFW mocking needed)
-
-## Build Instructions
-
-### Prerequisites
-- Java 17 or higher
-- Gradle (or use included wrapper)
-
-### Building
-```bash
-# Using Gradle wrapper (recommended)
-./gradlew build
-
-# Or using system Gradle
-gradle build
-```
-
-### Running
-```bash
-# Using Gradle wrapper
-./gradlew run
-
-# Or using system Gradle
-gradle run
-```
-
-### Testing
-```bash
-# Run all tests
-./gradlew test
-
-# Run unit tests only
-./gradlew test --tests "*Test"
-
-# Run integration tests only
-./gradlew test --tests "*IntegrationTest"
-
-# Run performance tests
-./gradlew performanceTest
-
-# Run visual tests
-./gradlew visualTest
-```
-
-## Controls
-
-- **WASD**: Move camera forward/backward/left/right
-- **Left Shift**: Sprint (faster movement)
-- **Mouse**: Look around (first-person camera)
-- **ESC**: Close window
+## Configuration
+- Default configuration lives in `config/defaults.yml`.
+- Override by creating `config/user.yml` or `config/user.json`.
+- Environment variables for integrations:
+  - `STEAM_APP_ID`
+  - `DISCORD_APP_ID`
+  - `OPENAI_API_KEY`
+  - `GEMINI_API_KEY`
+  - `OLLAMA_HOST`
+- Enable developer mode with `DEV_MODE=true`.
 
 ## Project Structure
+- `app`: Entry point, configuration, logging.
+- `engine`: jME wrapper, scene bootstrapping.
+- `voxel`: Chunk storage, meshing.
+- `world`: Worldgen and persistence.
+- `player`: Input, camera, inventory.
+- `gameplay`: Blocks/items, crafting, entities.
+- `net`: Multiplayer networking stack.
+- `steam`: Steamworks integration.
+- `discord`: Discord Game SDK integration.
+- `mods`: Mod loader and resource packs.
+- `ai`: AI services, Brigadier commands, Vosk.
+- `ui`: Lemur UI, HUD, menus.
+- `tools`: Asset pipeline helpers.
+- `shared`: DTOs, constants, utilities.
+- `tests`: Unit/integration testbed.
 
-```
-PoorCraftUltra/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/poorcraftultra/
-│   │   │       ├── Main.java                 # Application entry point
-│   │   │       ├── core/                     # Core engine components
-│   │   │       │   ├── Engine.java           # Main game loop
-│   │   │       │   └── Window.java           # GLFW window management
-│   │   │       ├── input/                    # Input handling
-│   │   │       │   ├── InputManager.java     # Input coordination
-│   │   │       │   ├── KeyboardInput.java    # Keyboard handling
-│   │   │       │   └── MouseInput.java       # Mouse handling
-│   │   │       ├── rendering/                # Rendering components
-│   │   │       │   ├── Camera.java           # First-person camera
-│   │   │       │   ├── Renderer.java         # Rendering pipeline
-│   │   │       │   ├── ShaderProgram.java    # GLSL shader management
-│   │   │       │   └── Mesh.java             # VAO/VBO/EBO management
-│   │   │       └── util/                     # Utilities
-│   │   │           └── Constants.java        # Game constants
-│   │   └── resources/                        # Resources
-│   │       └── shaders/                      # GLSL shader files
-│   │           ├── vertex.glsl               # Vertex shader
-│   │           └── fragment.glsl             # Fragment shader
-│   └── test/
-│       └── java/
-│           └── com/poorcraftultra/
-│               ├── input/                    # Input tests
-│               │   ├── KeyboardInputTest.java
-│               │   └── MouseInputTest.java
-│               ├── rendering/                # Rendering tests
-│               │   ├── CameraTest.java
-│               │   ├── ShaderProgramTest.java
-│               │   ├── MeshTest.java
-│               │   └── RendererTest.java
-│               └── integration/              # Integration tests
-│                   ├── WindowIntegrationTest.java
-│                   ├── InputCameraIntegrationTest.java
-│                   ├── RenderingPerformanceTest.java
-│                   └── VisualRenderingTest.java
-├── build.gradle                              # Gradle build configuration
-├── settings.gradle                           # Gradle project settings
-├── gradle/                                   # Gradle wrapper
-│   └── wrapper/
-├── gradlew                                   # Unix Gradle wrapper script
-├── gradlew.bat                               # Windows Gradle wrapper script
-├── .gitignore                                # Git ignore patterns
-├── README.md                                 # This file
-└── LICENSE                                   # License file
-```
+## Development Workflow
+- Import as a Gradle project in IntelliJ IDEA or Eclipse.
+- Use `./gradlew :app:run` for rapid iteration.
+- Refer to `docs/architecture.md` for design details.
 
-## Dependencies
-
-- **LWJGL 3.3.3**: OpenGL/GLFW bindings for Java
-- **JOML 1.10.5**: Math library for 3D operations
-- **JUnit 5.10.0**: Testing framework
-
-## Future Phases
-
-1. **Phase 1** ✅ - Project setup, window, input, camera
-2. **Phase 2** ✅ - Rendering pipeline (shaders, meshes)
-3. **Phase 3** - Chunk system and terrain generation
-4. **Phase 4** - Block placement and destruction
-5. **Phase 5** - World saving/loading
-6. **Phase 6** - Multiplayer networking
-7. **Phase 7** - Advanced rendering (lighting, textures)
-8. **Phase 8** - Physics and collision detection
-9. **Phase 9** - Entities and AI
-10. **Phase 10** - UI and inventory system
-11. **Phase 11** - Crafting and recipes
-12. **Phase 12** - Sound and audio
-13. **Phase 13** - Modding API
-14. **Phase 14** - Performance optimizations
-15. **Phase 15** - Cross-platform support
-16. **Phase 16** - Mobile port
-17. **Phase 17** - Web deployment
-18. **Phase 18** - Final polish and release
-
-## Contributing
-
-This is an educational open-source project. Contributions are welcome!
-
-### Development Setup
-1. Fork the repository
-2. Clone your fork
-3. Create a feature branch
-4. Make changes with tests
-5. Run `./gradlew build` to ensure everything works
-6. Submit a pull request
-
-### Code Style
-- Follow standard Java conventions
-- Add Javadoc for public APIs
-- Include unit tests for new features
-- Keep methods small and focused
+## Testing
+- Run `./gradlew test` locally.
+- GitHub Actions runs CI on Windows and Linux for every push/PR.
 
 ## License
+MIT License (see `LICENSE`). Project assets excluded unless stated.
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## Phase 0 Status
+✅ PHASE 0 OK – Poorcraft Ultra
 
-## Acknowledgments
+## Contributing
+Contributions welcome. Modding guide forthcoming in `docs/modding.md`.
 
-- LWJGL community for the excellent OpenGL bindings
-- JOML project for the math library
-- Minecraft and other voxel games for inspiration
+## Credits
+- jMonkeyEngine
+- LWJGL
+- Steamworks4j
+- Discord Game SDK
+- Vosk
+- Ollama
+- Brigadier
+- Kryo
+- Jackson, SnakeYAML
+- SLF4J, Logback
