@@ -13,7 +13,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("com.poorcraft.ultra.app.Bootstrap")
+    mainClass.set("com.poorcraft.ultra.app.PoorcraftUltra")
 }
 
 tasks.named<JavaExec>("run") {
