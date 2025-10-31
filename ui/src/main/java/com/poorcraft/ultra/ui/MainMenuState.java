@@ -3,9 +3,9 @@ package com.poorcraft.ultra.ui;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.input.InputManager;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
+import com.poorcraft.ultra.engine.api.InputControllable;
 import com.poorcraft.ultra.shared.Logger;
 import com.simsilica.lemur.Button;
 import com.simsilica.lemur.Container;
@@ -24,6 +24,8 @@ public final class MainMenuState extends BaseAppState {
 
     private Container menuContainer;
     private Button exitButton;
+    private float lastCameraWidth;
+    private float lastCameraHeight;
 
     @Override
     protected void initialize(Application app) {
@@ -37,8 +39,10 @@ public final class MainMenuState extends BaseAppState {
 
         SimpleApplication simpleApp = (SimpleApplication) app;
         centerMenu(simpleApp);
+        trackCameraSize(simpleApp);
         simpleApp.getGuiNode().attachChild(menuContainer);
-        logger.info("Main menu initialized");
+        setEnabled(false);
+        logger.info("Main menu initialized (disabled by default)");
     }
 
     @Override
@@ -57,17 +61,50 @@ public final class MainMenuState extends BaseAppState {
 
         Application application = getApplication();
         if (application instanceof SimpleApplication simpleApplication) {
-            InputManager inputManager = simpleApplication.getInputManager();
-            if (inputManager != null) {
-                inputManager.setCursorVisible(true);
-            }
+            centerMenu(simpleApplication);
+            trackCameraSize(simpleApplication);
+            simpleApplication.getInputManager().setCursorVisible(true);
         }
+
+        InputControllable cameraController = resolveCameraController();
+        if (cameraController != null) {
+            cameraController.setInputEnabled(false);
+        }
+
+        logger.info("Main menu enabled");
     }
 
     @Override
     protected void onDisable() {
         if (menuContainer != null) {
             menuContainer.setCullHint(Spatial.CullHint.Always);
+        }
+
+        Application application = getApplication();
+        if (application != null) {
+            application.getInputManager().setCursorVisible(false);
+        }
+
+        InputControllable cameraController = resolveCameraController();
+        if (cameraController != null) {
+            cameraController.setInputEnabled(true);
+        }
+
+        logger.info("Main menu disabled");
+    }
+
+    @Override
+    public void update(float tpf) {
+        Application application = getApplication();
+        if (!(application instanceof SimpleApplication simpleApplication)) {
+            return;
+        }
+
+        float currentWidth = simpleApplication.getCamera().getWidth();
+        float currentHeight = simpleApplication.getCamera().getHeight();
+        if (currentWidth != lastCameraWidth || currentHeight != lastCameraHeight) {
+            centerMenu(simpleApplication);
+            trackCameraSize(simpleApplication);
         }
     }
 
@@ -93,5 +130,33 @@ public final class MainMenuState extends BaseAppState {
         float x = (width - BUTTON_WIDTH) / 2f;
         float y = (height + BUTTON_HEIGHT) / 2f;
         menuContainer.setLocalTranslation(x, y, 0f);
+    }
+
+    private void trackCameraSize(SimpleApplication app) {
+        lastCameraWidth = app.getCamera().getWidth();
+        lastCameraHeight = app.getCamera().getHeight();
+    }
+
+    private InputControllable resolveCameraController() {
+        var stateManager = getStateManager();
+        if (stateManager == null) {
+            return null;
+        }
+
+        try {
+            Class<?> clazz = Class.forName("com.poorcraft.ultra.engine.CameraController");
+            if (!BaseAppState.class.isAssignableFrom(clazz)) {
+                return null;
+            }
+            @SuppressWarnings("unchecked")
+            Class<? extends BaseAppState> stateClass = (Class<? extends BaseAppState>) clazz;
+            var state = stateManager.getState(stateClass);
+            if (state instanceof InputControllable controllable) {
+                return controllable;
+            }
+        } catch (ClassNotFoundException ignored) {
+            // Camera controller not available; likely detached or module missing.
+        }
+        return null;
     }
 }

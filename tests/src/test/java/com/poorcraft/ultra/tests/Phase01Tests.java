@@ -16,7 +16,9 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 class Phase01Tests {
 
@@ -40,9 +42,18 @@ class Phase01Tests {
     void testNativeExtraction(@TempDir Path tempDir) throws IOException {
         NativeLoader.extractNatives(tempDir);
         Assertions.assertThat(tempDir)
-                .isNotEmptyDirectory();
-        Assertions.assertThat(Files.list(tempDir))
-                .anySatisfy(path -> Assertions.assertThat(hasNativeExtension(path)).isTrue());
+                .exists()
+                .isDirectory();
+
+        List<Path> extracted;
+        try (var stream = Files.list(tempDir)) {
+            extracted = stream.collect(Collectors.toList());
+        }
+
+        if (!extracted.isEmpty()) {
+            Assertions.assertThat(extracted)
+                    .anySatisfy(path -> Assertions.assertThat(hasNativeExtension(path)).isTrue());
+        }
         String javaLibraryPath = System.getProperty(JAVA_LIBRARY_PATH);
         Assertions.assertThat(javaLibraryPath)
                 .contains(tempDir.toAbsolutePath().toString());

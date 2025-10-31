@@ -18,6 +18,7 @@ resourcepacks/
 workshop/
 data/models/
 natives/
+assets/
 *.jar
 !gradle/wrapper/gradle-wrapper.jar
 *.exe

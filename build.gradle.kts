@@ -11,6 +11,7 @@ extra.apply {
     set("typesafeConfigVersion", "1.4.3")
     set("junitVersion", "5.10.1")
     set("mockitoVersion", "5.7.0")
+    set("jacksonVersion", "2.15.2")
 }
 
 allprojects {

@@ -3,6 +3,7 @@ rootProject.name = "poorcraft-ultra"
 include(
     "app",
     "engine",
+    "engine-api",
     "voxel",
     "world",
     "player",
@@ -14,6 +15,7 @@ include(
     "ai",
     "ui",
     "tools",
+    "tools:assets",
     "shared",
     "tests"
 )

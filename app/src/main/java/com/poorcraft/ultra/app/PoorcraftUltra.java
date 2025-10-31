@@ -52,17 +52,24 @@ public final class PoorcraftUltra {
 
     private static void printBanner() {
         System.out.println("============================");
-        System.out.println("   POORCRAFT ULTRA v0.1   ");
+        System.out.println("   POORCRAFT ULTRA v1.3   ");
         System.out.println("============================");
     }
 
     private static AppSettings buildSettings(Config config) {
         AppSettings settings = new AppSettings(true);
-        settings.setTitle(config.getString("window.title"));
-        settings.setResolution(config.getInt("window.width"), config.getInt("window.height"));
-        settings.setFullscreen(config.getBoolean("window.fullscreen"));
-        settings.setVSync(config.getBoolean("window.vsync"));
-        settings.setResizable(config.getBoolean("window.resizable"));
+        String title = config.hasPath("window.title") ? config.getString("window.title") : "Poorcraft Ultra";
+        int width = config.hasPath("window.width") ? config.getInt("window.width") : 1280;
+        int height = config.hasPath("window.height") ? config.getInt("window.height") : 720;
+        boolean fullscreen = config.hasPath("window.fullscreen") ? config.getBoolean("window.fullscreen") : false;
+        boolean vsync = config.hasPath("window.vsync") ? config.getBoolean("window.vsync") : true;
+        boolean resizable = config.hasPath("window.resizable") ? config.getBoolean("window.resizable") : true;
+
+        settings.setTitle(title != null && !title.isBlank() ? title : "Poorcraft Ultra");
+        settings.setResolution(width > 0 ? width : 1280, height > 0 ? height : 720);
+        settings.setFullscreen(fullscreen);
+        settings.setVSync(vsync);
+        settings.setResizable(resizable);
         return settings;
     }
 }
