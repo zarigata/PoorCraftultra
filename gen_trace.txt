@@ -1,0 +1,661 @@
+import _frozen_importlib # frozen
+import _imp # builtin
+import '_thread' # <class '_frozen_importlib.BuiltinImporter'>
+import '_warnings' # <class '_frozen_importlib.BuiltinImporter'>
+import '_weakref' # <class '_frozen_importlib.BuiltinImporter'>
+import 'winreg' # <class '_frozen_importlib.BuiltinImporter'>
+import '_io' # <class '_frozen_importlib.BuiltinImporter'>
+import 'marshal' # <class '_frozen_importlib.BuiltinImporter'>
+import 'nt' # <class '_frozen_importlib.BuiltinImporter'>
+import '_frozen_importlib_external' # <class '_frozen_importlib.FrozenImporter'>
+# installing zipimport hook
+import 'time' # <class '_frozen_importlib.BuiltinImporter'>
+import 'zipimport' # <class '_frozen_importlib.FrozenImporter'>
+# installed zipimport hook
+# C:\Python313\Lib\encodings\__pycache__\__init__.cpython-313.pyc matches C:\Python313\Lib\encodings\__init__.py
+# code object from 'C:\\Python313\\Lib\\encodings\\__pycache__\\__init__.cpython-313.pyc'
+import '_codecs' # <class '_frozen_importlib.BuiltinImporter'>
+import 'codecs' # <class '_frozen_importlib.FrozenImporter'>
+# C:\Python313\Lib\encodings\__pycache__\aliases.cpython-313.pyc matches C:\Python313\Lib\encodings\aliases.py
+# code object from 'C:\\Python313\\Lib\\encodings\\__pycache__\\aliases.cpython-313.pyc'
+import 'encodings.aliases' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F3EA350>
+import 'encodings' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F365400>
+# C:\Python313\Lib\encodings\__pycache__\utf_8.cpython-313.pyc matches C:\Python313\Lib\encodings\utf_8.py
+# code object from 'C:\\Python313\\Lib\\encodings\\__pycache__\\utf_8.cpython-313.pyc'
+import 'encodings.utf_8' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F3EA490>
+# C:\Python313\Lib\encodings\__pycache__\cp1252.cpython-313.pyc matches C:\Python313\Lib\encodings\cp1252.py
+# code object from 'C:\\Python313\\Lib\\encodings\\__pycache__\\cp1252.cpython-313.pyc'
+import 'encodings.cp1252' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F3D9CD0>
+import '_signal' # <class '_frozen_importlib.BuiltinImporter'>
+import '_abc' # <class '_frozen_importlib.BuiltinImporter'>
+import 'abc' # <class '_frozen_importlib.FrozenImporter'>
+import 'io' # <class '_frozen_importlib.FrozenImporter'>
+import '_stat' # <class '_frozen_importlib.BuiltinImporter'>
+import 'stat' # <class '_frozen_importlib.FrozenImporter'>
+import '_collections_abc' # <class '_frozen_importlib.FrozenImporter'>
+import 'genericpath' # <class '_frozen_importlib.FrozenImporter'>
+import '_winapi' # <class '_frozen_importlib.BuiltinImporter'>
+import 'ntpath' # <class '_frozen_importlib.FrozenImporter'>
+import 'os' # <class '_frozen_importlib.FrozenImporter'>
+import '_sitebuiltins' # <class '_frozen_importlib.FrozenImporter'>
+Processing global site-packages
+Adding directory: 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv'
+Adding directory: 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages'
+Processing .pth file: 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\distutils-precedence.pth'
+# C:\Python313\Lib\encodings\__pycache__\utf_8_sig.cpython-313.pyc matches C:\Python313\Lib\encodings\utf_8_sig.py
+# code object from 'C:\\Python313\\Lib\\encodings\\__pycache__\\utf_8_sig.cpython-313.pyc'
+import 'encodings.utf_8_sig' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F3DA190>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\_distutils_hack\__pycache__\__init__.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\_distutils_hack\__init__.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\_distutils_hack\\__pycache__\\__init__.cpython-313.pyc'
+import '_distutils_hack' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F604B90>
+Processing user site-packages
+Processing global site-packages
+Adding directory: 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv'
+Adding directory: 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages'
+Processing .pth file: 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\distutils-precedence.pth'
+import 'site' # <class '_frozen_importlib.FrozenImporter'>
+Python 3.13.1 (tags/v3.13.1:0671451, Dec  3 2024, 19:06:28) [MSC v.1942 64 bit (AMD64)] on win32
+Type "help", "copyright", "credits" or "license" for more information.
+# C:\Python313\Lib\__pycache__\argparse.cpython-313.pyc matches C:\Python313\Lib\argparse.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\argparse.cpython-313.pyc'
+# C:\Python313\Lib\re\__pycache__\__init__.cpython-313.pyc matches C:\Python313\Lib\re\__init__.py
+# code object from 'C:\\Python313\\Lib\\re\\__pycache__\\__init__.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\enum.cpython-313.pyc matches C:\Python313\Lib\enum.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\enum.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\functools.cpython-313.pyc matches C:\Python313\Lib\functools.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\functools.cpython-313.pyc'
+# C:\Python313\Lib\collections\__pycache__\__init__.cpython-313.pyc matches C:\Python313\Lib\collections\__init__.py
+# code object from 'C:\\Python313\\Lib\\collections\\__pycache__\\__init__.cpython-313.pyc'
+import 'itertools' # <class '_frozen_importlib.BuiltinImporter'>
+# C:\Python313\Lib\__pycache__\keyword.cpython-313.pyc matches C:\Python313\Lib\keyword.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\keyword.cpython-313.pyc'
+import 'keyword' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F9943D0>
+# C:\Python313\Lib\__pycache__\operator.cpython-313.pyc matches C:\Python313\Lib\operator.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\operator.cpython-313.pyc'
+import '_operator' # <class '_frozen_importlib.BuiltinImporter'>
+import 'operator' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F9949F0>
+# C:\Python313\Lib\__pycache__\reprlib.cpython-313.pyc matches C:\Python313\Lib\reprlib.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\reprlib.cpython-313.pyc'
+import 'reprlib' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F9B1160>
+import '_collections' # <class '_frozen_importlib.BuiltinImporter'>
+import 'collections' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F5DBF20>
+import '_functools' # <class '_frozen_importlib.BuiltinImporter'>
+import 'functools' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F5DAD50>
+# C:\Python313\Lib\__pycache__\types.cpython-313.pyc matches C:\Python313\Lib\types.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\types.cpython-313.pyc'
+import 'types' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F377650>
+import 'enum' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F651450>
+# C:\Python313\Lib\re\__pycache__\_compiler.cpython-313.pyc matches C:\Python313\Lib\re\_compiler.py
+# code object from 'C:\\Python313\\Lib\\re\\__pycache__\\_compiler.cpython-313.pyc'
+import '_sre' # <class '_frozen_importlib.BuiltinImporter'>
+# C:\Python313\Lib\re\__pycache__\_parser.cpython-313.pyc matches C:\Python313\Lib\re\_parser.py
+# code object from 'C:\\Python313\\Lib\\re\\__pycache__\\_parser.cpython-313.pyc'
+# C:\Python313\Lib\re\__pycache__\_constants.cpython-313.pyc matches C:\Python313\Lib\re\_constants.py
+# code object from 'C:\\Python313\\Lib\\re\\__pycache__\\_constants.cpython-313.pyc'
+import 're._constants' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F9A4D60>
+import 're._parser' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F9A4730>
+# C:\Python313\Lib\re\__pycache__\_casefix.cpython-313.pyc matches C:\Python313\Lib\re\_casefix.py
+# code object from 'C:\\Python313\\Lib\\re\\__pycache__\\_casefix.cpython-313.pyc'
+import 're._casefix' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F9F0410>
+import 're._compiler' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F377950>
+# C:\Python313\Lib\__pycache__\copyreg.cpython-313.pyc matches C:\Python313\Lib\copyreg.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\copyreg.cpython-313.pyc'
+import 'copyreg' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F9F02D0>
+import 're' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F5C4F50>
+# C:\Python313\Lib\__pycache__\gettext.cpython-313.pyc matches C:\Python313\Lib\gettext.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\gettext.cpython-313.pyc'
+import 'gettext' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F38BEC0>
+import 'argparse' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F5ECE20>
+# C:\Python313\Lib\json\__pycache__\__init__.cpython-313.pyc matches C:\Python313\Lib\json\__init__.py
+# code object from 'C:\\Python313\\Lib\\json\\__pycache__\\__init__.cpython-313.pyc'
+# C:\Python313\Lib\json\__pycache__\decoder.cpython-313.pyc matches C:\Python313\Lib\json\decoder.py
+# code object from 'C:\\Python313\\Lib\\json\\__pycache__\\decoder.cpython-313.pyc'
+# C:\Python313\Lib\json\__pycache__\scanner.cpython-313.pyc matches C:\Python313\Lib\json\scanner.py
+# code object from 'C:\\Python313\\Lib\\json\\__pycache__\\scanner.cpython-313.pyc'
+import '_json' # <class '_frozen_importlib.BuiltinImporter'>
+import 'json.scanner' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F665780>
+import 'json.decoder' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FA005D0>
+# C:\Python313\Lib\json\__pycache__\encoder.cpython-313.pyc matches C:\Python313\Lib\json\encoder.py
+# code object from 'C:\\Python313\\Lib\\json\\__pycache__\\encoder.cpython-313.pyc'
+import 'json.encoder' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F665710>
+import 'json' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F642D50>
+# C:\Python313\Lib\__pycache__\traceback.cpython-313.pyc matches C:\Python313\Lib\traceback.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\traceback.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\linecache.cpython-313.pyc matches C:\Python313\Lib\linecache.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\linecache.cpython-313.pyc'
+import 'linecache' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F99B350>
+# C:\Python313\Lib\__pycache__\textwrap.cpython-313.pyc matches C:\Python313\Lib\textwrap.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\textwrap.cpython-313.pyc'
+import 'textwrap' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F99B770>
+# C:\Python313\Lib\__pycache__\warnings.cpython-313.pyc matches C:\Python313\Lib\warnings.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\warnings.cpython-313.pyc'
+import 'warnings' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FA3CE30>
+# C:\Python313\Lib\__pycache__\contextlib.cpython-313.pyc matches C:\Python313\Lib\contextlib.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\contextlib.cpython-313.pyc'
+import 'contextlib' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FA3CAD0>
+# C:\Python313\Lib\__pycache__\_colorize.cpython-313.pyc matches C:\Python313\Lib\_colorize.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\_colorize.cpython-313.pyc'
+import '_colorize' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FA3DA90>
+import 'traceback' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86F5F24B0>
+# C:\Python313\Lib\pathlib\__pycache__\__init__.cpython-313.pyc matches C:\Python313\Lib\pathlib\__init__.py
+# code object from 'C:\\Python313\\Lib\\pathlib\\__pycache__\\__init__.cpython-313.pyc'
+# C:\Python313\Lib\pathlib\__pycache__\_abc.cpython-313.pyc matches C:\Python313\Lib\pathlib\_abc.py
+# code object from 'C:\\Python313\\Lib\\pathlib\\__pycache__\\_abc.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\glob.cpython-313.pyc matches C:\Python313\Lib\glob.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\glob.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\fnmatch.cpython-313.pyc matches C:\Python313\Lib\fnmatch.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\fnmatch.cpython-313.pyc'
+import 'errno' # <class '_frozen_importlib.BuiltinImporter'>
+import 'posixpath' # <class '_frozen_importlib.FrozenImporter'>
+import 'fnmatch' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FA3F110>
+import 'glob' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FA3E330>
+import 'pathlib._abc' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FA3E210>
+# C:\Python313\Lib\pathlib\__pycache__\_local.cpython-313.pyc matches C:\Python313\Lib\pathlib\_local.py
+# code object from 'C:\\Python313\\Lib\\pathlib\\__pycache__\\_local.cpython-313.pyc'
+import 'pathlib._local' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FA3FA10>
+import 'pathlib' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FA3E030>
+# C:\Python313\Lib\__pycache__\datetime.cpython-313.pyc matches C:\Python313\Lib\datetime.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\datetime.cpython-313.pyc'
+import '_datetime' # <class '_frozen_importlib.BuiltinImporter'>
+import 'datetime' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FA3DA30>
+# G:\PROJETOS\PoorCraftultra\tools\assets\__pycache__\gen_blocks.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\gen_blocks.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\__pycache__\\gen_blocks.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\__pycache__\__init__.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\__init__.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\__pycache__\\__init__.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\__pycache__\version.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\version.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\__pycache__\\version.cpython-313.pyc'
+import 'numpy.version' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FAB9310>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\__pycache__\_expired_attrs_2_0.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_expired_attrs_2_0.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\__pycache__\\_expired_attrs_2_0.cpython-313.pyc'
+import 'numpy._expired_attrs_2_0' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FAB93D0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\__pycache__\_globals.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_globals.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\__pycache__\\_globals.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_utils\__pycache__\__init__.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_utils\__init__.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_utils\\__pycache__\\__init__.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_utils\__pycache__\_convertions.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_utils\_convertions.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_utils\\__pycache__\\_convertions.cpython-313.pyc'
+import 'numpy._utils._convertions' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FAB9B50>
+import 'numpy._utils' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FAB99D0>
+import 'numpy._globals' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FAB98B0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\__pycache__\_distributor_init.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_distributor_init.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\__pycache__\\_distributor_init.cpython-313.pyc'
+import 'numpy._distributor_init' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FAB9910>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\__pycache__\__config__.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\__config__.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\__pycache__\\__config__.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\__init__.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__init__.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\__init__.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\multiarray.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\multiarray.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\multiarray.cpython-313.pyc'
+import 'math' # <class '_frozen_importlib.BuiltinImporter'>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\__pycache__\exceptions.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\exceptions.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\__pycache__\\exceptions.cpython-313.pyc'
+import 'numpy.exceptions' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FABA330>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\_exceptions.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\_exceptions.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\_exceptions.cpython-313.pyc'
+import 'numpy._core._exceptions' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FABA630>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\printoptions.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\printoptions.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\printoptions.cpython-313.pyc'
+# code object from C:\Python313\Lib\contextvars.py
+# could not create 'C:\\Python313\\Lib\\__pycache__\\contextvars.cpython-313.pyc': PermissionError(13, 'Permission denied')
+import '_contextvars' # <class '_frozen_importlib.BuiltinImporter'>
+import 'contextvars' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FABB0B0>
+import 'numpy._core.printoptions' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FABAFF0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\__pycache__\dtypes.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\dtypes.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\__pycache__\\dtypes.cpython-313.pyc'
+import 'numpy.dtypes' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FB40A70>
+# extension module 'numpy._core._multiarray_umath' loaded from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\_multiarray_umath.cp313-win_amd64.pyd'
+# extension module 'numpy._core._multiarray_umath' executed from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\_multiarray_umath.cp313-win_amd64.pyd'
+import 'numpy._core._multiarray_umath' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B86FA5DFD0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\overrides.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\overrides.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\overrides.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_utils\__pycache__\_inspect.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_utils\_inspect.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_utils\\__pycache__\\_inspect.cpython-313.pyc'
+import 'numpy._utils._inspect' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FB43290>
+import 'numpy._core.overrides' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FB43050>
+import 'numpy._core.multiarray' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FAB9FD0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\umath.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\umath.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\umath.cpython-313.pyc'
+import 'numpy._core.umath' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FABA090>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\numerictypes.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\numerictypes.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\numerictypes.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\numbers.cpython-313.pyc matches C:\Python313\Lib\numbers.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\numbers.cpython-313.pyc'
+import 'numbers' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FB43950>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\_dtype.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\_dtype.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\_dtype.cpython-313.pyc'
+import 'numpy._core._dtype' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FB43D70>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\_string_helpers.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\_string_helpers.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\_string_helpers.cpython-313.pyc'
+import 'numpy._core._string_helpers' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FB43FB0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\_type_aliases.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\_type_aliases.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\_type_aliases.cpython-313.pyc'
+import 'numpy._core._type_aliases' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E0A8050>
+import 'numpy._core.numerictypes' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FB43650>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\_machar.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\_machar.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\_machar.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\_ufunc_config.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\_ufunc_config.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\_ufunc_config.cpython-313.pyc'
+import 'numpy._core._ufunc_config' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E0A82F0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\fromnumeric.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\fromnumeric.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\fromnumeric.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\_methods.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\_methods.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\_methods.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\pickle.cpython-313.pyc matches C:\Python313\Lib\pickle.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\pickle.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\struct.cpython-313.pyc matches C:\Python313\Lib\struct.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\struct.cpython-313.pyc'
+import '_struct' # <class '_frozen_importlib.BuiltinImporter'>
+import 'struct' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E0A9610>
+# C:\Python313\Lib\__pycache__\_compat_pickle.cpython-313.pyc matches C:\Python313\Lib\_compat_pickle.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\_compat_pickle.cpython-313.pyc'
+import '_compat_pickle' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E0AA8D0>
+import '_pickle' # <class '_frozen_importlib.BuiltinImporter'>
+import 'pickle' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E0A9310>
+import 'numpy._core._methods' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E0A8CB0>
+import 'numpy._core.fromnumeric' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E0A8590>
+import 'numpy._core._machar' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FB437D0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\einsumfunc.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\einsumfunc.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\einsumfunc.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\numeric.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\numeric.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\numeric.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\shape_base.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\shape_base.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\shape_base.cpython-313.pyc'
+import 'numpy._core.shape_base' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E0ABDD0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\_asarray.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\_asarray.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\_asarray.cpython-313.pyc'
+import 'numpy._core._asarray' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E1210D0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\arrayprint.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\arrayprint.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\arrayprint.cpython-313.pyc'
+import 'numpy._core.arrayprint' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E121130>
+import 'numpy._core.numeric' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E0AB710>
+import 'numpy._core.einsumfunc' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E0A8290>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\function_base.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\function_base.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\function_base.cpython-313.pyc'
+import 'numpy._core.function_base' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E0AB5F0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\getlimits.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\getlimits.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\getlimits.cpython-313.pyc'
+import 'numpy._core.getlimits' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E121850>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\memmap.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\memmap.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\memmap.cpython-313.pyc'
+import 'numpy._core.memmap' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E122B10>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\records.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\records.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\records.cpython-313.pyc'
+import 'numpy._core.records' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E122D50>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\_add_newdocs.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\_add_newdocs.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\_add_newdocs.cpython-313.pyc'
+import 'numpy._core._add_newdocs' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E1231D0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\_add_newdocs_scalars.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\_add_newdocs_scalars.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\_add_newdocs_scalars.cpython-313.pyc'
+import 'numpy._core._add_newdocs_scalars' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E122E10>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\_dtype_ctypes.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\_dtype_ctypes.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\_dtype_ctypes.cpython-313.pyc'
+import 'numpy._core._dtype_ctypes' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E123C50>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\__pycache__\_internal.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_core\_internal.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_core\\__pycache__\\_internal.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\ast.cpython-313.pyc matches C:\Python313\Lib\ast.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\ast.cpython-313.pyc'
+import '_ast' # <class '_frozen_importlib.BuiltinImporter'>
+import 'ast' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E16C290>
+# C:\Python313\Lib\ctypes\__pycache__\__init__.cpython-313.pyc matches C:\Python313\Lib\ctypes\__init__.py
+# code object from 'C:\\Python313\\Lib\\ctypes\\__pycache__\\__init__.cpython-313.pyc'
+# extension module '_ctypes' loaded from 'C:\\Python313\\DLLs\\_ctypes.pyd'
+# extension module '_ctypes' executed from 'C:\\Python313\\DLLs\\_ctypes.pyd'
+import '_ctypes' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B80E0E3390>
+# C:\Python313\Lib\ctypes\__pycache__\_endian.cpython-313.pyc matches C:\Python313\Lib\ctypes\_endian.py
+# code object from 'C:\\Python313\\Lib\\ctypes\\__pycache__\\_endian.cpython-313.pyc'
+import 'ctypes._endian' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E16F710>
+import 'ctypes' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E16CE30>
+import 'numpy._core._internal' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E16C0B0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\__pycache__\_pytesttester.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_pytesttester.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\__pycache__\\_pytesttester.cpython-313.pyc'
+import 'numpy._pytesttester' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E16C1D0>
+import 'numpy._core' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FAB9D90>
+import 'numpy.__config__' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FAB9C10>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\__init__.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__init__.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\__init__.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_arraypad_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_arraypad_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_arraypad_impl.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_index_tricks_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_index_tricks_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_index_tricks_impl.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\matrixlib\__pycache__\__init__.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\matrixlib\__init__.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\matrixlib\\__pycache__\\__init__.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\matrixlib\__pycache__\defmatrix.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\matrixlib\defmatrix.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\matrixlib\\__pycache__\\defmatrix.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\linalg\__pycache__\__init__.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\linalg\__init__.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\linalg\\__pycache__\\__init__.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\linalg\__pycache__\_linalg.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\linalg\_linalg.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\linalg\\__pycache__\\_linalg.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\typing.cpython-313.pyc matches C:\Python313\Lib\typing.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\typing.cpython-313.pyc'
+import '_typing' # <class '_frozen_importlib.BuiltinImporter'>
+import 'typing' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E1D4650>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\__pycache__\__init__.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\__init__.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_typing\\__pycache__\\__init__.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\__pycache__\_array_like.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\_array_like.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_typing\\__pycache__\\_array_like.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\__pycache__\_nbit_base.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\_nbit_base.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_typing\\__pycache__\\_nbit_base.cpython-313.pyc'
+import 'numpy._typing._nbit_base' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAB0E90>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\__pycache__\_nested_sequence.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\_nested_sequence.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_typing\\__pycache__\\_nested_sequence.cpython-313.pyc'
+import 'numpy._typing._nested_sequence' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAB0FB0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\__pycache__\_shape.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\_shape.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_typing\\__pycache__\\_shape.cpython-313.pyc'
+import 'numpy._typing._shape' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAB1C70>
+import 'numpy._typing._array_like' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAB0C50>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\__pycache__\_char_codes.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\_char_codes.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_typing\\__pycache__\\_char_codes.cpython-313.pyc'
+import 'numpy._typing._char_codes' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAB1D30>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\__pycache__\_dtype_like.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\_dtype_like.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_typing\\__pycache__\\_dtype_like.cpython-313.pyc'
+import 'numpy._typing._dtype_like' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAF8170>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\__pycache__\_nbit.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\_nbit.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_typing\\__pycache__\\_nbit.cpython-313.pyc'
+import 'numpy._typing._nbit' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAF8350>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\__pycache__\_scalars.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\_scalars.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_typing\\__pycache__\\_scalars.cpython-313.pyc'
+import 'numpy._typing._scalars' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAF83B0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\__pycache__\_ufunc.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_typing\_ufunc.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\_typing\\__pycache__\\_ufunc.cpython-313.pyc'
+import 'numpy._typing._ufunc' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAF8410>
+import 'numpy._typing' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E1D6AB0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_twodim_base_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_twodim_base_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_twodim_base_impl.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_stride_tricks_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_stride_tricks_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_stride_tricks_impl.cpython-313.pyc'
+import 'numpy.lib._stride_tricks_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAF87D0>
+import 'numpy.lib._twodim_base_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAB0470>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\array_utils.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\array_utils.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\array_utils.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_array_utils_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_array_utils_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_array_utils_impl.cpython-313.pyc'
+import 'numpy.lib._array_utils_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAF8A70>
+import 'numpy.lib.array_utils' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAF8770>
+# extension module 'numpy.linalg._umath_linalg' loaded from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\linalg\\_umath_linalg.cp313-win_amd64.pyd'
+# extension module 'numpy.linalg._umath_linalg' executed from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\linalg\\_umath_linalg.cp313-win_amd64.pyd'
+import 'numpy.linalg._umath_linalg' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B80FA99BD0>
+import 'numpy.linalg._linalg' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E1D43B0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\linalg\__pycache__\linalg.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\linalg\linalg.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\linalg\\__pycache__\\linalg.cpython-313.pyc'
+import 'numpy.linalg.linalg' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAF8E90>
+import 'numpy.linalg' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E1D41D0>
+import 'numpy.matrixlib.defmatrix' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E16FE90>
+import 'numpy.matrixlib' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E16FCB0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_function_base_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_function_base_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_function_base_impl.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_histograms_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_histograms_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_histograms_impl.cpython-313.pyc'
+import 'numpy.lib._histograms_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E1D4350>
+import 'numpy.lib._function_base_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E16FD10>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\stride_tricks.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\stride_tricks.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\stride_tricks.cpython-313.pyc'
+import 'numpy.lib.stride_tricks' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAFA1B0>
+import 'numpy.lib._index_tricks_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E16FA70>
+import 'numpy.lib._arraypad_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FAB9F70>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_arraysetops_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_arraysetops_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_arraysetops_impl.cpython-313.pyc'
+import 'numpy.lib._arraysetops_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80E16F3B0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_arrayterator_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_arrayterator_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_arrayterator_impl.cpython-313.pyc'
+import 'numpy.lib._arrayterator_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAFA450>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_nanfunctions_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_nanfunctions_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_nanfunctions_impl.cpython-313.pyc'
+import 'numpy.lib._nanfunctions_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAFA4B0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_npyio_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_npyio_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_npyio_impl.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\weakref.cpython-313.pyc matches C:\Python313\Lib\weakref.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\weakref.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\_weakrefset.cpython-313.pyc matches C:\Python313\Lib\_weakrefset.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\_weakrefset.cpython-313.pyc'
+import '_weakrefset' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAFBE30>
+import 'weakref' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAFB3B0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\format.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\format.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\format.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_format_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_format_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_format_impl.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_utils_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_utils_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_utils_impl.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\platform.cpython-313.pyc matches C:\Python313\Lib\platform.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\platform.cpython-313.pyc'
+# extension module '_wmi' loaded from 'C:\\Python313\\DLLs\\_wmi.pyd'
+# extension module '_wmi' executed from 'C:\\Python313\\DLLs\\_wmi.pyd'
+import '_wmi' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B80FB98180>
+import 'platform' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FB9D610>
+import 'numpy.lib._utils_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FB9D190>
+import 'numpy.lib._format_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FB9CA10>
+import 'numpy.lib.format' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FB9C950>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_datasource.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_datasource.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_datasource.cpython-313.pyc'
+import 'numpy.lib._datasource' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FB9C9B0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_iotools.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_iotools.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_iotools.cpython-313.pyc'
+import 'numpy.lib._iotools' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FB9EAB0>
+import 'numpy.lib._npyio_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FAFB050>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_polynomial_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_polynomial_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_polynomial_impl.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_type_check_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_type_check_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_type_check_impl.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_ufunclike_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_ufunclike_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_ufunclike_impl.cpython-313.pyc'
+import 'numpy.lib._ufunclike_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FBF0110>
+import 'numpy.lib._type_check_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FB9FA70>
+import 'numpy.lib._polynomial_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FB9EE10>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_shape_base_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_shape_base_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_shape_base_impl.cpython-313.pyc'
+import 'numpy.lib._shape_base_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FBF0530>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_version.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_version.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_version.cpython-313.pyc'
+import 'numpy.lib._version' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FBF0B90>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\introspect.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\introspect.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\introspect.cpython-313.pyc'
+import 'numpy.lib.introspect' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FBF0D10>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\mixins.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\mixins.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\mixins.cpython-313.pyc'
+import 'numpy.lib.mixins' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FBF0DD0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\npyio.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\npyio.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\npyio.cpython-313.pyc'
+import 'numpy.lib.npyio' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FBF0EF0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\scimath.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\scimath.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\scimath.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\__pycache__\_scimath_impl.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\lib\_scimath_impl.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\lib\\__pycache__\\_scimath_impl.cpython-313.pyc'
+import 'numpy.lib._scimath_impl' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FBF1010>
+import 'numpy.lib.scimath' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FBF0F50>
+import 'numpy.lib' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FAB9CD0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\__pycache__\_array_api_info.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\_array_api_info.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\__pycache__\\_array_api_info.cpython-313.pyc'
+import 'numpy._array_api_info' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FBF0FB0>
+import 'numpy' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FAB9190>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\__init__.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__init__.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\__init__.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\__future__.cpython-313.pyc matches C:\Python313\Lib\__future__.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\__future__.cpython-313.pyc'
+import '__future__' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FBF2030>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\_version.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\_version.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\_version.cpython-313.pyc'
+import 'PIL._version' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FBF2150>
+import 'PIL' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FB425D0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\Image.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\Image.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\Image.cpython-313.pyc'
+import 'atexit' # <class '_frozen_importlib.BuiltinImporter'>
+# C:\Python313\Lib\logging\__pycache__\__init__.cpython-313.pyc matches C:\Python313\Lib\logging\__init__.py
+# code object from 'C:\\Python313\\Lib\\logging\\__pycache__\\__init__.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\string.cpython-313.pyc matches C:\Python313\Lib\string.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\string.cpython-313.pyc'
+import '_string' # <class '_frozen_importlib.BuiltinImporter'>
+import 'string' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FC3DA90>
+# C:\Python313\Lib\__pycache__\threading.cpython-313.pyc matches C:\Python313\Lib\threading.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\threading.cpython-313.pyc'
+import 'threading' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FC3F470>
+import 'logging' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FBF2F90>
+# C:\Python313\Lib\__pycache__\tempfile.cpython-313.pyc matches C:\Python313\Lib\tempfile.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\tempfile.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\shutil.cpython-313.pyc matches C:\Python313\Lib\shutil.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\shutil.cpython-313.pyc'
+import 'zlib' # <class '_frozen_importlib.BuiltinImporter'>
+# C:\Python313\Lib\__pycache__\bz2.cpython-313.pyc matches C:\Python313\Lib\bz2.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\bz2.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\_compression.cpython-313.pyc matches C:\Python313\Lib\_compression.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\_compression.cpython-313.pyc'
+import '_compression' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FC8AE10>
+# extension module '_bz2' loaded from 'C:\\Python313\\DLLs\\_bz2.pyd'
+# extension module '_bz2' executed from 'C:\\Python313\\DLLs\\_bz2.pyd'
+import '_bz2' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B80FC7DCD0>
+import 'bz2' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FC89850>
+# C:\Python313\Lib\__pycache__\lzma.cpython-313.pyc matches C:\Python313\Lib\lzma.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\lzma.cpython-313.pyc'
+# extension module '_lzma' loaded from 'C:\\Python313\\DLLs\\_lzma.pyd'
+# extension module '_lzma' executed from 'C:\\Python313\\DLLs\\_lzma.pyd'
+import '_lzma' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B80FCB97F0>
+import 'lzma' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FC8A7B0>
+import 'shutil' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FC3FBF0>
+# C:\Python313\Lib\__pycache__\random.cpython-313.pyc matches C:\Python313\Lib\random.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\random.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\bisect.cpython-313.pyc matches C:\Python313\Lib\bisect.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\bisect.cpython-313.pyc'
+import '_bisect' # <class '_frozen_importlib.BuiltinImporter'>
+import 'bisect' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FC8A6F0>
+import '_random' # <class '_frozen_importlib.BuiltinImporter'>
+import 'random' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FC8BAD0>
+import 'tempfile' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FBF3710>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\ExifTags.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\ExifTags.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\ExifTags.cpython-313.pyc'
+import 'PIL.ExifTags' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FC3CAD0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\ImageMode.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\ImageMode.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\ImageMode.cpython-313.pyc'
+import 'PIL.ImageMode' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FCE4170>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\TiffTags.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\TiffTags.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\TiffTags.cpython-313.pyc'
+import 'PIL.TiffTags' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FCE45F0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\_binary.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\_binary.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\_binary.cpython-313.pyc'
+import 'PIL._binary' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FD2C290>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\_deprecate.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\_deprecate.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\_deprecate.cpython-313.pyc'
+import 'PIL._deprecate' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FD2C2F0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\_util.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\_util.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\_util.cpython-313.pyc'
+import 'PIL._util' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FD2C3B0>
+# extension module 'PIL._imaging' loaded from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\_imaging.cp313-win_amd64.pyd'
+# extension module 'PIL._imaging' executed from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\_imaging.cp313-win_amd64.pyd'
+import 'PIL._imaging' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B80FCCC490>
+import 'PIL.Image' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FBF1F70>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\ImageDraw.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\ImageDraw.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\ImageDraw.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\ImageColor.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\ImageColor.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\ImageColor.cpython-313.pyc'
+import 'PIL.ImageColor' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FD2CA10>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\ImageText.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\ImageText.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\ImageText.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\ImageFont.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\ImageFont.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\ImageFont.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\base64.cpython-313.pyc matches C:\Python313\Lib\base64.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\base64.cpython-313.pyc'
+import 'binascii' # <class '_frozen_importlib.BuiltinImporter'>
+import 'base64' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FD2DBB0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\_typing.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\_typing.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\_typing.cpython-313.pyc'
+# extension module '_socket' loaded from 'C:\\Python313\\DLLs\\_socket.pyd'
+# extension module '_socket' executed from 'C:\\Python313\\DLLs\\_socket.pyd'
+import '_socket' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B80FCCD370>
+import 'PIL._typing' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FD2E090>
+# extension module 'PIL._imagingft' loaded from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\_imagingft.cp313-win_amd64.pyd'
+# extension module 'PIL._imagingft' executed from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\_imagingft.cp313-win_amd64.pyd'
+import 'PIL._imagingft' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B80FCAE250>
+import 'PIL.ImageFont' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FD2D490>
+import 'PIL.ImageText' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FD2D190>
+import 'PIL.ImageDraw' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FBF2390>
+# G:\PROJETOS\PoorCraftultra\tools\assets\__pycache__\common.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\common.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\__pycache__\\common.cpython-313.pyc'
+# C:\Python313\Lib\__pycache__\hashlib.cpython-313.pyc matches C:\Python313\Lib\hashlib.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\hashlib.cpython-313.pyc'
+# extension module '_hashlib' loaded from 'C:\\Python313\\DLLs\\_hashlib.pyd'
+# extension module '_hashlib' executed from 'C:\\Python313\\DLLs\\_hashlib.pyd'
+import '_hashlib' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B80FCAE450>
+import '_blake2' # <class '_frozen_importlib.BuiltinImporter'>
+import 'hashlib' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FD2E9F0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\PngImagePlugin.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\PngImagePlugin.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\PngImagePlugin.cpython-313.pyc'
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\ImageChops.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\ImageChops.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\ImageChops.cpython-313.pyc'
+import 'PIL.ImageChops' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FD2F1D0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\ImageFile.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\ImageFile.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\ImageFile.cpython-313.pyc'
+import 'PIL.ImageFile' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B81059C3B0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\ImagePalette.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\ImagePalette.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\ImagePalette.cpython-313.pyc'
+import 'array' # <class '_frozen_importlib.BuiltinImporter'>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\GimpGradientFile.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\GimpGradientFile.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\GimpGradientFile.cpython-313.pyc'
+import 'PIL.GimpGradientFile' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B81059D730>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\GimpPaletteFile.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\GimpPaletteFile.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\GimpPaletteFile.cpython-313.pyc'
+import 'PIL.GimpPaletteFile' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B81059D6D0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\PaletteFile.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\PaletteFile.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\PaletteFile.cpython-313.pyc'
+import 'PIL.PaletteFile' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B81059D7F0>
+import 'PIL.ImagePalette' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B81059D070>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\__pycache__\ImageSequence.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\PIL\ImageSequence.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\PIL\\__pycache__\\ImageSequence.cpython-313.pyc'
+import 'PIL.ImageSequence' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B81059D670>
+import 'PIL.PngImagePlugin' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FD2EAB0>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\noise\__pycache__\__init__.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\noise\__init__.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\noise\\__pycache__\\__init__.cpython-313.pyc'
+# extension module 'noise._perlin' loaded from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\noise\\_perlin.cp313-win_amd64.pyd'
+# extension module 'noise._perlin' executed from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\noise\\_perlin.cp313-win_amd64.pyd'
+import 'noise._perlin' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B80FD34AA0>
+# extension module 'noise._simplex' loaded from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\noise\\_simplex.cp313-win_amd64.pyd'
+# extension module 'noise._simplex' executed from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\noise\\_simplex.cp313-win_amd64.pyd'
+import 'noise._simplex' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B80FD34B90>
+import 'noise' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FD2F110>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\random\__pycache__\__init__.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\random\__init__.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\__pycache__\\__init__.cpython-313.pyc'
+# extension module 'numpy.random._bounded_integers' loaded from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\_bounded_integers.cp313-win_amd64.pyd'
+# extension module 'numpy.random.bit_generator' loaded from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\bit_generator.cp313-win_amd64.pyd'
+# extension module 'numpy.random._common' loaded from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\_common.cp313-win_amd64.pyd'
+# extension module 'numpy.random._common' executed from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\_common.cp313-win_amd64.pyd'
+import 'numpy.random._common' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B8105C42C0>
+# code object from C:\Python313\Lib\secrets.py
+# could not create 'C:\\Python313\\Lib\\__pycache__\\secrets.cpython-313.pyc': PermissionError(13, 'Permission denied')
+# C:\Python313\Lib\__pycache__\hmac.cpython-313.pyc matches C:\Python313\Lib\hmac.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\hmac.cpython-313.pyc'
+import 'hmac' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B81059E630>
+import 'secrets' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B81059E4B0>
+# extension module 'numpy.random.bit_generator' executed from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\bit_generator.cp313-win_amd64.pyd'
+import 'numpy.random.bit_generator' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B80FD4F4D0>
+# extension module 'numpy.random._bounded_integers' executed from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\_bounded_integers.cp313-win_amd64.pyd'
+import 'numpy.random._bounded_integers' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B80FD4F850>
+# G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\random\__pycache__\_pickle.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\.venv\Lib\site-packages\numpy\random\_pickle.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\__pycache__\\_pickle.cpython-313.pyc'
+# extension module 'numpy.random._generator' loaded from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\_generator.cp313-win_amd64.pyd'
+# extension module 'numpy.random._pcg64' loaded from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\_pcg64.cp313-win_amd64.pyd'
+# extension module 'numpy.random._pcg64' executed from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\_pcg64.cp313-win_amd64.pyd'
+import 'numpy.random._pcg64' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B80FCD65D0>
+# extension module 'numpy.random._mt19937' loaded from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\_mt19937.cp313-win_amd64.pyd'
+# extension module 'numpy.random._mt19937' executed from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\_mt19937.cp313-win_amd64.pyd'
+import 'numpy.random._mt19937' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B8105D4470>
+# extension module 'numpy.random._generator' executed from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\_generator.cp313-win_amd64.pyd'
+import 'numpy.random._generator' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B80FCD6150>
+# extension module 'numpy.random._philox' loaded from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\_philox.cp313-win_amd64.pyd'
+# extension module 'numpy.random._philox' executed from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\_philox.cp313-win_amd64.pyd'
+import 'numpy.random._philox' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B8105D4310>
+# extension module 'numpy.random._sfc64' loaded from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\_sfc64.cp313-win_amd64.pyd'
+# extension module 'numpy.random._sfc64' executed from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\_sfc64.cp313-win_amd64.pyd'
+import 'numpy.random._sfc64' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B8105C2E90>
+# extension module 'numpy.random.mtrand' loaded from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\mtrand.cp313-win_amd64.pyd'
+# extension module 'numpy.random.mtrand' executed from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\.venv\\Lib\\site-packages\\numpy\\random\\mtrand.cp313-win_amd64.pyd'
+import 'numpy.random.mtrand' # <_frozen_importlib_external.ExtensionFileLoader object at 0x000002B8105C3070>
+import 'numpy.random._pickle' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B81059DF70>
+import 'numpy.random' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B81059DEB0>
+import 'common' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FD2D1F0>
+import 'gen_blocks' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B86FAB8470>
+# G:\PROJETOS\PoorCraftultra\tools\assets\__pycache__\gen_skins.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\gen_skins.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\__pycache__\\gen_skins.cpython-313.pyc'
+import 'gen_skins' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B80FD2E930>
+# G:\PROJETOS\PoorCraftultra\tools\assets\__pycache__\gen_icons.cpython-313.pyc matches G:\PROJETOS\PoorCraftultra\tools\assets\gen_icons.py
+# code object from 'G:\\PROJETOS\\PoorCraftultra\\tools\\assets\\__pycache__\\gen_icons.cpython-313.pyc'
+import 'gen_icons' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B8105F8DD0>
+# C:\Python313\Lib\__pycache__\locale.cpython-313.pyc matches C:\Python313\Lib\locale.py
+# code object from 'C:\\Python313\\Lib\\__pycache__\\locale.cpython-313.pyc'
+import '_locale' # <class '_frozen_importlib.BuiltinImporter'>
+import 'locale' # <_frozen_importlib_external.SourceFileLoader object at 0x000002B8105F9070>

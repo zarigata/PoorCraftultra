@@ -1,0 +1,19 @@
+# Poorcraft Ultra Client Configuration
+# This file is loaded by ConfigLoader; if missing, defaults are used
+
+# Display settings
+displayWidth: 1280      # Window width in pixels
+displayHeight: 720      # Window height in pixels
+fullscreen: false       # Start in fullscreen mode
+vsync: true             # Enable vertical sync
+fpsLimit: 60            # Maximum frames per second
+
+# World loading
+loadMultiChunk: true    # Load 3x3 chunk grid when true; single chunk when false
+
+# World persistence
+worlds:
+  baseDir: data/worlds  # Base directory for world saves
+
+# Logging level (DEBUG, INFO, WARN, ERROR)
+logLevel: INFO

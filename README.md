@@ -1,141 +1,322 @@
-## Poorcraft Ultra
+# Poorcraft Ultra
 
-A production-grade, Java-based voxel sandbox game with Steam, Discord, multiplayer, and AI NPCs.
+**A production-grade, Java-based voxel sandbox with Steam, Discord, multiplayer, and AI NPCs.**
 
-## Features
-- Vast procedural worlds with rich voxel terrain.
-- Modular engine architecture for rendering, physics, networking, and AI.
-- Steam and Discord integrations for community features.
-- Full modding support with scriptable tools pipeline.
-- Cross-platform native handling and optimized asset streaming.
+## Build System Choice: Gradle (Kotlin DSL)
 
-## Requirements
-- Java 17 LTS
-- Gradle 8.x
+### Decision Rationale
+After analyzing dependencies (jMonkeyEngine, LWJGL, steamworks4j, discord-game-sdk4j, Vosk, LLM), we chose **Gradle (Kotlin DSL)** as the primary build system.
 
-## Building
-- Linux/macOS: `./gradlew clean build`
-- Windows: `gradlew.bat clean build`
+**Pros:**
+- **Superior native library management**: LWJGL 3.3.6 natives handled via BOM + OS-specific classifiers (`natives-windows`, `natives-linux`, `natives-macos`, `natives-macos-arm64`); Gradle's platform detection and `runtimeOnly` dependencies make this seamless
+- **Excellent jlink/jpackage support**: Badass JLink plugin (org.beryx.jlink 3.x) provides unified jlink + jpackage workflow with non-modular dependency merging
+- **Build performance**: Incremental builds, build cache, parallel execution critical for large game projects
+- **Type-safe configuration**: Kotlin DSL provides IDE autocomplete, refactoring support, compile-time validation
+- **Multi-platform flexibility**: Clean per-OS dependency configuration for Windows/Linux/macOS natives
+- **Modern ecosystem**: Better suited for complex, multi-module projects with mixed dependencies
 
-## Generating Assets
+**Cons:**
+- Steeper learning curve for teams unfamiliar with Gradle/Kotlin DSL
+- More flexibility = more configuration complexity
 
-Poorcraft Ultra uses procedural scripts to generate textures and skins.
+### Fallback Strategy: Maven
+If Gradle fails to build or run, the project can be migrated to Maven:
+- Equivalent `pom.xml` structure documented below
+- Use `maven-jlink-plugin` + `jpackage-maven-plugin` (Panteleyev) for packaging
+- LWJGL natives managed via `<classifier>${lwjgl.natives}</classifier>` with profiles per OS
+- steamworks4j/discord-game-sdk4j work identically (Maven Central + JitPack)
 
-### Prerequisites
-
-- Python 3.7 or higher
-- pip
-
-### Generate Assets
-
-```bash
-# Windows
-gradlew.bat :tools:assets:generate
-
-# Linux/macOS
-./gradlew :tools:assets:generate
+**Maven equivalent (stub pom.xml):**
+```xml
+<project>
+  <groupId>com.poorcraft</groupId>
+  <artifactId>poorcraft-ultra</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <properties>
+    <java.version>17</java.version>
+    <jme.version>3.7.0-stable</jme.version>
+    <lwjgl.version>3.3.6</lwjgl.version>
+    <lwjgl.natives>natives-windows</lwjgl.natives> <!-- Override via profiles -->
+  </properties>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.lwjgl</groupId>
+        <artifactId>lwjgl-bom</artifactId>
+        <version>${lwjgl.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <dependencies>
+    <!-- jMonkeyEngine -->
+    <dependency><groupId>org.jmonkeyengine</groupId><artifactId>jme3-core</artifactId><version>${jme.version}</version></dependency>
+    <dependency><groupId>org.jmonkeyengine</groupId><artifactId>jme3-desktop</artifactId><version>${jme.version}</version></dependency>
+    <dependency><groupId>org.jmonkeyengine</groupId><artifactId>jme3-lwjgl3</artifactId><version>${jme.version}</version></dependency>
+    <!-- LWJGL + natives (repeat for each module) -->
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl</artifactId></dependency>
+    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl</artifactId><classifier>${lwjgl.natives}</classifier><scope>runtime</scope></dependency>
+    <!-- ... (glfw, opengl, stb, openal) -->
+  </dependencies>
+</project>
 ```
 
-This task:
+## Quick Start
 
-1. Installs Python requirements (Pillow, jsonschema)
-2. Generates 64×64 block textures (stone, dirt, grass, planks, log, leaves, sand, gravel, glass, water)
-3. Packs textures into `assets/textures/blocks_atlas.png` (512×512)
-4. Writes `assets/textures/blocks_atlas.json` with atlas indices
-5. Creates `assets/textures/manifest.json` metadata
-6. Produces player and NPC skins under `assets/skins/`
-7. Runs validation tests to confirm dimensions and JSON schema
+### Prerequisites
+- **Java 17 LTS** (OpenJDK or Oracle JDK)
+- **Git** (for cloning)
+- **Python 3.9+** with pip (for asset generation in Phase 0A)
 
-### Verification
+### Build & Run
+```bash
+# Clone repository
+git clone <repo-url>
+cd PoorCraftultra
 
-After running the task, confirm these files exist:
+# Generate assets (Phase 0A - required before first build)
+./scripts/dev/gen-assets.sh    # Linux/macOS
+scripts\dev\gen-assets.bat     # Windows
 
-- `assets/textures/blocks_atlas.png`
-- `assets/textures/blocks_atlas.json`
-- `assets/textures/manifest.json`
-- `assets/skins/player.png`
-- `assets/skins/npc_red.png`, `npc_blue.png`, `npc_green.png`, `npc_yellow.png`, `npc_purple.png`
+# Build (uses Gradle wrapper)
+./scripts/dev/build.sh    # Linux/macOS
+scripts\dev\build.bat     # Windows
 
-### Troubleshooting
+# Run
+./scripts/dev/run.sh      # Linux/macOS
+scripts\dev\run.bat       # Windows
+```
 
-- **Python not found** – Install Python 3.7+ and ensure `python` is on PATH
-- **Missing Pillow/jsonschema** – Run `pip install -r scripts/assets/requirements.txt`
-- **Generation failed** – Re-run with `--info` logging: `gradlew.bat :tools:assets:generate --info`
-
-## Running
-- `./gradlew :app:run`
-
-## World Saves
-
-Poorcraft Ultra saves worlds to the `saves/` directory using Minecraft-style region files (`.mca`).
-
-### Save Location
-
-- Default world: `saves/TestWorld/`
-- Region files: `saves/TestWorld/region/r.<regionX>.<regionZ>.mca`
-- Each region stores 32×32 chunks (1,024 chunks)
-
-### Auto-Save
-
-- Auto-save triggers every 5 minutes (configurable via `application.conf`)
-- Only dirty chunks are saved, minimizing disk writes
-- Console log: `Auto-save: N chunks saved in X ms`
-
-### Save-on-Exit
-
-- World is saved synchronously when the application shuts down
-- Ensures all chunks are persisted before exit
-- Console log: `Saving world on exit...` followed by `World saved successfully`
-
-### Compression
-
-- Chunk data is compressed with Zstandard (level 3 by default)
-- Typical compression ratio: 60–70% (131 KB → ~45 KB per chunk)
-
-### Data Integrity
-
-- Magic number and format version guard against incompatible data
-- CRC32 checksum validates chunk contents and detects corruption
-- Corrupted chunks are logged and regenerated instead of crashing the game
-
-### Troubleshooting
-
-- **"Failed to save world on exit"**: check disk space and write permissions
-- **"Chunk data corrupted"**: remove the affected region file or restore from backup
-- **World not loading**: ensure `saves/TestWorld/region/` exists and inspect logs for load messages
+### Manual Gradle Commands
+```bash
+./gradlew generateAssets  # Generate procedural assets
+./gradlew validateAssets  # Validate assets without full build
+./gradlew clean build     # Build project (validates assets automatically)
+./gradlew run             # Run game
+./gradlew test            # Run tests
+```
 
 ## Project Structure
-- **app** – Application bootstrap and entry point.
-- **engine** – Core game engine runtime and integrations.
-- **engine-api** – Lightweight interfaces and constants shared between engine, UI, and player modules.
-- **voxel** – Voxel world structures and chunk systems.
-- **world** – World generation, saving, and persistence.
-- **player** – Player controller, inventory, and interaction.
-- **gameplay** – Gameplay systems, crafting, and progression.
-- **net** – Multiplayer networking stack.
-- **steam** – Steam platform services integration.
-- **discord** – Discord rich presence and community tools.
-- **mods** – Modding API and sandboxing.
-- **ai** – NPC behavior, voice, and LLM integrations.
-- **ui** – User interface components and HUD.
-- **tools** – Asset pipeline utilities and generators.
-- **shared** – Common utilities and configuration.
-- **tests** – Verification and integration test suites.
+```
+PoorCraftultra/
+├── src/main/java/com/poorcraft/ultra/
+│   ├── app/          # Bootstrap, config, logging
+│   ├── engine/       # jME application, scene, ECS
+│   ├── voxel/        # Chunk data, meshing (Phase 1)
+│   ├── world/        # Worldgen, save/load (Phase 2)
+│   ├── player/       # Input, camera, inventory (Phase 1)
+│   ├── gameplay/     # Blocks, items, crafting (Phase 2)
+│   ├── net/          # Multiplayer (Phase 3)
+│   ├── steam/        # Steam API (Phase 4)
+│   ├── discord/      # Discord SDK (Phase 5)
+│   ├── mods/         # Mod loader (Phase 6)
+│   ├── ai/           # STT, TTS, LLM, intent (Phase 8-10)
+│   ├── ui/           # Menus, HUD, chat (Phase 0.2+)
+│   ├── tools/        # Asset validators (Phase 0A)
+│   └── shared/       # DTOs, constants, utils
+├── config/           # YAML configuration files (user overrides)
+├── scripts/dev/      # Build/run wrappers, asset generation
+├── tools/assets/     # Python asset generators (Phase 0A)
+└── docs/             # Architecture, modding, testing (Phase 11)
+```
 
-## Development Status
-- Phase 0.0 – Project Boilerplate (COMPLETE)
-- Phase 0.1 – Asset Pipeline (COMPLETE)
-- Phase 0.2 – HUD Overlay & Camera Controls (COMPLETE)
-- Phase 0.3 – Texture Atlas Generation (COMPLETE)
-- Phase 1.0 – Chunk Generation & Rendering (COMPLETE)
-- Phase 1.1 – Superchunk Rendering (COMPLETE)
-- Phase 1.2 – Place/Break Blocks & Inventory (COMPLETE)
-- Phase 1.3 – Save/Load System (IN PROGRESS)
+## Configuration
 
-Phase 1.3 brings the save and load system online with Minecraft-style region files, auto-save, and compression.
+The game loads configuration from `config/client.yaml` with the following priority:
+1. **Filesystem** (`config/client.yaml` in application directory) - user overrides
+2. **Classpath** (embedded `config/client.yaml` in JAR) - default configuration bundled in the JAR
+3. **Hardcoded defaults** - fallback if no config file found
+
+### Customizing Configuration
+
+To customize settings, create a `config/client.yaml` file next to the executable (or in the working directory). This file will override the embedded defaults.
+
+**Example custom config:**
+```yaml
+# config/client.yaml
+displayWidth: 1920
+displayHeight: 1080
+fullscreen: true
+vsync: true
+fpsLimit: 144
+logLevel: DEBUG
+```
+
+The embedded default configuration (`src/main/resources/config/client.yaml`) is bundled in the JAR, ensuring the application runs with sane defaults even when no external config file is present.
+
+## Asset Generation (Phase 0A)
+
+Poorcraft Ultra uses **procedurally generated assets** (no Mojang/Microsoft content). All block textures, skins, and item icons are generated via Python scripts.
+
+### Prerequisites
+- **Python 3.9+** with pip
+- **Pillow, NumPy, noise** libraries (auto-installed by scripts)
+
+### Generate Assets
+```bash
+# Unix/Linux/macOS
+./scripts/dev/gen-assets.sh
+
+# Windows
+scripts\dev\gen-assets.bat
+```
+
+This will:
+1. Create a Python virtual environment in `tools/assets/.venv` 
+2. Install dependencies from `tools/assets/requirements.txt` 
+3. Generate textures in `/assets/{blocks,skins,items}/` 
+4. Create `assets/manifest.json` with metadata and hashes
+
+### Validation
+Assets are automatically validated during build:
+```bash
+./gradlew validateAssets  # Validate without full build
+./gradlew build           # Validates assets before building JAR
+```
+
+Validation enforces:
+- **Block textures**: 64×64 pixels
+- **Skins**: 256×256 pixels
+- **Item icons**: 64×64 pixels
+- **Manifest integrity**: all referenced files exist with correct dimensions
+
+If validation fails, the build will stop with error messages. Run `gen-assets.sh/bat` to regenerate.
+
+### Manual Asset Inspection
+Generated assets are in:
+- `/assets/blocks/` - Block textures (wood, stone, dirt, grass, leaves, ores)
+- `/assets/skins/` - Player and NPC skins
+- `/assets/items/` - Item icons (tools, resources, food)
+- `/assets/manifest.json` - Metadata (dimensions, hashes, generation timestamp)
+
+## Smoke Tests
+```bash
+# Generate and validate assets
+./scripts/dev/gen-assets.sh
+./gradlew validateAssets
+
+# Run automated tests
+./gradlew test --tests "*ConfigLoaderTest"
+./gradlew test --tests "*AssetValidatorTest"
+./gradlew test --tests "*PoorcraftEngineTest"
+```
+
+**Manual Test (CP 0.1):**
+1. Run `./scripts/dev/run.sh` (or `.bat`)
+2. Verify window opens with title "Poorcraft Ultra"
+3. Verify FPS counter visible in top-left
+4. Move mouse; verify no crashes
+5. Press ESC; verify window closes cleanly
+
+**Manual Test (CP 0.2):**
+1. Run game
+2. Press F3; verify debug overlay appears (FPS, Java version, OS, heap usage)
+3. Press F3 again; verify overlay hides
+4. Press F9/F10/F11; verify stub messages logged to console
+5. Press ESC to exit
+
+**Manual Test (CP 0.15):**
+1. Run `./scripts/dev/gen-assets.sh` 
+2. Verify `/assets/blocks/`, `/assets/skins/`, `/assets/items/` directories created
+3. Verify `assets/manifest.json` exists and contains asset entries
+4. Run game; press F3; verify "Assets: OK" badge in debug overlay
+5. Delete `assets/manifest.json`; run `./gradlew build`; verify build fails with validation error
+
+**Manual Test (CP 1.05):**
+1. Run game
+2. Verify checkerboard plateau visible (alternating stone/dirt blocks)
+3. Press F3; verify "Chunks: 1 loaded" in overlay
+4. Verify FPS counter shows stable framerate
+5. Press ESC; verify clean exit
+
+**Manual Test (CP 1.1):**
+1. Run game
+2. Verify 3×3 chunk grid visible
+3. Press F3; verify "Chunks: 9 loaded" and vertex/triangle counts displayed
+4. Press F10; verify meshes rebuild
+5. Press F11; verify cyan wireframe boxes toggle chunk bounds
+6. Press ESC to exit
+
+**Manual Test (CP 1.2):**
+1. Run game
+2. Verify cursor hidden; mouse look works
+3. Verify WASD movement and sprint
+4. Point at block; verify wireframe highlight appears and disappears appropriately
+5. Press ESC to exit
+
+**Manual Test (CP 1.3):**
+1. Run game
+2. Break block with LMB; verify block disappears and console logs inventory update
+3. Place block with RMB adjacent to existing block; verify placement and log
+4. Break/place multiple blocks; verify inventory counts adjust
+5. Press F3; verify chunk stats update after modifications
+6. Press ESC to exit
+
+**Manual Test (CP 1.35):**
+1. Run game; break 5 blocks and place 5 blocks across different chunks (note coordinates)
+2. Press ESC to exit
+3. **VERIFY:** Console logs "Saving 9 chunks..." followed by "All chunks saved successfully"
+4. Check `data/worlds/default/region/` exists with 9 files (`r.{x}.{z}.dat`) each 65,568 bytes
+5. Relaunch game
+6. **VERIFY:** Console logs "Loaded chunk (x, z) from disk" for all 9 chunks; no "Generated new chunk" messages
+7. **VERIFY:** Previously modified blocks persist with correct types; checkerboard untouched elsewhere
+8. Press ESC to exit
+
+## Checkpoints (Phase 0)
+- **CP 0.1**: Window opens with title "Poorcraft Ultra", solid background, FPS counter, ESC to quit
+- **CP 0.2**: F3 debug overlay (FPS, Java/OS, heap usage); hotkeys F9/F10/F11 (stubs)
+- **CP 0.15**: Assets generated and validated; "Assets: OK" badge in F3 overlay
+
+## Checkpoints (Phase 1)
+- **CP 1.05**: Single checkerboard chunk renders; overlay shows "Chunks: 1 loaded"
+- **CP 1.1**: 3×3 chunk grid with greedy meshing; F10 rebuilds meshes; F11 shows chunk bounds
+- **CP 1.2**: FPS camera (WASD + mouse look); ray-pick with crosshair highlight
+- **CP 1.3**: LMB breaks blocks, RMB places blocks; inventory counts update
+- **CP 1.35**: Save/load region files; reload produces identical block IDs; checksums validated
 
 ## License
-MIT License (applies to original Poorcraft Ultra source code; third-party libraries retain their respective licenses.)
+MIT License. See `LICENSE` file.
 
-## Contributing
-Contribution guidelines will be provided in `CONTRIBUTING.md` during Phase 9.2.
+## Development Notes
+- **Java 17 LTS**: Chosen for long-term support; compatible with jMonkeyEngine 3.7.0-stable and LWJGL 3.3.6
+- **No Mojang/Microsoft assets**: All textures/skins procedurally generated (Phase 0A)
+- **Micro-phase approach**: Each checkpoint produces a runnable build with smoke tests
+
+## Troubleshooting
+- **Build fails**: Check Java version (`java -version` should show 17.x); ensure `JAVA_HOME` set correctly
+- **Window doesn't open**: Check logs in console; verify LWJGL natives loaded for your OS
+- **FPS counter missing**: Verify `StatsAppState` attached in `PoorcraftEngine.simpleInitApp()` 
+
+## World Saves (Phase 1.35)
+
+Poorcraft Ultra automatically persists your world when you exit the game (ESC key) or when the JVM shuts down unexpectedly.
+
+```
+data/
+  worlds/
+    default/
+      region/
+        r.{chunkX}.{chunkZ}.dat
+```
+
+- **Format:** 32-byte header + 65,536-byte block payload (65,568 bytes total)
+- **Checksum:** CRC32 stored in header; corrupted files regenerate safely
+- **Fallback:** Missing/corrupt chunks regenerate using the Phase 1 checkerboard worldgen
+
+**Backup:** Copy the entire `data/worlds/default/` directory.
+
+**Reset World:** Delete `data/worlds/default/` and restart the game; new chunks will be generated.
+
+**Troubleshooting:**
+- `Failed to load chunk ... will regenerate` → File corrupt; chunk replaced with fallback
+- Missing `.dat` files → Normal for unexplored chunks
+- Repeated checksum warnings → Check disk health or permissions
+
+## Next Steps
+- **Phase 0A**: Generate procedural assets (blocks, skins, items) via Python scripts
+- **Phase 1**: ~~Implement voxel core (chunks, meshing, place/break)~~ ✓ COMPLETE
+- **Phase 1.35**: ~~Implement save/load (region files, checksums)~~ ✓ COMPLETE
+- **Phase 2**: Add worldgen (terrain, biomes, caves)
+
+For detailed architecture and phase breakdown, see `/docs/architecture.md` (Phase 11).
