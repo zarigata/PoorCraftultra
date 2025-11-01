@@ -2,18 +2,13 @@ package com.poorcraft.ultra.player;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.input.FlyByCamera;
-import com.jme3.input.InputManager;
-import com.jme3.input.KeyInput;
-import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.AnalogListener;
-import com.jme3.input.controls.KeyTrigger;
-import com.jme3.input.controls.MouseAxisTrigger;
-import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.poorcraft.ultra.player.BlockPicker.BlockPickResult;
+import com.poorcraft.ultra.ui.InputConfig;
 import com.poorcraft.ultra.voxel.BlockType;
 import com.poorcraft.ultra.voxel.Chunk;
 import com.poorcraft.ultra.voxel.ChunkManager;
@@ -26,17 +21,34 @@ public class PlayerController implements AnalogListener, ActionListener {
     private static final float SPRINT_MULTIPLIER = 1.8f;
     private static final float DEFAULT_MOUSE_SENSITIVITY = 1.5f;
 
+    private static final String[] ANALOG_MAPPINGS = {
+        "MouseX+",
+        "MouseX-",
+        "MouseY+",
+        "MouseY-"
+    };
+
+    private static final String[] ACTION_MAPPINGS = {
+        "moveForward",
+        "moveBackward",
+        "moveLeft",
+        "moveRight",
+        "sprint",
+        "breakBlock",
+        "placeBlock"
+    };
+
     private SimpleApplication app;
-    private InputManager inputManager;
     private ChunkManager chunkManager;
     private BlockPicker blockPicker;
     private BlockHighlighter blockHighlighter;
     private PlayerInventory inventory;
+    private InputConfig inputConfig;
+    private boolean inputsEnabled;
 
     private float yaw;
     private float pitch;
     private float moveSpeed = DEFAULT_MOVE_SPEED;
-    private float mouseSensitivity = DEFAULT_MOUSE_SENSITIVITY;
     private boolean moveForward;
     private boolean moveBackward;
     private boolean moveLeft;
@@ -44,18 +56,16 @@ public class PlayerController implements AnalogListener, ActionListener {
     private boolean sprint;
 
     public void init(SimpleApplication app, ChunkManager chunkManager, BlockPicker blockPicker,
-                     BlockHighlighter blockHighlighter, PlayerInventory inventory) {
+                     BlockHighlighter blockHighlighter, PlayerInventory inventory, InputConfig inputConfig) {
         this.app = app;
         this.chunkManager = chunkManager;
         this.blockPicker = blockPicker;
         this.blockHighlighter = blockHighlighter;
         this.inventory = inventory;
-        this.inputManager = app.getInputManager();
+        this.inputConfig = inputConfig;
 
         disableFlyCam(app.getFlyByCamera());
-        inputManager.setCursorVisible(false);
 
-        registerInputs();
         Vector3f camDir = app.getCamera().getDirection();
         yaw = FastMath.atan2(camDir.x, camDir.z);
         pitch = FastMath.asin(camDir.y);
@@ -69,39 +79,59 @@ public class PlayerController implements AnalogListener, ActionListener {
         flyCam.setEnabled(false);
     }
 
-    private void registerInputs() {
-        inputManager.addMapping("MouseX+", new MouseAxisTrigger(MouseInput.AXIS_X, true));
-        inputManager.addMapping("MouseX-", new MouseAxisTrigger(MouseInput.AXIS_X, false));
-        inputManager.addMapping("MouseY+", new MouseAxisTrigger(MouseInput.AXIS_Y, true));
-        inputManager.addMapping("MouseY-", new MouseAxisTrigger(MouseInput.AXIS_Y, false));
+    public synchronized void enable() {
+        if (inputsEnabled) {
+            return;
+        }
+        if (inputConfig == null) {
+            logger.warn("InputConfig not available; skipping input enable");
+            return;
+        }
 
-        inputManager.addMapping("MoveForward", new KeyTrigger(KeyInput.KEY_W));
-        inputManager.addMapping("MoveBackward", new KeyTrigger(KeyInput.KEY_S));
-        inputManager.addMapping("MoveLeft", new KeyTrigger(KeyInput.KEY_A));
-        inputManager.addMapping("MoveRight", new KeyTrigger(KeyInput.KEY_D));
-        inputManager.addMapping("Sprint", new KeyTrigger(KeyInput.KEY_LSHIFT));
-        inputManager.addMapping("BreakBlock", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
-        inputManager.addMapping("PlaceBlock", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
+        for (String analog : ANALOG_MAPPINGS) {
+            inputConfig.registerAnalog(analog, this);
+        }
+        for (String action : ACTION_MAPPINGS) {
+            inputConfig.registerAction(action, this);
+        }
+        inputsEnabled = true;
+    }
 
-        inputManager.addListener(this, "MouseX+", "MouseX-", "MouseY+", "MouseY-");
-        inputManager.addListener(this, "MoveForward", "MoveBackward", "MoveLeft", "MoveRight", "Sprint");
-        inputManager.addListener(this, "BreakBlock", "PlaceBlock");
+    public synchronized void disable() {
+        if (!inputsEnabled) {
+            return;
+        }
+        if (inputConfig == null) {
+            logger.warn("InputConfig not available; skipping input disable");
+            return;
+        }
+
+        for (String analog : ANALOG_MAPPINGS) {
+            inputConfig.unregisterAnalog(analog);
+        }
+        for (String action : ACTION_MAPPINGS) {
+            inputConfig.unregisterAction(action);
+        }
+        inputsEnabled = false;
     }
 
     @Override
     public void onAnalog(String name, float value, float tpf) {
+        float sensitivity = inputConfig != null ? inputConfig.getMouseSensitivity() : DEFAULT_MOUSE_SENSITIVITY;
+        boolean inverted = inputConfig != null && inputConfig.isMouseYInverted();
+
         switch (name) {
             case "MouseX+":
-                yaw -= value * mouseSensitivity;
+                yaw -= value * sensitivity;
                 break;
             case "MouseX-":
-                yaw += value * mouseSensitivity;
+                yaw += value * sensitivity;
                 break;
             case "MouseY+":
-                pitch += value * mouseSensitivity;
+                pitch -= value * sensitivity * (inverted ? -1 : 1);
                 break;
             case "MouseY-":
-                pitch -= value * mouseSensitivity;
+                pitch += value * sensitivity * (inverted ? -1 : 1);
                 break;
             default:
                 break;
@@ -116,17 +146,17 @@ public class PlayerController implements AnalogListener, ActionListener {
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
         switch (name) {
-            case "MoveForward" -> moveForward = isPressed;
-            case "MoveBackward" -> moveBackward = isPressed;
-            case "MoveLeft" -> moveLeft = isPressed;
-            case "MoveRight" -> moveRight = isPressed;
-            case "Sprint" -> sprint = isPressed;
-            case "BreakBlock" -> {
+            case "moveForward" -> moveForward = isPressed;
+            case "moveBackward" -> moveBackward = isPressed;
+            case "moveLeft" -> moveLeft = isPressed;
+            case "moveRight" -> moveRight = isPressed;
+            case "sprint" -> sprint = isPressed;
+            case "breakBlock" -> {
                 if (!isPressed) {
                     handleBreakBlock();
                 }
             }
-            case "PlaceBlock" -> {
+            case "placeBlock" -> {
                 if (!isPressed) {
                     handlePlaceBlock();
                 }

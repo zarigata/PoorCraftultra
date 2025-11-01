@@ -275,6 +275,13 @@ Generated assets are in:
 - **CP 1.3**: LMB breaks blocks, RMB places blocks; inventory counts update
 - **CP 1.35**: Save/load region files; reload produces identical block IDs; checksums validated
 
+## Checkpoints (Phase 1.5)
+- **CP 1.5.0**: Main menu with Start Game, Settings, Exit buttons
+- **CP 1.5.1**: In-game state with pause menu (ESC); Resume, Settings, Save & Exit
+- **CP 1.5.2**: Settings menu with Graphics, Controls, Audio tabs
+- **CP 1.5.3**: Configurable keybinds; mouse sensitivity and Y-axis inversion
+- **CP 1.5.4**: Window resize handling; UI scales correctly
+
 ## License
 MIT License. See `LICENSE` file.
 
@@ -313,10 +320,59 @@ data/
 - Missing `.dat` files → Normal for unexplored chunks
 - Repeated checksum warnings → Check disk health or permissions
 
+## Controls (Phase 1.5)
+
+**Default Keybinds:**
+- **Movement**: WASD (configurable in Settings → Controls)
+- **Sprint**: Left Shift
+- **Break Block**: Left Mouse Button
+- **Place Block**: Right Mouse Button
+- **Pause**: ESC (opens pause menu in-game; exits in main menu)
+- **Debug Overlay**: F3
+
+**Mouse Settings:**
+- Sensitivity: Adjustable in Settings → Controls (default 1.5)
+- Invert Y-Axis: Toggle in Settings → Controls (default off)
+
+**Changing Keybinds:**
+1. Open Settings (from main menu or pause menu)
+2. Go to Controls tab
+3. Click "Rebind" next to any action
+4. Press the desired key or mouse button
+5. Click "Apply" to save changes
+
+## UI and Input Issues
+
+**Mouse feels inverted:**
+- Open Settings → Controls
+- Enable "Invert Mouse Y"
+- Click Apply
+
+**Mouse too sensitive/slow:**
+- Open Settings → Controls
+- Adjust "Mouse Sensitivity" slider
+- Click Apply
+
+**Can't change keybinds:**
+- Ensure you click "Apply" after rebinding
+- Check `config/client.yaml` for `controls` section
+- Delete config file to reset to defaults
+
+**UI too small/large after resize:**
+- UI should auto-scale on window resize
+- If not, restart game
+- Check logs for "UI scale processor" errors
+
+**Cursor stuck hidden/visible:**
+- Press ESC to toggle between game and menu states
+- Cursor hidden in-game, visible in menus
+- If stuck, restart game
+
 ## Next Steps
 - **Phase 0A**: Generate procedural assets (blocks, skins, items) via Python scripts
 - **Phase 1**: ~~Implement voxel core (chunks, meshing, place/break)~~ ✓ COMPLETE
 - **Phase 1.35**: ~~Implement save/load (region files, checksums)~~ ✓ COMPLETE
+- **Phase 1.5**: ~~Implement UI system, menus, input configuration~~ ✓ COMPLETE
 - **Phase 2**: Add worldgen (terrain, biomes, caves)
 
 For detailed architecture and phase breakdown, see `/docs/architecture.md` (Phase 11).

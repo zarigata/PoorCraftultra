@@ -54,6 +54,11 @@ dependencies {
     implementation("org.jmonkeyengine:jme3-terrain:3.7.0-stable")
     implementation("org.jmonkeyengine:jme3-plugins:3.7.0-stable")
 
+    // Lemur UI library (Phase 1.5: menus, settings)
+    implementation("com.simsilica:lemur:1.16.0")
+    implementation("com.simsilica:lemur-proto:1.13.0")
+    implementation("org.codehaus.groovy:groovy-jsr223:3.0.21")
+
     // Logging: SLF4J + Logback
     implementation("org.slf4j:slf4j-api:2.0.9")
     implementation("ch.qos.logback:logback-classic:1.4.11")

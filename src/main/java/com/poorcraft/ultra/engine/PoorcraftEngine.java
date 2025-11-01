@@ -3,18 +3,18 @@ package com.poorcraft.ultra.engine;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.asset.plugins.FileLocator;
-import com.jme3.input.KeyInput;
-import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.KeyTrigger;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
 import com.jme3.system.AppSettings;
 import com.poorcraft.ultra.app.ClientConfig;
 import com.poorcraft.ultra.app.ServiceHub;
+import java.util.Locale;
 import com.poorcraft.ultra.player.BlockHighlighter;
 import com.poorcraft.ultra.player.BlockPicker;
 import com.poorcraft.ultra.player.PlayerController;
 import com.poorcraft.ultra.player.PlayerInventory;
+import com.poorcraft.ultra.ui.GameStateManager;
+import com.poorcraft.ultra.ui.InputConfig;
+import com.poorcraft.ultra.ui.UIScaleProcessor;
 import com.poorcraft.ultra.voxel.BlockRegistry;
 import com.poorcraft.ultra.voxel.ChunkDoctorService;
 import com.poorcraft.ultra.voxel.ChunkManager;
@@ -35,6 +35,8 @@ public class PoorcraftEngine extends SimpleApplication {
     private final ServiceHub serviceHub;
     private final ClientConfig config;
 
+    private GameStateManager gameStateManager;
+    private InputConfig inputConfig;
     private ChunkManager chunkManager;
     private ChunkDoctorService chunkDoctorService;
     private BlockPicker blockPicker;
@@ -57,13 +59,51 @@ public class PoorcraftEngine extends SimpleApplication {
         // Configure display settings from ClientConfig
         AppSettings settings = new AppSettings(true);
         settings.setTitle("Poorcraft Ultra");
-        settings.setWidth(config.displayWidth());
-        settings.setHeight(config.displayHeight());
-        settings.setFullscreen(config.fullscreen());
-        settings.setVSync(config.vsync());
-        settings.setFrameRate(config.fpsLimit());
+        ClientConfig.GraphicsConfig graphicsConfig = config.graphics();
+
+        int width = config.displayWidth();
+        int height = config.displayHeight();
+        boolean fullscreen = config.fullscreen();
+        boolean borderless = false;
+        boolean vsync = config.vsync();
+        int fpsLimit = config.fpsLimit();
+
+        if (graphicsConfig != null) {
+            width = graphicsConfig.getWidth();
+            height = graphicsConfig.getHeight();
+            vsync = graphicsConfig.vsync();
+            fpsLimit = graphicsConfig.fpsLimit();
+
+            String windowMode = graphicsConfig.windowMode();
+            if (windowMode != null) {
+                switch (windowMode.toUpperCase(Locale.ROOT)) {
+                    case "FULLSCREEN" -> {
+                        fullscreen = true;
+                        borderless = false;
+                    }
+                    case "BORDERLESS" -> {
+                        fullscreen = true;
+                        borderless = true;
+                    }
+                    default -> {
+                        fullscreen = false;
+                        borderless = false;
+                    }
+                }
+            }
+        }
+
+        settings.setWidth(width);
+        settings.setHeight(height);
+        settings.setFullscreen(fullscreen);
+        if (borderless) {
+            settings.setUseJoysticks(settings.useJoysticks());
+            settings.put("GraphicsWindowMode", "BORDERLESS");
+        }
+        settings.setVSync(vsync);
+        settings.setFrameRate(fpsLimit);
         settings.setResizable(true);
-        
+
         setSettings(settings);
         setShowSettings(false); // Skip settings dialog
         
@@ -90,6 +130,13 @@ public class PoorcraftEngine extends SimpleApplication {
         DebugOverlayAppState debugOverlay = new DebugOverlayAppState(serviceHub);
         stateManager.attach(debugOverlay);
 
+        // Phase 1.5: Initialize InputConfig service
+        inputConfig = new InputConfig();
+        inputConfig.init(inputManager, config.controls());
+        inputConfig.setApplication(this);
+        serviceHub.register(InputConfig.class, inputConfig);
+        logger.info("InputConfig initialized");
+
         // CP 1.05: Initialize block registry and chunk manager
         BlockRegistry blockRegistry = new BlockRegistry();
         blockRegistry.init(assetManager);
@@ -105,17 +152,6 @@ public class PoorcraftEngine extends SimpleApplication {
         chunkManager.init(rootNode, assetManager, blockRegistry, worldSaveManager);
         serviceHub.register(ChunkManager.class, chunkManager);
         logger.info("ChunkManager initialized - CP 1.05 OK");
-
-        // CP 1.05: Load initial chunk
-        chunkManager.loadChunk(0, 0);
-
-        // CP 1.1: Load additional chunks based on configuration and setup ChunkDoctor
-        if (config.loadMultiChunk()) {
-            chunkManager.loadChunks3x3(0, 0);
-            logger.info("3x3 chunk grid loaded - CP 1.1 OK");
-        } else {
-            logger.info("Single chunk mode enabled - CP 1.05 verification");
-        }
 
         chunkDoctorService = new ChunkDoctorService();
         chunkDoctorService.init(chunkManager, rootNode, assetManager);
@@ -136,43 +172,40 @@ public class PoorcraftEngine extends SimpleApplication {
         serviceHub.register(BlockHighlighter.class, blockHighlighter);
 
         playerController = new PlayerController();
-        playerController.init(this, chunkManager, blockPicker, blockHighlighter, playerInventory);
+        playerController.init(this, chunkManager, blockPicker, blockHighlighter, playerInventory, inputConfig);
         serviceHub.register(PlayerController.class, playerController);
-
-        // Position camera at terrain center
-        cam.setLocation(new Vector3f(8f, 70f, 8f));
-        cam.lookAt(new Vector3f(8f, 64f, 8f), Vector3f.UNIT_Y);
         logger.info("PlayerController initialized - CP 1.2 OK");
         logger.info("PlayerInventory initialized - CP 1.3 OK");
-        
-        // Register ESC key to exit
-        inputManager.addMapping("Exit", new KeyTrigger(KeyInput.KEY_ESCAPE));
-        inputManager.addListener(exitListener, "Exit");
+
+        // Phase 1.5: Initialize GameStateManager and UI scale processor
+        gameStateManager = new GameStateManager();
+        gameStateManager.init(this, serviceHub);
+        serviceHub.register(GameStateManager.class, gameStateManager);
+        logger.info("GameStateManager initialized");
+
+        UIScaleProcessor uiScaleProcessor = new UIScaleProcessor(guiNode);
+        guiViewPort.addProcessor(uiScaleProcessor);
+        logger.info("UI scale processor attached");
+
+        // Start in main menu (not in-game)
+        gameStateManager.enterMainMenu();
+        logger.info("Entered main menu - Phase 1.5 OK");
         
         logger.info("PoorcraftEngine initialized - CP 0.1 OK");
     }
     
-    private final ActionListener exitListener = (name, isPressed, tpf) -> {
-        if (name.equals("Exit") && !isPressed) {
-            logger.info("ESC pressed - shutting down");
-            stop();
-        }
-    };
-    
     @Override
     public void simpleUpdate(float tpf) {
-        if (chunkManager != null) {
-            chunkManager.update(tpf);
-        }
-
-        if (playerController != null) {
-            playerController.update(tpf);
-        }
+        // Updates handled by InGameState when enabled
     }
     
     @Override
     public void destroy() {
         logger.info("PoorcraftEngine shutting down...");
+
+        if (gameStateManager != null) {
+            gameStateManager.exitToMainMenu();
+        }
 
         if (chunkManager != null) {
             try {

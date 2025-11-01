@@ -17,3 +17,24 @@ worlds:
 
 # Logging level (DEBUG, INFO, WARN, ERROR)
 logLevel: INFO
+
+# Input controls (Phase 1.5)
+controls:
+  mouseSensitivity: 1.5
+  invertMouseY: false
+  keybinds:
+    moveForward: W
+    moveBackward: S
+    moveLeft: A
+    moveRight: D
+    sprint: LSHIFT
+    breakBlock: MOUSE_LEFT
+    placeBlock: MOUSE_RIGHT
+    pause: ESCAPE
+
+# Graphics settings (Phase 1.5)
+graphics:
+  windowMode: WINDOWED  # WINDOWED, FULLSCREEN, BORDERLESS
+  resolution: "1280x720"
+  vsync: true
+  fpsLimit: 60
