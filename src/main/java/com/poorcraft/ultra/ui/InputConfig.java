@@ -61,6 +61,14 @@ public class InputConfig {
         Objects.requireNonNull(listener, "listener");
 
         actionListeners.put(actionName, listener);
+        if (!actionMappings.containsKey(actionName) && controlsConfig != null) {
+            String binding = controlsConfig.keybinds().get(actionName);
+            if (binding != null) {
+                actionMappings.put(actionName, binding);
+            } else {
+                logger.warn("No binding configured for action '{}' when registering listener", actionName);
+            }
+        }
         applyActionMapping(actionName);
     }
 
@@ -75,7 +83,6 @@ public class InputConfig {
         if (listener != null && inputManager != null) {
             inputManager.removeListener(listener);
         }
-        actionMappings.remove(actionName);
     }
 
     /**
@@ -386,23 +393,53 @@ public class InputConfig {
 
         return switch (upper) {
             case "SPACE" -> KeyInput.KEY_SPACE;
-            case "ENTER" -> KeyInput.KEY_RETURN;
-            case "RETURN" -> KeyInput.KEY_RETURN;
-            case "ESCAPE" -> KeyInput.KEY_ESCAPE;
+            case "ENTER", "RETURN" -> KeyInput.KEY_RETURN;
+            case "ESCAPE", "ESC" -> KeyInput.KEY_ESCAPE;
             case "TAB" -> KeyInput.KEY_TAB;
-            case "LSHIFT" -> KeyInput.KEY_LSHIFT;
+            case "BACKSPACE" -> KeyInput.KEY_BACK;
+            case "DELETE", "DEL" -> KeyInput.KEY_DELETE;
+            case "INSERT", "INS" -> KeyInput.KEY_INSERT;
+            case "HOME" -> KeyInput.KEY_HOME;
+            case "END" -> KeyInput.KEY_END;
+            case "PAGEUP", "PGUP" -> KeyInput.KEY_PGUP;
+            case "PAGEDOWN", "PGDN" -> KeyInput.KEY_PGDN;
+            case "LSHIFT", "SHIFT" -> KeyInput.KEY_LSHIFT;
             case "RSHIFT" -> KeyInput.KEY_RSHIFT;
-            case "SHIFT" -> KeyInput.KEY_LSHIFT;
-            case "LCTRL" -> KeyInput.KEY_LCONTROL;
+            case "LCTRL", "CTRL" -> KeyInput.KEY_LCONTROL;
             case "RCTRL" -> KeyInput.KEY_RCONTROL;
-            case "CTRL" -> KeyInput.KEY_LCONTROL;
-            case "ALT" -> KeyInput.KEY_LMENU;
-            case "LALT" -> KeyInput.KEY_LMENU;
+            case "ALT", "LALT" -> KeyInput.KEY_LMENU;
             case "RALT" -> KeyInput.KEY_RMENU;
             case "UP" -> KeyInput.KEY_UP;
             case "DOWN" -> KeyInput.KEY_DOWN;
             case "LEFT" -> KeyInput.KEY_LEFT;
             case "RIGHT" -> KeyInput.KEY_RIGHT;
+            case "MINUS", "-" -> KeyInput.KEY_MINUS;
+            case "EQUALS", "=" -> KeyInput.KEY_EQUALS;
+            case "LBRACKET", "[" -> KeyInput.KEY_LBRACKET;
+            case "RBRACKET", "]" -> KeyInput.KEY_RBRACKET;
+            case "SEMICOLON", ";" -> KeyInput.KEY_SEMICOLON;
+            case "APOSTROPHE", "'", "QUOTE" -> KeyInput.KEY_APOSTROPHE;
+            case "GRAVE", "`", "BACKTICK" -> KeyInput.KEY_GRAVE;
+            case "COMMA", "," -> KeyInput.KEY_COMMA;
+            case "PERIOD", ".", "DOT" -> KeyInput.KEY_PERIOD;
+            case "SLASH", "/" -> KeyInput.KEY_SLASH;
+            case "BACKSLASH", "\\" -> KeyInput.KEY_BACKSLASH;
+            case "NUMPAD0" -> KeyInput.KEY_NUMPAD0;
+            case "NUMPAD1" -> KeyInput.KEY_NUMPAD1;
+            case "NUMPAD2" -> KeyInput.KEY_NUMPAD2;
+            case "NUMPAD3" -> KeyInput.KEY_NUMPAD3;
+            case "NUMPAD4" -> KeyInput.KEY_NUMPAD4;
+            case "NUMPAD5" -> KeyInput.KEY_NUMPAD5;
+            case "NUMPAD6" -> KeyInput.KEY_NUMPAD6;
+            case "NUMPAD7" -> KeyInput.KEY_NUMPAD7;
+            case "NUMPAD8" -> KeyInput.KEY_NUMPAD8;
+            case "NUMPAD9" -> KeyInput.KEY_NUMPAD9;
+            case "NUMPADENTER" -> KeyInput.KEY_NUMPADENTER;
+            case "NUMPADADD" -> KeyInput.KEY_ADD;
+            case "NUMPADSUBTRACT" -> KeyInput.KEY_SUBTRACT;
+            case "NUMPADMULTIPLY" -> KeyInput.KEY_MULTIPLY;
+            case "NUMPADDIVIDE" -> KeyInput.KEY_DIVIDE;
+            case "NUMPADDECIMAL", "NUMPADPERIOD" -> KeyInput.KEY_DECIMAL;
             case "F1" -> KeyInput.KEY_F1;
             case "F2" -> KeyInput.KEY_F2;
             case "F3" -> KeyInput.KEY_F3;
@@ -442,8 +479,16 @@ public class InputConfig {
         return switch (keyCode) {
             case KeyInput.KEY_SPACE -> "Space";
             case KeyInput.KEY_RETURN -> "Enter";
+            case KeyInput.KEY_NUMPADENTER -> "Numpad Enter";
             case KeyInput.KEY_ESCAPE -> "Escape";
+            case KeyInput.KEY_BACK -> "Backspace";
             case KeyInput.KEY_TAB -> "Tab";
+            case KeyInput.KEY_DELETE -> "Delete";
+            case KeyInput.KEY_INSERT -> "Insert";
+            case KeyInput.KEY_HOME -> "Home";
+            case KeyInput.KEY_END -> "End";
+            case KeyInput.KEY_PGUP -> "Page Up";
+            case KeyInput.KEY_PGDN -> "Page Down";
             case KeyInput.KEY_LSHIFT -> "LShift";
             case KeyInput.KEY_RSHIFT -> "RShift";
             case KeyInput.KEY_LCONTROL -> "LCtrl";
@@ -454,6 +499,32 @@ public class InputConfig {
             case KeyInput.KEY_DOWN -> "Down";
             case KeyInput.KEY_LEFT -> "Left";
             case KeyInput.KEY_RIGHT -> "Right";
+            case KeyInput.KEY_MINUS -> "-";
+            case KeyInput.KEY_EQUALS -> "=";
+            case KeyInput.KEY_LBRACKET -> "[";
+            case KeyInput.KEY_RBRACKET -> "]";
+            case KeyInput.KEY_SEMICOLON -> ";";
+            case KeyInput.KEY_APOSTROPHE -> "'";
+            case KeyInput.KEY_GRAVE -> "`";
+            case KeyInput.KEY_COMMA -> ",";
+            case KeyInput.KEY_PERIOD -> ".";
+            case KeyInput.KEY_SLASH -> "/";
+            case KeyInput.KEY_BACKSLASH -> "\\";
+            case KeyInput.KEY_NUMPAD0 -> "Numpad 0";
+            case KeyInput.KEY_NUMPAD1 -> "Numpad 1";
+            case KeyInput.KEY_NUMPAD2 -> "Numpad 2";
+            case KeyInput.KEY_NUMPAD3 -> "Numpad 3";
+            case KeyInput.KEY_NUMPAD4 -> "Numpad 4";
+            case KeyInput.KEY_NUMPAD5 -> "Numpad 5";
+            case KeyInput.KEY_NUMPAD6 -> "Numpad 6";
+            case KeyInput.KEY_NUMPAD7 -> "Numpad 7";
+            case KeyInput.KEY_NUMPAD8 -> "Numpad 8";
+            case KeyInput.KEY_NUMPAD9 -> "Numpad 9";
+            case KeyInput.KEY_ADD -> "Numpad +";
+            case KeyInput.KEY_SUBTRACT -> "Numpad -";
+            case KeyInput.KEY_MULTIPLY -> "Numpad *";
+            case KeyInput.KEY_DIVIDE -> "Numpad /";
+            case KeyInput.KEY_DECIMAL -> "Numpad .";
             case KeyInput.KEY_F1 -> "F1";
             case KeyInput.KEY_F2 -> "F2";
             case KeyInput.KEY_F3 -> "F3";

@@ -1,40 +1,34 @@
-# Poorcraft Ultra Client Configuration
-# This file is loaded by ConfigLoader; if missing, defaults are used
-
-# Display settings
-displayWidth: 1280      # Window width in pixels
-displayHeight: 720      # Window height in pixels
-fullscreen: false       # Start in fullscreen mode
-vsync: true             # Enable vertical sync
-fpsLimit: 60            # Maximum frames per second
-
-# World loading
-loadMultiChunk: true    # Load 3x3 chunk grid when true; single chunk when false
-
-# World persistence
+---
+displayWidth: 1280
+displayHeight: 720
+fullscreen: true
+vsync: true
+fpsLimit: 60
+logLevel: "INFO"
+loadMultiChunk: false
 worlds:
-  baseDir: data/worlds  # Base directory for world saves
-
-# Logging level (DEBUG, INFO, WARN, ERROR)
-logLevel: INFO
-
-# Input controls (Phase 1.5)
+  baseDir: "data/worlds"
 controls:
   mouseSensitivity: 1.5
   invertMouseY: false
   keybinds:
-    moveForward: W
-    moveBackward: S
-    moveLeft: A
-    moveRight: D
-    sprint: LSHIFT
-    breakBlock: MOUSE_LEFT
-    placeBlock: MOUSE_RIGHT
-    pause: ESCAPE
-
-# Graphics settings (Phase 1.5)
+    moveForward: "W"
+    sprint: "LSHIFT"
+    moveBackward: "S"
+    moveRight: "D"
+    moveLeft: "A"
+    breakBlock: "MOUSE_LEFT"
+    pause: "ESCAPE"
+    placeBlock: "MOUSE_RIGHT"
 graphics:
-  windowMode: WINDOWED  # WINDOWED, FULLSCREEN, BORDERLESS
+  windowMode: "FULLSCREEN"
   resolution: "1280x720"
   vsync: true
   fpsLimit: 60
+  height: 720
+  width: 1280
+audio:
+  masterVolume: 1.0
+  musicVolume: 0.8
+  effectsVolume: 0.8
+  mute: false

@@ -3,15 +3,17 @@ package com.poorcraft.ultra.ui;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.input.KeyInput;
+import com.jme3.math.Vector3f;
 import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.KeyTrigger;
 import com.jme3.scene.Node;
 import com.poorcraft.ultra.app.ServiceHub;
+import com.simsilica.lemur.style.BaseStyles;
 import com.simsilica.lemur.Button;
 import com.simsilica.lemur.Command;
 import com.simsilica.lemur.Container;
+import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.Label;
+import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.style.ElementId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,19 +29,23 @@ public class PauseMenuState extends BaseAppState {
     private SimpleApplication application;
     private Node guiNode;
 
+    private static final float MENU_WIDTH = 420f;
+    private static final float MENU_HEIGHT = 240f;
+
     private Container pauseContainer;
     private Button resumeButton;
     private Button settingsButton;
     private Button saveExitButton;
 
-    private final ActionListener resumeListener = (name, isPressed, tpf) -> {
-        if (!isPressed && "Resume".equals(name)) {
-            serviceHub.get(GameStateManager.class).resumeGame();
-        }
-    };
+    private float lastCameraWidth = -1f;
+    private float lastCameraHeight = -1f;
+
+    private InputConfig inputConfig;
+    private final ActionListener pauseToggleListener;
 
     public PauseMenuState(ServiceHub serviceHub) {
         this.serviceHub = serviceHub;
+        this.pauseToggleListener = this::handlePauseToggle;
     }
 
     @Override
@@ -47,11 +53,26 @@ public class PauseMenuState extends BaseAppState {
         application = (SimpleApplication) app;
         guiNode = application.getGuiNode();
 
+        initializeLemur(application);
         buildMenu();
+
+        if (serviceHub.has(InputConfig.class)) {
+            inputConfig = serviceHub.get(InputConfig.class);
+        }
+    }
+
+    private void initializeLemur(SimpleApplication app) {
+        if (GuiGlobals.getInstance() == null) {
+            GuiGlobals.initialize(app);
+            BaseStyles.loadGlassStyle();
+            GuiGlobals.getInstance().getStyles().setDefaultStyle("glass");
+            logger.info("Lemur GUI initialised with glass style (pause menu)");
+        }
     }
 
     private void buildMenu() {
-        pauseContainer = new Container(new ElementId("pauseMenu"));
+        pauseContainer = new Container(new SpringGridLayout(), new ElementId("pauseMenu"));
+        pauseContainer.setPreferredSize(new Vector3f(MENU_WIDTH, MENU_HEIGHT, 0f));
         pauseContainer.addChild(new Label("Paused", new ElementId("title")));
 
         resumeButton = pauseContainer.addChild(new Button("Resume"));
@@ -72,7 +93,33 @@ public class PauseMenuState extends BaseAppState {
     private void layoutMenu() {
         float width = application.getCamera().getWidth();
         float height = application.getCamera().getHeight();
-        pauseContainer.setLocalTranslation(width / 2f - 150f, height / 2f + 150f, 0f);
+        lastCameraWidth = width;
+        lastCameraHeight = height;
+
+        float scale = UIScaleProcessor.getCurrentScale();
+        if (!Float.isFinite(scale) || scale <= 0f) {
+            scale = 1f;
+        }
+
+        float scaledWidth = width / scale;
+        float scaledHeight = height / scale;
+
+        pauseContainer.setLocalTranslation(
+            scaledWidth / 2f - MENU_WIDTH / 2f,
+            scaledHeight / 2f + MENU_HEIGHT / 2f,
+            0f
+        );
+    }
+
+    @Override
+    public void update(float tpf) {
+        super.update(tpf);
+
+        float width = application.getCamera().getWidth();
+        float height = application.getCamera().getHeight();
+        if (width != lastCameraWidth || height != lastCameraHeight) {
+            layoutMenu();
+        }
     }
 
     @Override
@@ -87,8 +134,9 @@ public class PauseMenuState extends BaseAppState {
         if (pauseContainer != null && pauseContainer.getParent() == null) {
             guiNode.attachChild(pauseContainer);
         }
-        registerResumeMapping();
-        application.getInputManager().setCursorVisible(true);
+        if (inputConfig != null) {
+            inputConfig.registerAction("pause", pauseToggleListener);
+        }
     }
 
     @Override
@@ -96,22 +144,15 @@ public class PauseMenuState extends BaseAppState {
         if (pauseContainer != null) {
             pauseContainer.removeFromParent();
         }
-        unregisterResumeMapping();
-    }
-
-    private void registerResumeMapping() {
-        var inputManager = application.getInputManager();
-        if (!inputManager.hasMapping("Resume")) {
-            inputManager.addMapping("Resume", new KeyTrigger(KeyInput.KEY_ESCAPE));
-            inputManager.addListener(resumeListener, "Resume");
+        if (inputConfig != null) {
+            inputConfig.unregisterAction("pause");
         }
     }
 
-    private void unregisterResumeMapping() {
-        var inputManager = application.getInputManager();
-        if (inputManager.hasMapping("Resume")) {
-            inputManager.deleteMapping("Resume");
-            inputManager.removeListener(resumeListener);
+    private void handlePauseToggle(String name, boolean isPressed, float tpf) {
+        if (!"pause".equals(name) || isPressed) {
+            return;
         }
+        serviceHub.get(GameStateManager.class).resumeGame();
     }
 }

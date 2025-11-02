@@ -1,6 +1,9 @@
 package com.poorcraft.ultra.ui;
 
+import com.jme3.app.Application;
+import com.jme3.math.FastMath;
 import com.jme3.post.SceneProcessor;
+import com.jme3.profile.AppProfiler;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
@@ -18,12 +21,18 @@ public class UIScaleProcessor implements SceneProcessor {
 
     private static final float REFERENCE_WIDTH = 1280f;
     private static final float REFERENCE_HEIGHT = 720f;
+    private static final float SCALE_MULTIPLIER = 1.2f;
+    private static final float MIN_SCALE = 0.8f;
+    private static final float MAX_SCALE = 3.5f;
 
     private final Node guiNode;
+    private final Application application;
     private boolean initialized = false;
+    private static volatile float currentScale = 1f;
 
-    public UIScaleProcessor(Node guiNode) {
+    public UIScaleProcessor(Node guiNode, Application application) {
         this.guiNode = guiNode;
+        this.application = application;
     }
 
     @Override
@@ -48,8 +57,26 @@ public class UIScaleProcessor implements SceneProcessor {
 
         float scaleX = width / REFERENCE_WIDTH;
         float scaleY = height / REFERENCE_HEIGHT;
+        float rawScale = Math.min(scaleX, scaleY);
+        if (!Float.isFinite(rawScale) || rawScale <= 0f) {
+            rawScale = 1f;
+        }
+        float adjusted = rawScale * SCALE_MULTIPLIER;
+        final float uniformScale = FastMath.clamp(adjusted, MIN_SCALE, MAX_SCALE);
 
-        guiNode.setLocalScale(scaleX, scaleY, 1f);
+        currentScale = uniformScale;
+        if (application != null) {
+            application.enqueue(() -> {
+                guiNode.setLocalScale(uniformScale, uniformScale, 1f);
+                return null;
+            });
+        } else {
+            guiNode.setLocalScale(uniformScale, uniformScale, 1f);
+        }
+    }
+
+    public static float getCurrentScale() {
+        return currentScale;
     }
 
     @Override
@@ -75,5 +102,11 @@ public class UIScaleProcessor implements SceneProcessor {
     @Override
     public void cleanup() {
         initialized = false;
+    }
+
+    @Override
+    public void setProfiler(AppProfiler profiler) {
+        // No profiling needed for UI scaling
+        // Stub implementation to satisfy SceneProcessor interface (jME 3.7+)
     }
 }

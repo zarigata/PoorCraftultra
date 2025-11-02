@@ -3,7 +3,6 @@ package com.poorcraft.ultra.ui;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.input.controls.ActionListener;
 import com.jme3.math.Vector3f;
 import com.poorcraft.ultra.app.ServiceHub;
 import com.poorcraft.ultra.player.PlayerController;
@@ -23,13 +22,6 @@ public class InGameState extends BaseAppState {
     private ChunkManager chunkManager;
     private PlayerController playerController;
     private InputConfig inputConfig;
-
-    private final ActionListener pauseListener = (name, isPressed, tpf) -> {
-        if ("pause".equals(name) && !isPressed) {
-            GameStateManager gsm = serviceHub.get(GameStateManager.class);
-            gsm.pauseGame();
-        }
-    };
 
     public InGameState(ServiceHub serviceHub) {
         this.serviceHub = serviceHub;
@@ -70,14 +62,13 @@ public class InGameState extends BaseAppState {
         }
 
         if (inputConfig != null) {
-            inputConfig.registerAction("pause", pauseListener);
+            inputConfig.registerAction("pause", this::handlePauseAction);
         }
 
         if (playerController != null) {
             playerController.enable();
         }
 
-        application.getInputManager().setCursorVisible(false);
         logger.info("InGameState enabled");
     }
 
@@ -91,8 +82,15 @@ public class InGameState extends BaseAppState {
             playerController.disable();
         }
 
-        application.getInputManager().setCursorVisible(true);
         logger.info("InGameState disabled (paused)");
+    }
+
+    private void handlePauseAction(String name, boolean isPressed, float tpf) {
+        if (!"pause".equals(name) || isPressed) {
+            return;
+        }
+        GameStateManager gsm = serviceHub.get(GameStateManager.class);
+        gsm.pauseGame();
     }
 
     private <T> T requireService(Class<T> type) {

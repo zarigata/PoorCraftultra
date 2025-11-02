@@ -37,7 +37,8 @@ class ConfigSaverTest {
     @Test
     void testSaveInvalidPath() {
         ClientConfig config = ClientConfig.defaults();
-        String invalidPath = "/invalid/readonly/path/config.yaml";
+        // Use a path with invalid characters that will fail on any OS
+        String invalidPath = "C:\\invalid<>path\\config.yaml";
 
         boolean success = ConfigSaver.save(config, invalidPath);
 
@@ -50,12 +51,19 @@ class ConfigSaverTest {
             1920, 1080, true, false, 144, "DEBUG", false,
             ClientConfig.WorldConfig.defaults(),
             new ClientConfig.ControlsConfig(2.0f, true, ClientConfig.ControlsConfig.defaults().keybinds()),
-            ClientConfig.GraphicsConfig.defaults()
+            ClientConfig.GraphicsConfig.defaults(),
+            ClientConfig.AudioConfig.defaults()
         );
         Path configPath = tempDir.resolve("roundtrip.yaml");
 
         ConfigSaver.save(original, configPath.toString());
         ClientConfig loaded = ConfigLoader.load(configPath.toString());
+
+        // Debug: check if loaded is null and print values
+        assertNotNull(loaded, "Loaded config should not be null");
+        System.out.println("Original displayWidth: " + original.displayWidth());
+        System.out.println("Loaded displayWidth: " + loaded.displayWidth());
+        System.out.println("File exists: " + configPath.toFile().exists());
 
         assertEquals(original.displayWidth(), loaded.displayWidth());
         assertEquals(original.displayHeight(), loaded.displayHeight());

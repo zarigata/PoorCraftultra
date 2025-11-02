@@ -5,6 +5,8 @@ import com.jme3.app.state.AppStateManager;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.input.InputManager;
 import com.poorcraft.ultra.app.ServiceHub;
+import com.poorcraft.ultra.voxel.ChunkManager;
+import com.poorcraft.ultra.world.WorldSaveManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,6 +98,21 @@ public class GameStateManager {
     }
 
     public void exitToMainMenu() {
+        if (serviceHub != null) {
+            try {
+                if (serviceHub.has(ChunkManager.class)) {
+                    ChunkManager chunkManager = serviceHub.get(ChunkManager.class);
+                    chunkManager.saveAll();
+                }
+                if (serviceHub.has(WorldSaveManager.class)) {
+                    WorldSaveManager saveManager = serviceHub.get(WorldSaveManager.class);
+                    saveManager.markSavedOnShutdown();
+                }
+            } catch (Exception e) {
+                logger.error("Failed to persist world state before returning to main menu", e);
+            }
+        }
+
         detachState(pauseMenuState);
         detachState(inGameState);
         attachState(mainMenuState);

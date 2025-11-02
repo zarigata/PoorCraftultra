@@ -19,7 +19,8 @@ public record ClientConfig(
     @JsonProperty("loadMultiChunk") boolean loadMultiChunk,
     @JsonProperty("worlds") WorldConfig worlds,
     @JsonProperty("controls") ControlsConfig controls,
-    @JsonProperty("graphics") GraphicsConfig graphics
+    @JsonProperty("graphics") GraphicsConfig graphics,
+    @JsonProperty("audio") AudioConfig audio
 ) {
 
     public ClientConfig {
@@ -31,6 +32,9 @@ public record ClientConfig(
         }
         if (graphics == null) {
             graphics = GraphicsConfig.defaults();
+        }
+        if (audio == null) {
+            audio = AudioConfig.defaults();
         }
     }
     /**
@@ -47,7 +51,8 @@ public record ClientConfig(
             true,     // loadMultiChunk
             WorldConfig.defaults(),
             ControlsConfig.defaults(),
-            GraphicsConfig.defaults()
+            GraphicsConfig.defaults(),
+            AudioConfig.defaults()
         );
     }
 
@@ -125,6 +130,31 @@ public record ClientConfig(
         public int getHeight() {
             String[] parts = resolution.split("x");
             return parts.length >= 2 ? Integer.parseInt(parts[1].trim()) : 720;
+        }
+    }
+
+    public record AudioConfig(
+        @JsonProperty("masterVolume") float masterVolume,
+        @JsonProperty("musicVolume") float musicVolume,
+        @JsonProperty("effectsVolume") float effectsVolume,
+        @JsonProperty("mute") boolean mute
+    ) {
+
+        public AudioConfig {
+            masterVolume = clamp(masterVolume);
+            musicVolume = clamp(musicVolume);
+            effectsVolume = clamp(effectsVolume);
+        }
+
+        private static float clamp(float value) {
+            if (Float.isNaN(value)) {
+                return 1f;
+            }
+            return Math.max(0f, Math.min(1f, value));
+        }
+
+        public static AudioConfig defaults() {
+            return new AudioConfig(1f, 0.8f, 0.8f, false);
         }
     }
 }

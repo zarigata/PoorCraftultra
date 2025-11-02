@@ -45,7 +45,7 @@ public final class ConfigSaver {
             mapper.writeValue(target, config);
             logger.info("Saved client config to {}", target.getAbsolutePath());
             return true;
-        } catch (IOException e) {
+        } catch (IOException | java.nio.file.InvalidPathException e) {
             logger.error("Failed to save client config to {}", path, e);
             return false;
         }

@@ -113,7 +113,12 @@ public class PoorcraftEngine extends SimpleApplication {
     @Override
     public void simpleInitApp() {
         logger.info("Initializing PoorcraftEngine...");
-        
+
+        if (inputManager.hasMapping(SimpleApplication.INPUT_MAPPING_EXIT)) {
+            inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
+            logger.info("Default escape-to-exit mapping removed");
+        }
+
         // Phase 0A: Register external assets directory
         Path assetsRoot = Paths.get("assets").toAbsolutePath();
         if (Files.exists(assetsRoot)) {
@@ -183,13 +188,16 @@ public class PoorcraftEngine extends SimpleApplication {
         serviceHub.register(GameStateManager.class, gameStateManager);
         logger.info("GameStateManager initialized");
 
-        UIScaleProcessor uiScaleProcessor = new UIScaleProcessor(guiNode);
+        UIScaleProcessor uiScaleProcessor = new UIScaleProcessor(guiNode, this);
         guiViewPort.addProcessor(uiScaleProcessor);
         logger.info("UI scale processor attached");
 
         // Start in main menu (not in-game)
-        gameStateManager.enterMainMenu();
-        logger.info("Entered main menu - Phase 1.5 OK");
+        enqueue(() -> {
+            gameStateManager.enterMainMenu();
+            logger.info("Entered main menu - Phase 1.5 OK");
+            return null;
+        });
         
         logger.info("PoorcraftEngine initialized - CP 0.1 OK");
     }

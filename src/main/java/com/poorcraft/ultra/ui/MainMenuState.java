@@ -3,17 +3,16 @@ package com.poorcraft.ultra.ui;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.input.KeyInput;
-import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.KeyTrigger;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.poorcraft.ultra.app.ServiceHub;
-import com.simsilica.lemur.BaseStyles;
+import com.simsilica.lemur.style.BaseStyles;
 import com.simsilica.lemur.Button;
 import com.simsilica.lemur.Command;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.Label;
+import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.style.ElementId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,16 +28,16 @@ public class MainMenuState extends BaseAppState {
     private SimpleApplication application;
     private Node guiNode;
 
+    private static final float MENU_WIDTH = 420f;
+    private static final float MENU_HEIGHT = 280f;
+
     private Container menuContainer;
     private Button startButton;
     private Button settingsButton;
     private Button exitButton;
 
-    private final ActionListener escListener = (name, isPressed, tpf) -> {
-        if (!isPressed && "MenuExit".equals(name)) {
-            application.stop();
-        }
-    };
+    private float lastCameraWidth = -1f;
+    private float lastCameraHeight = -1f;
 
     public MainMenuState(ServiceHub serviceHub) {
         this.serviceHub = serviceHub;
@@ -63,7 +62,8 @@ public class MainMenuState extends BaseAppState {
     }
 
     private void buildMenu() {
-        menuContainer = new Container(new ElementId("mainMenu"));
+        menuContainer = new Container();
+        menuContainer.setPreferredSize(new Vector3f(MENU_WIDTH, MENU_HEIGHT, 0f));
         menuContainer.addChild(new Label("Poorcraft Ultra", new ElementId("title")));
 
         startButton = menuContainer.addChild(new Button("Start Game"));
@@ -84,7 +84,37 @@ public class MainMenuState extends BaseAppState {
     private void layoutMenu() {
         float width = application.getCamera().getWidth();
         float height = application.getCamera().getHeight();
-        menuContainer.setLocalTranslation(width / 2f - 150f, height / 2f + 150f, 0f);
+        lastCameraWidth = width;
+        lastCameraHeight = height;
+
+        float scale = UIScaleProcessor.getCurrentScale();
+        if (!Float.isFinite(scale) || scale <= 0f) {
+            scale = 1f;
+        }
+
+        float scaledWidth = width / scale;
+        float scaledHeight = height / scale;
+
+        menuContainer.setLocalTranslation(
+            scaledWidth / 2f - MENU_WIDTH / 2f,
+            scaledHeight / 2f + MENU_HEIGHT / 2f,
+            0f
+        );
+    }
+
+    @Override
+    public void update(float tpf) {
+        super.update(tpf);
+
+        if (menuContainer == null) {
+            return; // Menu not built yet, skip layout
+        }
+
+        float width = application.getCamera().getWidth();
+        float height = application.getCamera().getHeight();
+        if (width != lastCameraWidth || height != lastCameraHeight) {
+            layoutMenu();
+        }
     }
 
     @Override
@@ -98,32 +128,14 @@ public class MainMenuState extends BaseAppState {
     protected void onEnable() {
         if (menuContainer != null && menuContainer.getParent() == null) {
             guiNode.attachChild(menuContainer);
+            guiNode.updateGeometricState();
         }
-        registerEscMapping();
-        application.getInputManager().setCursorVisible(true);
     }
 
     @Override
     protected void onDisable() {
         if (menuContainer != null) {
             menuContainer.removeFromParent();
-        }
-        unregisterEscMapping();
-    }
-
-    private void registerEscMapping() {
-        var inputManager = application.getInputManager();
-        if (!inputManager.hasMapping("MenuExit")) {
-            inputManager.addMapping("MenuExit", new KeyTrigger(KeyInput.KEY_ESCAPE));
-            inputManager.addListener(escListener, "MenuExit");
-        }
-    }
-
-    private void unregisterEscMapping() {
-        var inputManager = application.getInputManager();
-        if (inputManager.hasMapping("MenuExit")) {
-            inputManager.deleteMapping("MenuExit");
-            inputManager.removeListener(escListener);
         }
     }
 }
