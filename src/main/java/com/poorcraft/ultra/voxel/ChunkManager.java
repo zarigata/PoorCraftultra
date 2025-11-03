@@ -7,12 +7,12 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
+import com.poorcraft.ultra.world.WorldGenerator;
 import com.poorcraft.ultra.world.WorldSaveManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 public class ChunkManager {
@@ -27,12 +27,15 @@ public class ChunkManager {
     private AssetManager assetManager;
     private BlockRegistry blockRegistry;
     private WorldSaveManager worldSaveManager;
+    private WorldGenerator worldGenerator;
 
-    public void init(Node rootNode, AssetManager assetManager, BlockRegistry registry, WorldSaveManager worldSaveManager) {
+    public void init(Node rootNode, AssetManager assetManager, BlockRegistry registry,
+                     WorldSaveManager worldSaveManager, WorldGenerator worldGenerator) {
         this.rootNode = rootNode;
         this.assetManager = assetManager;
         this.blockRegistry = registry;
         this.worldSaveManager = worldSaveManager;
+        this.worldGenerator = worldGenerator;
     }
 
     public void loadChunk(int chunkX, int chunkZ) {
@@ -48,14 +51,23 @@ public class ChunkManager {
 
         if (chunk == null) {
             chunk = new Chunk(chunkX, chunkZ);
-            chunk.fillCheckerboard();
-            logger.debug("Generated new chunk ({}, {})", chunkX, chunkZ);
+            if (worldGenerator != null) {
+                worldGenerator.generate(chunk);
+                logger.debug("Generated new chunk ({}, {}) with seed {}", chunkX, chunkZ, worldGenerator.getSeed());
+            } else {
+                chunk.fillCheckerboard();
+                logger.warn("WorldGenerator not available; using checkerboard fallback for chunk ({}, {})", chunkX, chunkZ);
+            }
         } else {
             logger.debug("Loaded chunk ({}, {}) from disk", chunkX, chunkZ);
         }
         chunks.put(coord, chunk);
 
         rebuildMesh(coord, chunk);
+    }
+
+    public WorldGenerator getWorldGenerator() {
+        return worldGenerator;
     }
 
     public void loadChunks3x3(int centerX, int centerZ) {

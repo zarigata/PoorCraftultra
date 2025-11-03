@@ -67,6 +67,10 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.15.3")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.3")
 
+    // Phase 2: Noise generation for worldgen
+    // FastNoiseLite embedded in com.poorcraft.ultra.world.noise package (MIT license, ~800 LOC)
+    // No external dependency needed; source copied from https://github.com/Auburn/FastNoiseLite
+
     // Testing: JUnit 5
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
 }

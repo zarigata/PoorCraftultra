@@ -33,13 +33,13 @@ class PlayerInventoryTest {
     @Test
     void testAddRemove() {
         inventory.addBlock(BlockType.STONE, 10);
-        assertEquals(74, inventory.getCount(BlockType.STONE));
+        assertEquals(64, inventory.getCount(BlockType.STONE));
 
         assertTrue(inventory.removeBlock(BlockType.STONE, 5));
-        assertEquals(69, inventory.getCount(BlockType.STONE));
+        assertEquals(59, inventory.getCount(BlockType.STONE));
 
         assertFalse(inventory.removeBlock(BlockType.STONE, 100), "Removing more than available should fail");
-        assertEquals(69, inventory.getCount(BlockType.STONE), "Failed removal must not change count");
+        assertEquals(59, inventory.getCount(BlockType.STONE), "Failed removal must not change count");
     }
 
     @Test
@@ -70,6 +70,18 @@ class PlayerInventoryTest {
         assertEquals(initial - 1, inventory.getCount(BlockType.STONE));
 
         inventory.addBlock(BlockType.STONE, 1);
-        assertEquals(initial, inventory.getCount(BlockType.STONE));
+        assertEquals(Math.min(initial, 64), inventory.getCount(BlockType.STONE));
+    }
+
+    @Test
+    void testAddBlockClampsToSixtyFour() {
+        inventory.removeBlock(BlockType.STONE, 64);
+        assertEquals(0, inventory.getCount(BlockType.STONE));
+
+        inventory.addBlock(BlockType.STONE, 100);
+        assertEquals(64, inventory.getCount(BlockType.STONE));
+
+        inventory.addBlock(BlockType.STONE, 10);
+        assertEquals(64, inventory.getCount(BlockType.STONE));
     }
 }

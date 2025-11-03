@@ -116,6 +116,25 @@ This document describes manual tests for Phase 0 checkpoints.
 
 ---
 
+## Phase 2: Crafting Checks
+
+### CP 2.0: Crafting UI & Chest Recipe
+**Objective**: Verify crafting UI wiring and confirm chest recipe uses four planks.
+
+**Steps**:
+1. Launch game: `scripts\dev\run.bat` (Windows) or `./scripts/dev/run.sh` (Linux/macOS).
+2. Open the crafting UI (default hotkey per Settings → Controls > Craft).
+3. Ensure inventory contains at least four planks. If not, break logs and convert to planks first.
+4. Populate the crafting grid with four planks (any arrangement within the 2×2 grid).
+5. Press **Craft**.
+
+**Expected Result**: One chest appears in inventory, exactly four planks consumed, no additional inputs required.
+
+**Pass Criteria**:
+- ✅ Crafting UI shows chest output preview after four planks selected.
+- ✅ Craft button enabled only when four planks present.
+- ✅ Crafting consumes four planks and adds one chest to inventory.
+
 ## Automated Tests
 
 Run automated unit tests:
@@ -299,3 +318,216 @@ gradlew.bat test          # Windows
 **Run via:** `./gradlew test --tests "*ConfigSaverTest"` 
 
 **PASS CRITERIA:** All config save/load tests pass (round-trip, async save, etc.).
+
+---
+
+## Hotfix Phase: Critical Bug Fixes Verification
+
+### Test 1: Main Menu Shows on Startup
+**Expected Duration:** 2 minutes
+
+**Objective:** Verify main menu appears on startup, not in-game state.
+
+**Steps:**
+1. Delete `data/worlds/default/` directory (if exists)
+2. Launch game: `./scripts/dev/run.sh` (or `.bat`)
+3. **VERIFY:** Main menu appears with title "Poorcraft Ultra"
+4. **VERIFY:** Three buttons visible: "Start Game", "Settings", "Exit"
+5. **VERIFY:** Cursor is visible and can move
+6. **VERIFY:** No terrain visible in background (grey background only)
+7. Check console logs
+8. **VERIFY:** Log shows: `GameStateManager initialised - current state MAIN_MENU`
+9. **VERIFY:** Log shows: `Entered MAIN_MENU state` BEFORE any `InGameState enabled`
+10. **VERIFY:** Log shows: `MainMenuState enabled - menu attached to guiNode`
+11. Click "Exit" button
+12. **VERIFY:** Game closes cleanly
+
+**PASS CRITERIA:** Main menu visible on startup, no terrain, cursor visible, logs confirm MAIN_MENU state.
+
+**FAIL CRITERIA:** Terrain visible on startup, no menu, cursor hidden, logs show InGameState before MainMenuState.
+
+---
+
+### Test 2: Input System Functional
+**Expected Duration:** 4 minutes
+
+**Objective:** Verify mouse and keyboard input works in-game.
+
+**Steps:**
+1. Launch game
+2. Click "Start Game" button
+3. **VERIFY:** Terrain loads (hills, not checkerboard)
+4. **VERIFY:** Cursor becomes hidden
+5. Check console logs
+6. **VERIFY:** Log shows: `InputConfig initialized with X keybinds` (X > 0)
+7. **VERIFY:** Log shows: `PlayerController.enable() - input registration complete`
+8. **VERIFY:** Log shows multiple: `Registered action 'moveForward' with binding 'W'`
+9. **VERIFY:** Log shows: `Registered analog 'MouseX+'`
+10. Move mouse left/right
+11. **VERIFY:** Camera rotates horizontally (yaw changes)
+12. Move mouse up/down
+13. **VERIFY:** Camera rotates vertically (pitch changes)
+14. Press W key
+15. **VERIFY:** Camera moves forward
+16. Press S, A, D keys
+17. **VERIFY:** Camera moves backward, left, right respectively
+18. Hold LShift + W
+19. **VERIFY:** Camera moves faster (sprint)
+20. Press ESC
+21. **VERIFY:** Pause menu appears
+22. **VERIFY:** Cursor becomes visible
+23. Click "Resume"
+24. **VERIFY:** Game resumes, cursor hidden again
+25. **VERIFY:** Input still works after resume
+
+**PASS CRITERIA:** All input works (mouse look, WASD, sprint, pause), logs confirm registration.
+
+**FAIL CRITERIA:** Mouse/keyboard unresponsive, logs missing registration messages, input stops working after pause/resume.
+
+---
+
+### Test 3: World Regeneration with Version Detection
+**Expected Duration:** 5 minutes
+
+**Objective:** Verify world version detection and regeneration guidance.
+
+**Part A: New World**
+1. Delete `data/worlds/default/` directory completely
+2. Launch game
+3. Check console logs
+4. **VERIFY:** Log shows: `New world created with generator version: 2.0-biomes-caves`
+5. **VERIFY:** File exists: `data/worlds/default/generator_version.txt`
+6. Open file, verify contents: `2.0-biomes-caves`
+7. Click "Start Game"
+8. **VERIFY:** Terrain has hills, biomes, caves (not checkerboard)
+9. Exit to main menu, exit game
+
+**Part B: Old World (Simulated)**
+1. Edit `data/worlds/default/generator_version.txt`
+2. Change contents to: `1.0-checkerboard`
+3. Launch game
+4. Check console logs
+5. **VERIFY:** Log shows: `World generator version mismatch!`
+6. **VERIFY:** Log shows: `Saved world version: 1.0-checkerboard`
+7. **VERIFY:** Log shows: `Current generator version: 2.0-biomes-caves`
+8. **VERIFY:** Log shows regeneration guidance steps
+9. Click "Start Game"
+10. **VERIFY:** Terrain loads from disk (may be checkerboard if files exist)
+11. Exit game
+12. Follow guidance: Delete `data/worlds/default/`
+13. Launch game again
+14. **VERIFY:** New world generates with correct terrain
+
+**PASS CRITERIA:** Version detection works, warnings clear, regeneration guidance actionable.
+
+**FAIL CRITERIA:** No version detection, unclear warnings, regeneration doesn't work.
+
+---
+
+### Test 4: Cursor Visibility State Transitions
+**Expected Duration:** 3 minutes
+
+**Objective:** Verify cursor visibility changes correctly during state transitions.
+
+**Steps:**
+1. Launch game
+2. **VERIFY:** Cursor visible in main menu
+3. Check logs: `Setting cursor visible: true`
+4. Click "Start Game"
+5. **VERIFY:** Cursor becomes hidden
+6. Check logs: `Setting cursor visible: false`
+7. Press ESC (pause)
+8. **VERIFY:** Cursor becomes visible
+9. Check logs: `Setting cursor visible: true`
+10. Click "Resume`
+11. **VERIFY:** Cursor becomes hidden
+12. Check logs: `Setting cursor visible: false`
+13. Press ESC (pause)
+14. Click "Save & Exit to Menu"
+15. **VERIFY:** Cursor remains visible in main menu
+16. Check logs: `Setting cursor visible: true`
+
+**PASS CRITERIA:** Cursor visibility correct in all states, logs confirm changes.
+
+**FAIL CRITERIA:** Cursor stuck hidden/visible, logs missing visibility changes.
+
+---
+
+### Test 5: Debug Logging Levels
+**Expected Duration:** 3 minutes
+
+**Objective:** Verify verbose logging can be enabled for troubleshooting.
+
+**Steps:**
+1. Edit `src/main/resources/logback.xml`
+2. Uncomment `<logger name="com.poorcraft.ultra.ui.InputConfig" level="DEBUG" />`
+3. Rebuild: `./gradlew clean build`
+4. Run game
+5. Check console logs
+6. **VERIFY:** Log shows detailed input registration (applied mappings)
+7. Click "Start Game"
+8. **VERIFY:** Additional detailed logs appear
+9. Edit `logback.xml`
+10. Uncomment `<logger name="com.poorcraft.ultra.player.PlayerController" level="TRACE" />`
+11. Rebuild and run
+12. Move mouse and press keys
+13. **VERIFY:** Log shows every input event (`onAnalog`, `onAction`)
+14. **WARNING:** TRACE level is very verbose
+15. Revert `logback.xml` to INFO level
+16. Rebuild and run
+17. **VERIFY:** Logs return to normal verbosity
+
+**PASS CRITERIA:** DEBUG and TRACE logging work, can be toggled, provide diagnostics.
+
+**FAIL CRITERIA:** Logging levels don't change, INFO level too noisy, DEBUG lacks detail.
+
+---
+
+### Regression Test: Existing Functionality
+**Expected Duration:** 5 minutes
+
+**Objective:** Verify hotfix doesn't break existing Phase 1/1.5/2 functionality.
+
+**Steps:**
+1. Launch game with fresh world
+2. Click "Start Game"
+3. **VERIFY:** Terrain generates with biomes and caves
+4. **VERIFY:** Can break blocks (LMB)
+5. **VERIFY:** Can place blocks (RMB)
+6. **VERIFY:** Inventory counts update
+7. Press C key
+8. **VERIFY:** Crafting UI opens
+9. Craft a torch
+10. **VERIFY:** Crafting works
+11. Press ESC
+12. **VERIFY:** Pause menu opens
+13. Click "Settings"
+14. **VERIFY:** Settings menu opens
+15. Change mouse sensitivity
+16. Click "Apply"
+17. **VERIFY:** Settings save
+18. Resume game
+19. **VERIFY:** Mouse sensitivity changed
+20. Press ESC, "Save & Exit to Menu"
+21. **VERIFY:** Returns to main menu
+22. Click "Start Game" again
+23. **VERIFY:** World loads from save
+24. Exit game
+
+**PASS CRITERIA:** All existing functionality works, no regressions.
+
+**FAIL CRITERIA:** Any feature broken, saves corrupted, crashes.
+
+---
+
+### Summary
+
+All 6 tests must PASS for hotfix to be considered successful:
+- ✓ Test 1: Main Menu Shows
+- ✓ Test 2: Input System Functional
+- ✓ Test 3: World Regeneration
+- ✓ Test 4: Cursor Visibility
+- ✓ Test 5: Debug Logging
+- ✓ Test 6: No Regressions
+
+If any test FAILS, investigate logs and fix before proceeding.

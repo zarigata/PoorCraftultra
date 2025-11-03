@@ -44,6 +44,8 @@ public class InputConfig {
     public synchronized void init(InputManager manager, ClientConfig.ControlsConfig controls) {
         this.inputManager = Objects.requireNonNull(manager, "inputManager");
         applyConfig(controls != null ? controls : ClientConfig.ControlsConfig.defaults());
+        logger.info("InputConfig initialized with {} keybinds, mouseSensitivity={}, invertMouseY={}",
+                controlsConfig.keybinds().size(), controlsConfig.mouseSensitivity(), controlsConfig.invertMouseY());
     }
 
     /**
@@ -66,10 +68,29 @@ public class InputConfig {
             if (binding != null) {
                 actionMappings.put(actionName, binding);
             } else {
-                logger.warn("No binding configured for action '{}' when registering listener", actionName);
+                logger.error("No binding configured for action '{}' in config. Available bindings: {}",
+                        actionName, controlsConfig != null ? controlsConfig.keybinds().keySet() : "none");
             }
         }
         applyActionMapping(actionName);
+        String effectiveBinding = actionMappings.get(actionName);
+        if (effectiveBinding != null) {
+            logger.info("Registered action '{}' with binding '{}'", actionName, effectiveBinding);
+        }
+    }
+
+    public void registerActionOnAppThread(String actionName, ActionListener listener) {
+        Objects.requireNonNull(actionName, "actionName");
+        Objects.requireNonNull(listener, "listener");
+
+        if (application != null) {
+            application.enqueue(() -> {
+                registerAction(actionName, listener);
+                return null;
+            });
+        } else {
+            registerAction(actionName, listener);
+        }
     }
 
     /**
@@ -94,6 +115,7 @@ public class InputConfig {
 
         analogListeners.put(actionName, listener);
         applyAnalogMapping(actionName);
+        logger.info("Registered analog '{}'", actionName);
     }
 
     /**
@@ -300,13 +322,13 @@ public class InputConfig {
 
         String binding = actionMappings.get(actionName);
         if (binding == null) {
-            logger.warn("No keybind defined for action {}", actionName);
+            logger.error("No keybind defined for action '{}'. Current mappings: {}", actionName, actionMappings.keySet());
             return;
         }
 
         Trigger trigger = buildTriggerForBinding(binding);
         if (trigger == null) {
-            logger.warn("Unable to build trigger for action {} binding {}", actionName, binding);
+            logger.error("Unable to build trigger for action '{}' binding '{}'. Check keybind format.", actionName, binding);
             return;
         }
 
@@ -320,6 +342,7 @@ public class InputConfig {
             inputManager.removeListener(listener);
             inputManager.addListener(listener, actionName);
         }
+        logger.debug("Applied action mapping '{}' -> trigger={}", actionName, trigger.getClass().getSimpleName());
     }
 
     private void applyAnalogMapping(String actionName) {
@@ -350,6 +373,7 @@ public class InputConfig {
             inputManager.removeListener(listener);
             inputManager.addListener(listener, actionName);
         }
+        logger.debug("Applied analog mapping '{}' -> trigger={}", actionName, trigger.getClass().getSimpleName());
     }
 
     private Trigger buildTriggerForBinding(String binding) {

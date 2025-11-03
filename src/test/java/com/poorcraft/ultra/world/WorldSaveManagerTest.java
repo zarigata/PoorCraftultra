@@ -44,7 +44,7 @@ class WorldSaveManagerTest {
     void testSaveAllChunksCreatesFiles() throws IOException {
         WorldSaveManager manager = createManager();
         ChunkManager chunkManager = new ChunkManager();
-        chunkManager.init(null, null, null, manager);
+        chunkManager.init(null, null, null, manager, null);
         chunkManager.loadChunks3x3(0, 0);
 
         manager.saveAll(chunkManager);

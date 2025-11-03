@@ -63,6 +63,19 @@ public class ServiceHub {
         }
         return (T) service;
     }
+
+    /**
+     * Retrieves a service instance by type, returning null if not found.
+     * Safe alternative to {@link #get(Class)} that avoids throwing exceptions.
+     *
+     * @param type Service type/interface
+     * @param <T> Service type
+     * @return Service instance or null if not registered
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getOrNull(Class<T> type) {
+        return (T) services.get(type);
+    }
     
     /**
      * Checks if a service is registered.

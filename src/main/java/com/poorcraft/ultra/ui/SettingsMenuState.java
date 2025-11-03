@@ -128,7 +128,11 @@ public class SettingsMenuState extends BaseAppState {
 
         initializeLemur(application);
 
-        ClientConfig currentConfig = serviceHub.get(ClientConfig.class);
+        ClientConfig currentConfig = serviceHub.getOrNull(ClientConfig.class);
+        if (currentConfig == null) {
+            logger.error("ClientConfig not available in ServiceHub; cannot initialize settings menu");
+            throw new IllegalStateException("ClientConfig service required for SettingsMenuState");
+        }
         pendingConfig = cloneConfig(currentConfig);
 
         ControlsConfig controls = pendingConfig.controls();
@@ -373,7 +377,19 @@ public class SettingsMenuState extends BaseAppState {
         );
 
         serviceHub.register(ClientConfig.class, pendingConfig);
-        serviceHub.get(InputConfig.class).applyConfig(newControls);
+
+        InputConfig inputConfigService = serviceHub.getOrNull(InputConfig.class);
+        if (inputConfigService != null) {
+            try {
+                inputConfigService.applyConfig(newControls);
+                logger.info("Applied new controls configuration to InputConfig");
+            } catch (Exception ex) {
+                logger.error("Failed to apply controls configuration", ex);
+                logger.warn("Controls changes will take effect on next restart if runtime apply fails");
+            }
+        } else {
+            logger.warn("InputConfig service not available; controls changes will apply on next restart");
+        }
 
         if (graphicsRequiresRestart) {
             logger.info("Graphics configuration saved; restart required for resolution/window mode changes");
@@ -632,7 +648,7 @@ public class SettingsMenuState extends BaseAppState {
     }
 
     private WorldConfig cloneWorldConfig(WorldConfig worldConfig) {
-        return worldConfig != null ? new WorldConfig(worldConfig.baseDir()) : null;
+        return worldConfig != null ? new WorldConfig(worldConfig.baseDir(), worldConfig.seed()) : null;
     }
 
     private ControlsConfig cloneControlsConfig(ControlsConfig controlsConfig) {

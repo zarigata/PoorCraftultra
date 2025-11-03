@@ -45,7 +45,13 @@ public class PlayerInventory {
     }
 
     public void addBlock(BlockType type, int amount) {
-        counts.merge(type, amount, Integer::sum);
+        counts.merge(type, amount, (current, added) -> {
+            int next = current + added;
+            if (next > 64) {
+                return 64;
+            }
+            return Math.max(next, 0);
+        });
     }
 
     public boolean removeBlock(BlockType type, int amount) {

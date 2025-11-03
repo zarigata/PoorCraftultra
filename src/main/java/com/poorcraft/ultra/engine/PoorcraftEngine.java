@@ -18,6 +18,7 @@ import com.poorcraft.ultra.ui.UIScaleProcessor;
 import com.poorcraft.ultra.voxel.BlockRegistry;
 import com.poorcraft.ultra.voxel.ChunkDoctorService;
 import com.poorcraft.ultra.voxel.ChunkManager;
+import com.poorcraft.ultra.world.WorldGenerator;
 import com.poorcraft.ultra.world.WorldSaveManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,7 +107,9 @@ public class PoorcraftEngine extends SimpleApplication {
 
         setSettings(settings);
         setShowSettings(false); // Skip settings dialog
-        
+
+        logger.info("Starting jME application with settings: {}x{} fullscreen={}", width, height, fullscreen);
+
         super.start();
     }
     
@@ -134,6 +137,7 @@ public class PoorcraftEngine extends SimpleApplication {
         // Attach debug overlay AppState with ServiceHub access
         DebugOverlayAppState debugOverlay = new DebugOverlayAppState(serviceHub);
         stateManager.attach(debugOverlay);
+        logger.info("DebugOverlayAppState attached");
 
         // Phase 1.5: Initialize InputConfig service
         inputConfig = new InputConfig();
@@ -153,14 +157,21 @@ public class PoorcraftEngine extends SimpleApplication {
         serviceHub.register(WorldSaveManager.class, worldSaveManager);
         logger.info("WorldSaveManager initialized for world: default at {}", baseWorldPath.toAbsolutePath());
 
+        long persistedSeed = worldSaveManager.resolveOrPersistSeed(config.worlds().seed());
+        WorldGenerator worldGenerator = new WorldGenerator();
+        worldGenerator.init(persistedSeed);
+        serviceHub.register(WorldGenerator.class, worldGenerator);
+        logger.info("WorldGenerator initialized with seed: {}", persistedSeed);
+
         chunkManager = new ChunkManager();
-        chunkManager.init(rootNode, assetManager, blockRegistry, worldSaveManager);
+        chunkManager.init(rootNode, assetManager, blockRegistry, worldSaveManager, worldGenerator);
         serviceHub.register(ChunkManager.class, chunkManager);
         logger.info("ChunkManager initialized - CP 1.05 OK");
 
         chunkDoctorService = new ChunkDoctorService();
         chunkDoctorService.init(chunkManager, rootNode, assetManager);
         serviceHub.register(ChunkDoctorService.class, chunkDoctorService);
+        logger.info("ChunkDoctorService initialized");
 
         // CP 1.3: Initialize player inventory
         playerInventory = new PlayerInventory();
@@ -193,11 +204,8 @@ public class PoorcraftEngine extends SimpleApplication {
         logger.info("UI scale processor attached");
 
         // Start in main menu (not in-game)
-        enqueue(() -> {
-            gameStateManager.enterMainMenu();
-            logger.info("Entered main menu - Phase 1.5 OK");
-            return null;
-        });
+        gameStateManager.enterMainMenu();
+        logger.info("Main menu initialization requested - current state: {}", gameStateManager.getCurrentState());
         
         logger.info("PoorcraftEngine initialized - CP 0.1 OK");
     }
@@ -215,15 +223,16 @@ public class PoorcraftEngine extends SimpleApplication {
             gameStateManager.exitToMainMenu();
         }
 
-        if (chunkManager != null) {
-            try {
-                chunkManager.saveAll();
-                if (serviceHub.has(WorldSaveManager.class)) {
-                    serviceHub.get(WorldSaveManager.class).markSavedOnShutdown();
+        try {
+            if (serviceHub.has(WorldSaveManager.class)) {
+                WorldSaveManager saveManager = serviceHub.get(WorldSaveManager.class);
+                if (!saveManager.isSavedOnShutdown() && chunkManager != null) {
+                    saveManager.saveAll(chunkManager);
+                    saveManager.markSavedOnShutdown();
                 }
-            } catch (Exception e) {
-                logger.error("Failed to save chunks on shutdown", e);
             }
+        } catch (Exception e) {
+            logger.error("Failed to save chunks on shutdown", e);
         }
 
         super.destroy();

@@ -32,7 +32,7 @@ class DebugOverlayFormatterTest {
         long maxMemoryMB = 1024;
         
         // Act
-        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "");
+        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "", 0L);
         
         // Assert - verify all expected fields are present
         assertNotNull(result, "Formatted text should not be null");
@@ -59,8 +59,8 @@ class DebugOverlayFormatterTest {
         long maxMemoryMB = 512;
         
         // Act
-        String result30fps = formatter.format(30, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "");
-        String result120fps = formatter.format(120, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "");
+        String result30fps = formatter.format(30, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "", 0L);
+        String result120fps = formatter.format(120, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "", 0L);
         
         // Assert
         assertTrue(result30fps.contains("FPS: 30"), "Should show 30 FPS");
@@ -74,8 +74,8 @@ class DebugOverlayFormatterTest {
         int fps = 60;
         
         // Act
-        String resultLowMem = formatter.format(fps, testSystemInfo, 100, 512, null, "");
-        String resultHighMem = formatter.format(fps, testSystemInfo, 400, 1024, null, "");
+        String resultLowMem = formatter.format(fps, testSystemInfo, 100, 512, null, "", 0L);
+        String resultHighMem = formatter.format(fps, testSystemInfo, 400, 1024, null, "", 0L);
         
         // Assert
         assertTrue(resultLowMem.contains("Heap: 100/512 MB"), "Should show low memory values");
@@ -91,7 +91,7 @@ class DebugOverlayFormatterTest {
         long maxMemoryMB = 1024;
         
         // Act
-        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "");
+        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "", 0L);
         
         // Assert - verify system info is included
         assertTrue(result.contains(testSystemInfo.javaVersion()), 
@@ -112,7 +112,7 @@ class DebugOverlayFormatterTest {
         long maxMemoryMB = 1024;
         
         // Act
-        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "");
+        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "", 0L);
         
         // Assert
         assertTrue(result.contains("FPS: 0"), "Should handle zero FPS gracefully");
@@ -127,7 +127,7 @@ class DebugOverlayFormatterTest {
         long maxMemoryMB = 16384; // 16 GB
         
         // Act
-        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "");
+        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "", 0L);
         
         // Assert
         assertTrue(result.contains("Heap: 8192/16384 MB"), 
@@ -142,8 +142,8 @@ class DebugOverlayFormatterTest {
         long maxMemoryMB = 1024;
         
         // Act - call format multiple times with same inputs
-        String result1 = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "");
-        String result2 = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "");
+        String result1 = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "", 0L);
+        String result2 = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "", 0L);
         
         // Assert
         assertEquals(result1, result2, 
@@ -159,7 +159,7 @@ class DebugOverlayFormatterTest {
         ValidationResult validResult = ValidationResult.success();
         
         // Act
-        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, validResult, "");
+        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, validResult, "", 0L);
         
         // Assert
         assertTrue(result.contains("Assets: OK"), "Should show asset validation success");
@@ -174,7 +174,7 @@ class DebugOverlayFormatterTest {
         ValidationResult invalidResult = ValidationResult.failure(List.of("Missing blocks/wood.png"));
         
         // Act
-        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, invalidResult, "");
+        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, invalidResult, "", 0L);
         
         // Assert
         assertTrue(result.contains("Assets: MISSING"), "Should show asset validation failure");
@@ -189,7 +189,7 @@ class DebugOverlayFormatterTest {
         long maxMemoryMB = 1024;
         
         // Act
-        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "");
+        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "", 0L);
         
         // Assert
         assertFalse(result.contains("Assets:"), "Should not show asset status when validation is null");
@@ -202,10 +202,22 @@ class DebugOverlayFormatterTest {
         long maxMemoryMB = 1024;
         String chunkStats = "\nChunks: 9 loaded | Vertices: 1024 (avg 114/chunk) | Triangles: 512";
 
-        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, chunkStats);
+        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, chunkStats, 0L);
 
         assertTrue(result.contains("Chunks: 9 loaded"), "Should include chunk count");
         assertTrue(result.contains("Vertices: 1024"), "Should include vertex count");
         assertTrue(result.contains("Triangles: 512"), "Should include triangle count");
+    }
+
+    @Test
+    void testFormatIncludesWorldSeedWhenPresent() {
+        int fps = 60;
+        long usedMemoryMB = 256;
+        long maxMemoryMB = 1024;
+        long seed = 987654321L;
+
+        String result = formatter.format(fps, testSystemInfo, usedMemoryMB, maxMemoryMB, null, "", seed);
+
+        assertTrue(result.contains("World Seed: " + seed), "Should include world seed line when non-zero");
     }
 }

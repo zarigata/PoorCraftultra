@@ -56,17 +56,24 @@ public record ClientConfig(
         );
     }
 
-    public record WorldConfig(@JsonProperty("baseDir") String baseDir) {
+    public record WorldConfig(
+        @JsonProperty("baseDir") String baseDir,
+        @JsonProperty("seed") long seed
+    ) {
         private static final String DEFAULT_BASE_DIR = "data/worlds";
+        private static final long DEFAULT_SEED = 0L; // 0 = derive from timestamp
 
         public WorldConfig {
             if (baseDir == null || baseDir.isBlank()) {
                 baseDir = DEFAULT_BASE_DIR;
             }
+            if (seed < 0L) {
+                seed = DEFAULT_SEED;
+            }
         }
 
         public static WorldConfig defaults() {
-            return new WorldConfig(DEFAULT_BASE_DIR);
+            return new WorldConfig(DEFAULT_BASE_DIR, DEFAULT_SEED);
         }
     }
 
@@ -97,7 +104,9 @@ public record ClientConfig(
             binds.put("sprint", "LSHIFT");
             binds.put("breakBlock", "MOUSE_LEFT");
             binds.put("placeBlock", "MOUSE_RIGHT");
+            binds.put("craft", "C");
             binds.put("pause", "ESCAPE");
+            binds.put("mainMenuExit", "ESCAPE");
             return binds;
         }
     }

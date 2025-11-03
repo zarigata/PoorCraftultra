@@ -28,7 +28,7 @@ class SaveLoadIntegrationTest {
         saveManager.init("default", baseDir);
 
         ChunkManager chunkManager = new ChunkManager();
-        chunkManager.init(null, null, null, saveManager);
+        chunkManager.init(null, null, null, saveManager, null);
         chunkManager.loadChunks3x3(0, 0);
 
         Map<Coordinate, BlockType> testBlocks = placeTestBlocks(chunkManager);
@@ -48,7 +48,7 @@ class SaveLoadIntegrationTest {
         loadManager.init("default", baseDir);
 
         ChunkManager chunkManagerReloaded = new ChunkManager();
-        chunkManagerReloaded.init(null, null, null, loadManager);
+        chunkManagerReloaded.init(null, null, null, loadManager, null);
         chunkManagerReloaded.loadChunks3x3(0, 0);
 
         verifyTestBlocks(chunkManagerReloaded, testBlocks);

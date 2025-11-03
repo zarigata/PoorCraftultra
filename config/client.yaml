@@ -1,13 +1,14 @@
 ---
 displayWidth: 1280
 displayHeight: 720
-fullscreen: true
-vsync: true
-fpsLimit: 60
+fullscreen: false
+vsync: false
+fpsLimit: 240
 logLevel: "INFO"
 loadMultiChunk: false
 worlds:
   baseDir: "data/worlds"
+  seed: 0
 controls:
   mouseSensitivity: 1.5
   invertMouseY: false
@@ -16,17 +17,18 @@ controls:
     sprint: "LSHIFT"
     moveBackward: "S"
     moveRight: "D"
+    craft: "C"
     moveLeft: "A"
     breakBlock: "MOUSE_LEFT"
     pause: "ESCAPE"
     placeBlock: "MOUSE_RIGHT"
 graphics:
-  windowMode: "FULLSCREEN"
+  windowMode: "WINDOWED"
   resolution: "1280x720"
-  vsync: true
-  fpsLimit: 60
-  height: 720
+  vsync: false
+  fpsLimit: 240
   width: 1280
+  height: 720
 audio:
   masterVolume: 1.0
   musicVolume: 0.8

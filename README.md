@@ -121,6 +121,15 @@ PoorCraftultra/
 └── docs/             # Architecture, modding, testing (Phase 11)
 ```
 
+## Crafting (Phase 2)
+
+Phase 2 introduces a minimal 2×2 shapeless crafting grid focused on early survival recipes. Current recipes include:
+
+- **Chest** – 4 × Planks → 1 × Chest. The compact cost keeps the recipe compatible with the 2×2 grid used in this phase.
+- **Torch** – 1 × Coal Ore + 1 × Wood (any type) → 4 × Torches.
+
+Additional recipes are registered in `CraftingManager` as new items or stations unlock.
+
 ## Configuration
 
 The game loads configuration from `config/client.yaml` with the following priority:
@@ -294,6 +303,140 @@ MIT License. See `LICENSE` file.
 - **Build fails**: Check Java version (`java -version` should show 17.x); ensure `JAVA_HOME` set correctly
 - **Window doesn't open**: Check logs in console; verify LWJGL natives loaded for your OS
 - **FPS counter missing**: Verify `StatsAppState` attached in `PoorcraftEngine.simpleInitApp()` 
+
+## Common Issues (Hotfix Phase)
+
+### Issue: Main Menu Not Showing / Game Goes Straight to World
+
+**Symptoms:**
+- Game window opens but shows grey skybox and terrain instead of main menu
+- Cannot click anything
+- Mouse/keyboard unresponsive
+
+**Cause:** State initialization race condition (fixed in hotfix)
+
+**Solution:**
+1. Update to latest version (hotfix applied)
+2. Check logs for "Entered MAIN_MENU state" message
+3. If issue persists, delete `config/client.yaml` to reset configuration
+4. Restart game
+
+**Logs to Check:**
+- `GameStateManager initialised - current state MAIN_MENU`
+- `MainMenuState enabled - menu attached to guiNode`
+- If missing, report issue with full log file
+
+---
+
+### Issue: Mouse and Keyboard Not Working
+
+**Symptoms:**
+- Cannot move camera with mouse
+- WASD keys don't move character
+- Cannot click UI buttons
+
+**Cause:** Input registration failure (fixed in hotfix)
+
+**Solution:**
+1. Update to latest version (hotfix applied)
+2. Check logs for input registration messages
+3. Verify `config/client.yaml` has `controls` section with keybinds
+4. If missing, delete config file to regenerate defaults
+5. Restart game
+
+**Logs to Check:**
+- `InputConfig initialized with X keybinds`
+- `PlayerController.enable() - input registration complete`
+- `Registered action 'moveForward' with binding 'W'`
+- If missing, report issue with full log file
+
+**Manual Test:**
+1. Press F3 to toggle debug overlay (should work even if other input broken)
+2. If F3 works, input system is partially functional
+3. Check logs for "onAction" or "onAnalog" messages when pressing keys/moving mouse
+
+---
+
+### Issue: Old Terrain Showing (Checkerboard Instead of Hills/Biomes)
+
+**Symptoms:**
+- Terrain is flat checkerboard pattern (stone/dirt alternating)
+- No hills, caves, or biome variations
+- Logs show "Loaded chunk (0, 1) from data\\worlds\\default\\region"
+
+**Cause:** Saved chunks from previous version before worldgen was implemented
+
+**Solution:**
+1. **Exit game completely**
+2. **Delete world directory:**
+   - Windows: Delete `data\\worlds\\default\\`
+   - Linux/Mac: Delete `data/worlds/default/`
+3. **Restart game**
+4. New world will generate with terrain, biomes, and caves
+
+**Logs to Check:**
+- `World generator version mismatch!`
+- `Saved world version: X.X`
+- `Current generator version: 2.0-biomes-caves`
+- If mismatch shown, follow solution above
+
+**Preserve Builds (Optional):**
+If you have builds you want to keep:
+1. Rename `data/worlds/default/` to `data/worlds/default_backup/`
+2. Start game (creates new world)
+3. Manually copy specific region files from backup if needed
+4. Note: Mixing old and new chunks may create terrain seams
+
+---
+
+### Issue: Cursor Stuck Hidden or Visible
+
+**Symptoms:**
+- Cursor hidden in main menu (should be visible)
+- Cursor visible in-game (should be hidden)
+
+**Cause:** State transition not updating cursor visibility
+
+**Solution:**
+1. Press ESC to toggle between game and menu states
+2. Check logs for "Setting cursor visible: true/false" messages
+3. If issue persists, restart game
+
+**Logs to Check:**
+- `State transition: MAIN_MENU -> IN_GAME`
+- `Setting cursor visible: false`
+- `Setting cursor visible: true`
+
+---
+
+### Debug Logging
+
+To enable verbose logging for troubleshooting:
+
+1. Edit `src/main/resources/logback.xml`
+2. Change root logger level from INFO to DEBUG:
+   ```xml
+   <root level="DEBUG">
+   ```
+3. Rebuild and run: `./gradlew clean build run`
+4. Check logs for detailed input registration and state transition messages
+
+**Warning:** DEBUG logging is very verbose. Only enable when troubleshooting specific issues.
+
+---
+
+### Reporting Issues
+
+If issues persist after trying solutions above, report with:
+
+1. **Full log output** from console
+2. **Steps to reproduce** (exact actions taken)
+3. **Expected behavior** vs **actual behavior**
+4. **System info**: OS, Java version, screen resolution
+5. **Config file**: Attach `config/client.yaml`
+6. **Screenshot** if UI issue
+
+Post to: [GitHub Issues](https://github.com/yourrepo/PoorCraftUltra/issues)
 
 ## World Saves (Phase 1.35)
 

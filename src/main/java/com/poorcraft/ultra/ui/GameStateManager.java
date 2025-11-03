@@ -61,18 +61,25 @@ public class GameStateManager {
 
         attachState(mainMenuState);
         showCursor(true);
+        GameState previousState = currentState;
         currentState = GameState.MAIN_MENU;
-        logger.info("Entered MAIN_MENU state");
+        logger.info("State transition: {} -> MAIN_MENU", previousState);
     }
 
     public void startGame() {
+        if (currentState != GameState.MAIN_MENU) {
+            logger.error("startGame() called from invalid state: {}. Expected MAIN_MENU.", currentState);
+            return;
+        }
+
         detachState(mainMenuState);
 
         attachState(inGameState);
         enableState(inGameState);
         showCursor(false);
+        GameState previousState = currentState;
         currentState = GameState.IN_GAME;
-        logger.info("Entered IN_GAME state");
+        logger.info("State transition: {} -> IN_GAME", previousState);
     }
 
     public void pauseGame() {
@@ -82,8 +89,9 @@ public class GameStateManager {
         disableState(inGameState);
         attachState(pauseMenuState);
         showCursor(true);
+        GameState previousState = currentState;
         currentState = GameState.PAUSED;
-        logger.info("Entered PAUSED state");
+        logger.info("State transition: {} -> PAUSED", previousState);
     }
 
     public void resumeGame() {
@@ -93,19 +101,18 @@ public class GameStateManager {
         detachState(pauseMenuState);
         enableState(inGameState);
         showCursor(false);
+        GameState previousState = currentState;
         currentState = GameState.IN_GAME;
-        logger.info("Resumed IN_GAME state");
+        logger.info("State transition: {} -> IN_GAME (resumed)", previousState);
     }
 
     public void exitToMainMenu() {
         if (serviceHub != null) {
             try {
-                if (serviceHub.has(ChunkManager.class)) {
-                    ChunkManager chunkManager = serviceHub.get(ChunkManager.class);
-                    chunkManager.saveAll();
-                }
-                if (serviceHub.has(WorldSaveManager.class)) {
+                if (serviceHub.has(WorldSaveManager.class) && serviceHub.has(ChunkManager.class)) {
                     WorldSaveManager saveManager = serviceHub.get(WorldSaveManager.class);
+                    ChunkManager chunkManager = serviceHub.get(ChunkManager.class);
+                    saveManager.saveAll(chunkManager);
                     saveManager.markSavedOnShutdown();
                 }
             } catch (Exception e) {
@@ -117,8 +124,9 @@ public class GameStateManager {
         detachState(inGameState);
         attachState(mainMenuState);
         showCursor(true);
+        GameState previousState = currentState;
         currentState = GameState.MAIN_MENU;
-        logger.info("Exited to MAIN_MENU state");
+        logger.info("State transition: {} -> MAIN_MENU (exit)", previousState);
     }
 
     public GameState getCurrentState() {
@@ -127,12 +135,14 @@ public class GameStateManager {
 
     private void attachState(BaseAppState state) {
         if (!stateManager.hasState(state)) {
+            logger.debug("Attaching AppState: {}", state.getClass().getSimpleName());
             stateManager.attach(state);
         }
     }
 
     private void detachState(BaseAppState state) {
         if (stateManager.hasState(state)) {
+            logger.debug("Detaching AppState: {}", state.getClass().getSimpleName());
             stateManager.detach(state);
         }
     }
@@ -151,6 +161,7 @@ public class GameStateManager {
 
     private void showCursor(boolean visible) {
         if (inputManager != null) {
+            logger.debug("Setting cursor visible: {}", visible);
             inputManager.setCursorVisible(visible);
         }
     }

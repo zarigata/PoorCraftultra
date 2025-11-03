@@ -20,7 +20,7 @@ public class DebugOverlayFormatter {
      * @return Formatted overlay text
      */
     public String format(int fps, SystemInfo systemInfo, long usedMemoryMB, long maxMemoryMB,
-                        ValidationResult assetValidation, String chunkStats) {
+                        ValidationResult assetValidation, String chunkStats, long worldSeed) {
         // Build asset status line
         String assetStatus = "";
         if (assetValidation != null) {
@@ -33,11 +33,12 @@ public class DebugOverlayFormatter {
         }
         
         String chunkLine = (chunkStats != null && !chunkStats.isEmpty()) ? chunkStats : "";
+        String seedLine = worldSeed != 0L ? String.format("\nWorld Seed: %d", worldSeed) : "";
 
         return String.format(
             "Poorcraft Ultra v0.1 - Debug Overlay\n" +
             "FPS: %d | Java: %s | OS: %s %s\n" +
-            "Heap: %d/%d MB | CPUs: %d%s%s\n" +
+            "Heap: %d/%d MB | CPUs: %d%s%s%s\n" +
             "\n" +
             "F3: Toggle overlay | F9: Reload assets | F10: Rebuild meshes | F11: Chunk bounds\n" +
             "ESC: Exit",
@@ -49,7 +50,8 @@ public class DebugOverlayFormatter {
             maxMemoryMB,
             systemInfo.availableProcessors(),
             assetStatus,
-            chunkLine
+            chunkLine,
+            seedLine
         );
     }
 }

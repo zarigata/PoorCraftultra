@@ -2,6 +2,7 @@ package com.poorcraft.ultra.voxel;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Texture;
 import java.util.EnumMap;
@@ -29,6 +30,10 @@ public class BlockRegistry {
 
                 Material material = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
                 material.setTexture("ColorMap", texture);
+                if (type == BlockType.LEAVES_OAK || type == BlockType.TORCH) {
+                    material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+                    material.setTransparent(true);
+                }
                 materialCache.put(type, material);
                 logger.debug("Loaded material for block type {}", type.name());
             } catch (RuntimeException ex) {

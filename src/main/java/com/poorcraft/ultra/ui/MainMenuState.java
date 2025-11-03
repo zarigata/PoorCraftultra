@@ -14,6 +14,7 @@ import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.Label;
 import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.style.ElementId;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,7 @@ public class MainMenuState extends BaseAppState {
     private Button startButton;
     private Button settingsButton;
     private Button exitButton;
+    private InputConfig inputConfig;
 
     private float lastCameraWidth = -1f;
     private float lastCameraHeight = -1f;
@@ -50,6 +52,12 @@ public class MainMenuState extends BaseAppState {
 
         initializeLemur(application);
         buildMenu();
+        if (serviceHub.has(InputConfig.class)) {
+            inputConfig = serviceHub.get(InputConfig.class);
+        } else {
+            logger.warn("InputConfig service missing; main menu hotkeys unavailable");
+        }
+        logger.info("MainMenuState initialized - Lemur GUI ready, menu built");
     }
 
     private void initializeLemur(SimpleApplication app) {
@@ -79,6 +87,7 @@ public class MainMenuState extends BaseAppState {
         exitButton.addClickCommands((Command<Button>) source -> application.stop());
 
         layoutMenu();
+        logger.info("Main menu built with {} buttons at size {}x{}", 3, MENU_WIDTH, MENU_HEIGHT);
     }
 
     private void layoutMenu() {
@@ -89,17 +98,26 @@ public class MainMenuState extends BaseAppState {
 
         float scale = UIScaleProcessor.getCurrentScale();
         if (!Float.isFinite(scale) || scale <= 0f) {
+            logger.warn("Invalid UI scale detected ({}); defaulting to 1.0", scale);
+            scale = 1f;
+        }
+
+        if (scale < 0.1f || scale > 10f) {
+            logger.warn("Unusual UI scale detected: {}. Clamping to 1.0", scale);
             scale = 1f;
         }
 
         float scaledWidth = width / scale;
         float scaledHeight = height / scale;
 
-        menuContainer.setLocalTranslation(
+        Vector3f translation = new Vector3f(
             scaledWidth / 2f - MENU_WIDTH / 2f,
             scaledHeight / 2f + MENU_HEIGHT / 2f,
             0f
         );
+        menuContainer.setLocalTranslation(translation);
+        logger.debug("Menu positioned at ({}, {}) with scale={}, camera={}x{}",
+                translation.x, translation.y, scale, width, height);
     }
 
     @Override
@@ -126,16 +144,60 @@ public class MainMenuState extends BaseAppState {
 
     @Override
     protected void onEnable() {
-        if (menuContainer != null && menuContainer.getParent() == null) {
+        if (menuContainer == null) {
+            logger.error("Menu container is null, cannot attach main menu");
+            return;
+        }
+
+        if (menuContainer.getParent() != guiNode) {
+            guiNode.detachChild(menuContainer);
             guiNode.attachChild(menuContainer);
             guiNode.updateGeometricState();
         }
+
+        if (menuContainer.getParent() != guiNode) {
+            logger.error("Menu attachment failed - parent is {} instead of guiNode", menuContainer.getParent());
+            return;
+        }
+
+        if (inputConfig != null) {
+            String exitKeybind = inputConfig.getKeybindString("mainMenuExit");
+            if (exitKeybind == null || exitKeybind.isBlank()) {
+                logger.info("Main menu exit action lacked keybind; defaulting to ESCAPE");
+                CompletableFuture<Boolean> future = inputConfig.rebindAction("mainMenuExit", "ESCAPE");
+                future.whenComplete((success, error) -> {
+                    if (error != null) {
+                        logger.warn("Failed to rebind main menu exit to ESCAPE", error);
+                    }
+                    inputConfig.registerActionOnAppThread("mainMenuExit", this::handleExitAction);
+                    logger.info("Registered main menu exit action with InputConfig");
+                });
+            } else {
+                inputConfig.registerAction("mainMenuExit", this::handleExitAction);
+                logger.info("Registered main menu exit action with InputConfig");
+            }
+        }
+
+        logger.info("MainMenuState enabled - menu attached to guiNode at position: {}", menuContainer.getLocalTranslation());
     }
 
     @Override
     protected void onDisable() {
         if (menuContainer != null) {
             menuContainer.removeFromParent();
+            logger.info("MainMenuState disabled - menu removed from guiNode");
         }
+
+        if (inputConfig != null) {
+            inputConfig.unregisterAction("mainMenuExit");
+        }
+    }
+
+    private void handleExitAction(String name, boolean isPressed, float tpf) {
+        if (!"mainMenuExit".equals(name) || isPressed) {
+            return;
+        }
+        logger.info("ESC triggered from main menu - exiting application");
+        application.stop();
     }
 }

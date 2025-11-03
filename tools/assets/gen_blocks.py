@@ -220,26 +220,121 @@ def generate_ore(ore_type, seed, size=64):
                 img_array[y, x] = (
                     img_array[y, x] * (1 - blend) + np.array(ore_color) * blend
                 ).astype(np.uint8)
-    
+
     return Image.fromarray(img_array)
+
+
+def generate_sand(seed, size=64):
+    """Generate fine-grained sand texture."""
+    palette = [(216, 200, 164), (226, 210, 174), (236, 220, 184)]
+    noise = create_seamless_noise(size, size, (seed + 500) % (2**32), octaves=5, freq=4.0)
+    image = apply_palette(noise, palette)
+    image = add_grain(image, intensity=0.05, seed=seed + 501)
+    return image
+
+
+def generate_gravel(seed, size=64):
+    """Generate coarse gravel texture."""
+    palette = [(110, 110, 110), (128, 128, 130), (145, 145, 150)]
+    noise = create_seamless_noise(size, size, (seed + 800) % (2**32), octaves=6, freq=5.5)
+    image = apply_palette(noise, palette)
+    image = add_grain(image, intensity=0.12, seed=seed + 801)
+    return image
+
+
+def generate_planks(seed, size=64):
+    """Generate horizontal wooden planks."""
+    palette = [(172, 137, 97), (184, 148, 108), (196, 159, 119)]
+    noise = create_seamless_noise(size, size, (seed + 1100) % (2**32), octaves=6, freq=3.0)
+    image = apply_palette(noise, palette)
+    image = add_grain(image, intensity=0.08, seed=seed + 1101)
+
+    draw = ImageDraw.Draw(image)
+    plank_height = size // 4
+    for i in range(1, 4):
+        y = (i * plank_height) % size
+        draw.line([(0, y), (size, y)], fill=(145, 110, 70), width=2)
+    return image
+
+
+def generate_biome_grass(variant, seed, size=64):
+    """Generate tinted grass texture per biome."""
+    palettes = {
+        'plains': [(96, 176, 96), (106, 186, 106), (116, 196, 116)],
+        'forest': [(70, 130, 70), (80, 140, 80), (90, 150, 90)],
+        'desert': [(154, 171, 105), (164, 181, 115), (174, 191, 125)]
+    }
+    palette = palettes.get(variant, palettes['plains'])
+    noise = create_seamless_noise(size, size, (seed + stable_int_seed(f"grass:{variant}")) % (2**32), octaves=6, freq=6.0)
+    image = apply_palette(noise, palette)
+    image = add_grain(image, intensity=0.08, seed=seed + 1300)
+    return image
+
+
+def generate_torch(seed, size=64):
+    """Generate simple torch sprite with transparency."""
+    image = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+
+    shaft_color = (121, 82, 45, 255)
+    flame_colors = [(255, 228, 120, 255), (255, 180, 64, 220), (255, 120, 32, 200)]
+
+    # Shaft
+    shaft_width = size // 6
+    shaft_rect = [size // 2 - shaft_width // 2, size // 3, size // 2 + shaft_width // 2, size - size // 10]
+    draw.rectangle(shaft_rect, fill=shaft_color)
+
+    # Flame layers
+    flame_center = (size // 2, size // 5)
+    flame_radius = size // 6
+    for idx, color in enumerate(flame_colors):
+        offset = idx * 2
+        draw.ellipse([
+            flame_center[0] - flame_radius + offset,
+            flame_center[1] - flame_radius + offset,
+            flame_center[0] + flame_radius - offset,
+            flame_center[1] + flame_radius
+        ], fill=color)
+
+    return image
+
+
+def generate_chest(seed, size=64):
+    """Generate wooden chest texture with latch."""
+    base = generate_planks(seed, size).convert('RGBA')
+    draw = ImageDraw.Draw(base)
+
+    # Horizontal bands
+    draw.rectangle([0, size // 3 - 2, size, size // 3 + 2], fill=(140, 100, 60, 255))
+    draw.rectangle([0, 2 * size // 3 - 2, size, 2 * size // 3 + 2], fill=(140, 100, 60, 255))
+
+    # Latch
+    latch_width = size // 6
+    latch_height = size // 4
+    latch_x0 = size // 2 - latch_width // 2
+    latch_y0 = size // 2 - latch_height // 2
+    draw.rectangle([latch_x0, latch_y0, latch_x0 + latch_width, latch_y0 + latch_height], fill=(210, 180, 70, 255))
+    draw.rectangle([latch_x0 + latch_width // 3, latch_y0 + latch_height // 2, latch_x0 + 2 * latch_width // 3, latch_y0 + latch_height], fill=(90, 70, 30, 255))
+
+    return base
 
 
 def generate_all_blocks(output_dir, seed):
     """Generate all block textures and return manifest entries."""
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     manifest_entries = []
-    
+
     # Wood variants
     for variant in ['oak', 'birch', 'spruce', 'dark_oak']:
         filename = f'wood_{variant}.png'
         filepath = output_dir / filename
         print(f"Generating {filename}...")
-        
+
         image = generate_wood(variant, seed)
         ensure_tiling(image)
-        
+
         metadata = {
             'generator': 'gen_blocks.py',
             'seed': str(seed),
@@ -247,7 +342,7 @@ def generate_all_blocks(output_dir, seed):
             'category': 'blocks'
         }
         save_with_metadata(image, filepath, metadata)
-        
+
         manifest_entries.append({
             'name': f'wood_{variant}',
             'category': 'blocks',
@@ -256,16 +351,16 @@ def generate_all_blocks(output_dir, seed):
             'height': 64,
             'sha256': compute_sha256(filepath)
         })
-    
+
     # Stone variants
     for variant in ['stone', 'granite', 'diorite', 'andesite']:
         filename = f'stone_{variant}.png'
         filepath = output_dir / filename
         print(f"Generating {filename}...")
-        
+
         image = generate_stone(variant, seed)
         ensure_tiling(image)
-        
+
         metadata = {
             'generator': 'gen_blocks.py',
             'seed': str(seed),
@@ -273,7 +368,7 @@ def generate_all_blocks(output_dir, seed):
             'category': 'blocks'
         }
         save_with_metadata(image, filepath, metadata)
-        
+
         manifest_entries.append({
             'name': f'stone_{variant}',
             'category': 'blocks',
@@ -282,18 +377,18 @@ def generate_all_blocks(output_dir, seed):
             'height': 64,
             'sha256': compute_sha256(filepath)
         })
-    
+
     # Dirt
     filename = 'dirt.png'
     filepath = output_dir / filename
     print(f"Generating {filename}...")
-    
+
     image = generate_dirt(seed)
     ensure_tiling(image)
-    
+
     metadata = {'generator': 'gen_blocks.py', 'seed': str(seed), 'type': 'dirt', 'category': 'blocks'}
     save_with_metadata(image, filepath, metadata)
-    
+
     manifest_entries.append({
         'name': 'dirt',
         'category': 'blocks',
@@ -302,19 +397,19 @@ def generate_all_blocks(output_dir, seed):
         'height': 64,
         'sha256': compute_sha256(filepath)
     })
-    
+
     # Grass (3 faces)
     for face in ['top', 'side', 'bottom']:
         filename = f'grass_{face}.png'
         filepath = output_dir / filename
         print(f"Generating {filename}...")
-        
+
         image = generate_grass(face, seed)
         ensure_tiling(image)
-        
+
         metadata = {'generator': 'gen_blocks.py', 'seed': str(seed), 'type': f'grass_{face}', 'category': 'blocks'}
         save_with_metadata(image, filepath, metadata)
-        
+
         manifest_entries.append({
             'name': f'grass_{face}',
             'category': 'blocks',
@@ -323,19 +418,19 @@ def generate_all_blocks(output_dir, seed):
             'height': 64,
             'sha256': compute_sha256(filepath)
         })
-    
+
     # Leaves
     for variant in ['oak', 'birch']:
         filename = f'leaves_{variant}.png'
         filepath = output_dir / filename
         print(f"Generating {filename}...")
-        
+
         image = generate_leaves(variant, seed)
         # Note: RGBA images, tiling check may show warnings due to alpha
-        
+
         metadata = {'generator': 'gen_blocks.py', 'seed': str(seed), 'type': f'leaves_{variant}', 'category': 'blocks'}
         save_with_metadata(image, filepath, metadata)
-        
+
         manifest_entries.append({
             'name': f'leaves_{variant}',
             'category': 'blocks',
@@ -344,19 +439,19 @@ def generate_all_blocks(output_dir, seed):
             'height': 64,
             'sha256': compute_sha256(filepath)
         })
-    
+
     # Ores
     for ore_type in ['coal', 'iron', 'gold']:
         filename = f'ore_{ore_type}.png'
         filepath = output_dir / filename
         print(f"Generating {filename}...")
-        
+
         image = generate_ore(ore_type, seed)
         ensure_tiling(image)
-        
+
         metadata = {'generator': 'gen_blocks.py', 'seed': str(seed), 'type': f'ore_{ore_type}', 'category': 'blocks'}
         save_with_metadata(image, filepath, metadata)
-        
+
         manifest_entries.append({
             'name': f'ore_{ore_type}',
             'category': 'blocks',
@@ -365,7 +460,99 @@ def generate_all_blocks(output_dir, seed):
             'height': 64,
             'sha256': compute_sha256(filepath)
         })
-    
+
+    # Sand & Gravel
+    for name, generator in [('sand', generate_sand), ('gravel', generate_gravel)]:
+        filename = f'{name}.png'
+        filepath = output_dir / filename
+        print(f"Generating {filename}...")
+
+        image = generator(seed)
+        ensure_tiling(image)
+
+        metadata = {'generator': 'gen_blocks.py', 'seed': str(seed), 'type': name, 'category': 'blocks'}
+        save_with_metadata(image, filepath, metadata)
+
+        manifest_entries.append({
+            'name': name,
+            'category': 'blocks',
+            'path': f'blocks/{filename}',
+            'width': 64,
+            'height': 64,
+            'sha256': compute_sha256(filepath)
+        })
+
+    # Planks
+    filename = 'planks_oak.png'
+    filepath = output_dir / filename
+    print("Generating planks_oak.png...")
+    image = generate_planks(seed)
+    ensure_tiling(image)
+    metadata = {'generator': 'gen_blocks.py', 'seed': str(seed), 'type': 'planks_oak', 'category': 'blocks'}
+    save_with_metadata(image, filepath, metadata)
+    manifest_entries.append({
+        'name': 'planks_oak',
+        'category': 'blocks',
+        'path': f'blocks/{filename}',
+        'width': 64,
+        'height': 64,
+        'sha256': compute_sha256(filepath)
+    })
+
+    # Biome grass variants
+    for variant in ['plains', 'forest', 'desert']:
+        filename = f'grass_{variant}.png'
+        filepath = output_dir / filename
+        print(f"Generating {filename}...")
+
+        image = generate_biome_grass(variant, seed)
+        ensure_tiling(image)
+
+        metadata = {'generator': 'gen_blocks.py', 'seed': str(seed), 'type': f'grass_{variant}', 'category': 'blocks'}
+        save_with_metadata(image, filepath, metadata)
+
+        manifest_entries.append({
+            'name': f'grass_{variant}',
+            'category': 'blocks',
+            'path': f'blocks/{filename}',
+            'width': 64,
+            'height': 64,
+            'sha256': compute_sha256(filepath)
+        })
+
+    # Torch (sprite)
+    filename = 'torch.png'
+    filepath = output_dir / filename
+    print("Generating torch.png...")
+    image = generate_torch(seed)
+    metadata = {'generator': 'gen_blocks.py', 'seed': str(seed), 'type': 'torch', 'category': 'blocks'}
+    save_with_metadata(image, filepath, metadata)
+    manifest_entries.append({
+        'name': 'torch',
+        'category': 'blocks',
+        'path': f'blocks/{filename}',
+        'width': 64,
+        'height': 64,
+        'sha256': compute_sha256(filepath)
+    })
+
+    # Chest
+    filename = 'chest.png'
+    filepath = output_dir / filename
+    print("Generating chest.png...")
+    image = generate_chest(seed)
+    ensure_tiling(image.convert('RGB'))
+    metadata = {'generator': 'gen_blocks.py', 'seed': str(seed), 'type': 'chest', 'category': 'blocks'}
+    save_with_metadata(image, filepath, metadata)
+    manifest_entries.append({
+        'name': 'chest',
+        'category': 'blocks',
+        'path': f'blocks/{filename}',
+        'width': 64,
+        'height': 64,
+        'sha256': compute_sha256(filepath)
+    })
+
     return manifest_entries
 
 

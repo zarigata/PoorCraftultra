@@ -15,6 +15,8 @@ import com.poorcraft.ultra.tools.ValidationResult;
 import com.poorcraft.ultra.voxel.ChunkDoctorService;
 import com.poorcraft.ultra.voxel.ChunkDoctorService.ChunkDoctorStats;
 import com.poorcraft.ultra.voxel.ChunkManager;
+import com.poorcraft.ultra.world.WorldGenerator;
+import com.poorcraft.ultra.world.WorldSaveManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,6 +136,7 @@ public class DebugOverlayAppState extends AbstractAppState {
         }
         
         String chunkStats = "";
+        long worldSeed = 0L;
         if (serviceHub != null && serviceHub.has(ChunkManager.class)) {
             ChunkManager chunkManager = serviceHub.get(ChunkManager.class);
             int loadedChunks = chunkManager.getLoadedChunkCount();
@@ -144,9 +147,22 @@ public class DebugOverlayAppState extends AbstractAppState {
                 chunkStats += String.format(" | Vertices: %d (avg %.0f/chunk) | Triangles: %d",
                     stats.totalVertices(), stats.avgVerticesPerChunk(), stats.totalTriangles());
             }
+            if (chunkManager.getWorldGenerator() != null) {
+                worldSeed = chunkManager.getWorldGenerator().getSeed();
+            }
+        } else if (serviceHub != null) {
+            if (serviceHub.has(WorldGenerator.class)) {
+                worldSeed = serviceHub.get(WorldGenerator.class).getSeed();
+            }
+            if (worldSeed == 0L && serviceHub.has(WorldSaveManager.class)) {
+                long persistedSeed = serviceHub.get(WorldSaveManager.class).getPersistedSeed();
+                if (persistedSeed != 0L) {
+                    worldSeed = persistedSeed;
+                }
+            }
         }
 
-        currentText = formatter.format(fps, systemInfo, usedMemoryMB, maxMemoryMB, assetValidation, chunkStats);
+        currentText = formatter.format(fps, systemInfo, usedMemoryMB, maxMemoryMB, assetValidation, chunkStats, worldSeed);
         overlayText.setText(currentText);
     }
     
