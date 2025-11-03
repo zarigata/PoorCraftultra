@@ -81,8 +81,109 @@ com.poorcraft.ultra.tests      - Test utilities
 
 ## Checkpoints
 
+### Phase 0 - Boot & Assets
 - **CP v0.1**: Window opens, FPS counter, ESC quits
 - **CP v0.2**: Main menu with animated background, "Assets OK" badge
+
+### Phase 1 - Voxel Core
+- **CP v1.05**: Static single-chunk plateau (16×16×16 blocks) visible
+- **CP v1.1**: 3×3 chunk grid, greedy meshing, frustum culling, stable 60 FPS
+- **CP v1.2**: Ray-picking, block highlight, place/break with hotbar
+- **CP v1.3**: Save/load 3×3 chunks with SHA-256 checksum validation
+
+### Phase 2 - World Generation & Lighting
+- **CP v2.0**: Seed-based heightmap terrain, biome distribution (5 biomes), biome tints, seed UI
+- **CP v2.1**: Caves/ravines (3D noise carving), surface features (trees, ores), basic structures (huts)
+- **CP v2.2**: Skylight + block light propagation (BFS), AO, smooth lighting, day-night cycle, bed sleep
+
+### Phase 3 - Items, Inventory, Crafting & Smelting
+- **CP v3.1**: Inventory UI (hotbar + 27 slots), drag/drop/shift-click, stack rules, tooltips, durability tracking, persistence
+- **CP v3.2**: Crafting 2×2 (inventory) + 3×3 (table), recipe book with search/pins, recipe discovery
+- **CP v3.3**: Furnace smelting with fuel, progress bars, XP yields
+
+## Phase 1 Architecture
+
+**Voxel Engine** (`com.poorcraft.ultra.voxel`):
+- `ChunkManager`: Chunk lifecycle, meshing, rendering
+- `Chunk`: 16×16×16 block storage (YZX order)
+- `GreedyMesher`: Optimized mesh generation (0fps algorithm)
+- `TextureAtlas`: 8×8 atlas (64 block types)
+- `ChunkRenderer`: jME Geometry creation
+
+**Block System** (`com.poorcraft.ultra.blocks`):
+- `BlockRegistry`: 26 block types (stone, dirt, grass, wood, ores, etc.)
+- `BlockDefinition`: Block properties (textures, hardness, drops)
+- `BlockFace`: 6-direction enum
+
+**Player & Interaction** (`com.poorcraft.ultra.player`):
+- `FirstPersonController`: BetterCharacterControl + camera
+- `BlockInteraction`: 3D DDA ray-picking, place/break
+- `GameSessionAppState`: Main in-game state
+
+**Persistence** (`com.poorcraft.ultra.save`):
+- `ChunkSerializer`: Binary format with SHA-256 checksums
+- `SaveManager`: World save/load coordination
+
+## Phase 3 Architecture
+
+**Item System** (`com.poorcraft.ultra.items`):
+- `ItemRegistry`: 75+ items (tools, materials, food, block items)
+- `ItemDefinition`: Item properties (ID, name, icon, stack size, durability, tool tier/type)
+- `ToolType`: PICKAXE, AXE, SHOVEL, HOE, SWORD (mining effectiveness)
+- `ToolTier`: WOOD, STONE, IRON, GOLD, DIAMOND (mining speed, durability)
+
+**Inventory System** (`com.poorcraft.ultra.inventory`):
+- `ItemStack`: Immutable item + count + durability + NBT
+- `PlayerInventory`: 9 hotbar + 27 main slots, stack rules, merge/split operations
+- `InventoryAppState`: Lemur UI with drag/drop, shift-click, tooltips
+- Persistence: JSON via SaveManager to `player/playerdata.json`
+
+**Crafting System** (`com.poorcraft.ultra.crafting`):
+- `Recipe`: Shaped/shapeless recipes loaded from JSON resources
+- `RecipeRegistry`: Loads from `src/main/resources/recipes/*.json`
+- `CraftingGrid`: 2×2 (inventory) or 3×3 (table), evaluates recipes on slot change
+- `RecipeBook`: Tracks discovered recipes, auto-discovery when ingredients obtained
+
+**Smelting System** (`com.poorcraft.ultra.smelting`):
+- `FurnaceBlockEntity`: Input/fuel/output slots, burn time, smelt time, XP accumulation
+- `BlockEntityManager`: Ticks active furnaces (20 ticks/sec), serializes with chunks
+- `FuelRegistry`: Coal (1600 ticks), wood (300 ticks), stick (100 ticks)
+- `SmeltingRecipeRegistry`: Ore → ingot (200 ticks, 0.7 XP), raw meat → cooked (200 ticks, 0.35 XP)
+- `FurnaceAppState`: Lemur UI with progress bars (flame, arrow), XP display
+
+## Items & Crafting
+
+**Item Types:**
+- **Tools** (25 items): wooden/stone/iron/gold/diamond × pickaxe/axe/shovel/hoe/sword
+  - Durability: wood (59), stone (131), iron (250), gold (32), diamond (1561)
+  - Mining speed: wood (2x), stone (4x), iron (6x), gold (12x), diamond (8x)
+- **Materials** (7 items): stick, coal, iron_ingot, gold_ingot, diamond, redstone, emerald
+- **Food** (4 items): apple, bread, raw_meat, cooked_meat
+- **Block items** (40+ items): stone, dirt, grass, wood, ores, glass, leaves, crafting_table, furnace, chest, torch, etc.
+
+**Inventory:**
+- 9 hotbar slots (always visible, number keys 1-9 to select)
+- 27 main inventory slots (3×9 grid, E key to open)
+- Drag/drop: Left-click = pick up stack, right-click = pick up half
+- Shift-click: Quick transfer between hotbar and main inventory
+- Stack rules: Tools stack to 1, materials to 64, same item + durability can merge
+
+**Crafting:**
+- 2×2 grid in inventory (always available)
+- 3×3 grid at crafting table (right-click table to open)
+- Shaped recipes: Pattern matters (e.g., pickaxe = planks on top, sticks below)
+- Shapeless recipes: Pattern doesn't matter (e.g., dye mixing)
+- Recipe book: Automatically discovers recipes when ingredients obtained
+- Search/filter: Find recipes by name or result item
+
+**Smelting:**
+- Furnace: Right-click to open UI
+- Input slot: Ore or raw food
+- Fuel slot: Coal, wood, stick
+- Output slot: Ingot or cooked food
+- Progress bars: Flame (fuel burn), arrow (smelting)
+- XP: Accumulated per smelt, collected when output taken
+- Fuel efficiency: 1 coal smelts 8 items, 1 wood smelts 1.5 items
 
 ## License
 

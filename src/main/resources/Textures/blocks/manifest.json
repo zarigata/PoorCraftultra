@@ -1,0 +1,180 @@
+{
+  "generator": "asset_generator",
+  "version": "0.1.0",
+  "textures": [
+    {
+      "name": "stone_01.png",
+      "width": 64,
+      "height": 64,
+      "hash": "5c7fb81c3c75f227b7c33c1ce64e14c7db3e504cee9638923b13a360977fbdb4"
+    },
+    {
+      "name": "cobblestone_01.png",
+      "width": 64,
+      "height": 64,
+      "hash": "1e271ab057acfb90440da3906232a2e33936844f2e3b35ea4a6c9a662787c1e9"
+    },
+    {
+      "name": "stone_bricks_01.png",
+      "width": 64,
+      "height": 64,
+      "hash": "2ee811310621b1200a8e24ca91e27418619437f6e27539959ec8b1bf2698a5a0"
+    },
+    {
+      "name": "dirt.png",
+      "width": 64,
+      "height": 64,
+      "hash": "81e2c26d4ebb3888cce266ff67523a1a1f5212788201e45f15b64f6065cf71de"
+    },
+    {
+      "name": "grass_top.png",
+      "width": 64,
+      "height": 64,
+      "hash": "ac5e195fd317d8414c0b3bc4dcd1f82ec2c247a9a7a66123b81ac5526232d693"
+    },
+    {
+      "name": "grass_side.png",
+      "width": 64,
+      "height": 64,
+      "hash": "6d66e6f78234e7a97b44283550076601a6aa5c545d0b912e2f704cfa75ba41f7"
+    },
+    {
+      "name": "sand.png",
+      "width": 64,
+      "height": 64,
+      "hash": "96d2c8388925e968d291430eeadcfd3b9608c3d02529a171f2c4f8568c70941c"
+    },
+    {
+      "name": "gravel.png",
+      "width": 64,
+      "height": 64,
+      "hash": "7e7f80c943fef6d06748afdf542943a3ad382659b9e3f3f2568a89708406ad01"
+    },
+    {
+      "name": "glass.png",
+      "width": 64,
+      "height": 64,
+      "hash": "4474beb4be8a2ff0b86fbb26c5d05e06f2d36486b944c120147ab7e7b5a9aba8"
+    },
+    {
+      "name": "oak_planks.png",
+      "width": 64,
+      "height": 64,
+      "hash": "47907042e98a681996c9ef90c1d198c6bc9a1b5e9dbae4f5167db90901c96e94"
+    },
+    {
+      "name": "birch_planks.png",
+      "width": 64,
+      "height": 64,
+      "hash": "a8562b8b7d55a0f10c3b62976522e328fe073bff47a0522534a156c5aefaaacc"
+    },
+    {
+      "name": "spruce_planks.png",
+      "width": 64,
+      "height": 64,
+      "hash": "d062bf95a1707198ac179b5821787325097c1492cbc1ec55370ff801e57d0f23"
+    },
+    {
+      "name": "wood_log_top.png",
+      "width": 64,
+      "height": 64,
+      "hash": "ad2e0390c9414a9e0f42d7b4b691012c949ef08ed65e45f9207c4268092e85f0"
+    },
+    {
+      "name": "wood_log_side.png",
+      "width": 64,
+      "height": 64,
+      "hash": "60a9296475ddeb67fce008070b4e000c01ec486b464ada459dfe81e961d21f93"
+    },
+    {
+      "name": "coal_ore.png",
+      "width": 64,
+      "height": 64,
+      "hash": "f04e18806826a5dba1a9501a601e736c948a0ea622f52598d86958685956a865"
+    },
+    {
+      "name": "iron_ore.png",
+      "width": 64,
+      "height": 64,
+      "hash": "3167a004ba8050c2ca4350633459414d5e41152766d319e37ee4792dfed58c96"
+    },
+    {
+      "name": "gold_ore.png",
+      "width": 64,
+      "height": 64,
+      "hash": "2a7baebc5b055c467a5cf89e3b4099499b0d807712de7678ce1f236b875f8944"
+    },
+    {
+      "name": "diamond_ore.png",
+      "width": 64,
+      "height": 64,
+      "hash": "c6bd9d90d29fc873c6710d959d0967dc7cf513d24bca113ef0363daf331b0e4f"
+    },
+    {
+      "name": "redstone_ore.png",
+      "width": 64,
+      "height": 64,
+      "hash": "789dd17b0acb931235efd6d42c5be7c2dcff62cdf6804f136c8e463fb3df78ab"
+    },
+    {
+      "name": "emerald_ore.png",
+      "width": 64,
+      "height": 64,
+      "hash": "953cf8d4d3c00ca2ee690f58a9c862dd478b408ba6e64ca8649b908feb681ec3"
+    },
+    {
+      "name": "oak_leaves.png",
+      "width": 64,
+      "height": 64,
+      "hash": "ae267c93447acf3b30bf4aecd9568b457a4a41b98a5b5c9e52a20fd287cbbf41"
+    },
+    {
+      "name": "birch_leaves.png",
+      "width": 64,
+      "height": 64,
+      "hash": "ae267c93447acf3b30bf4aecd9568b457a4a41b98a5b5c9e52a20fd287cbbf41"
+    },
+    {
+      "name": "spruce_leaves.png",
+      "width": 64,
+      "height": 64,
+      "hash": "ae267c93447acf3b30bf4aecd9568b457a4a41b98a5b5c9e52a20fd287cbbf41"
+    },
+    {
+      "name": "crafting_table_top.png",
+      "width": 64,
+      "height": 64,
+      "hash": "ba2df1e16d69b72b306e180891a2c490d866ae3d70873e5a6467098df7e292d7"
+    },
+    {
+      "name": "furnace_front.png",
+      "width": 64,
+      "height": 64,
+      "hash": "5db3ba39a1ed7cf9d55d44910c0ea0ee4612efe7d2826ff41f5a77c856f768e7"
+    },
+    {
+      "name": "chest_front.png",
+      "width": 64,
+      "height": 64,
+      "hash": "1a7e31bb46d5a2ede7e3f2890c54ec440b7fb3266e640d43e2fd09da5fd505e4"
+    },
+    {
+      "name": "torch.png",
+      "width": 64,
+      "height": 64,
+      "hash": "9fda2b59a88faeffb9ffb7ede6324f88936fbbbb7a9ef865c40db6e0551a360a"
+    },
+    {
+      "name": "lava.png",
+      "width": 64,
+      "height": 64,
+      "hash": "efe8f80570555f835e6ee4f5e0fe9b471d27597ba0acd400b03bcebe9fa4631b"
+    },
+    {
+      "name": "glowstone.png",
+      "width": 64,
+      "height": 64,
+      "hash": "3ab100f7ae18f712bcaba4b212e01e58fbac7397d4e9cce9fa75f338577681b7"
+    }
+  ]
+}

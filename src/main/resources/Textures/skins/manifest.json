@@ -1,0 +1,30 @@
+{
+  "generator": "asset_generator",
+  "version": "0.1.0",
+  "textures": [
+    {
+      "name": "player_base.png",
+      "width": 256,
+      "height": 256,
+      "hash": "3a65dc34a02d56ba10641449b56cb815cadc816bb2471171a1cf75ea039b116b"
+    },
+    {
+      "name": "npc_villager_01.png",
+      "width": 256,
+      "height": 256,
+      "hash": "9203ec052e9018d2a78e0571d78ec26d26c6835399d0be9583a5d4c17a115965"
+    },
+    {
+      "name": "npc_villager_02.png",
+      "width": 256,
+      "height": 256,
+      "hash": "a3f9b6873db8be03c05ed509a8347acaef83f708880935856838acf870e97776"
+    },
+    {
+      "name": "npc_villager_03.png",
+      "width": 256,
+      "height": 256,
+      "hash": "6eee1d2b3105211a386e5503ec6bfe7df0ad61c004438f8fa576e1ab642bf956"
+    }
+  ]
+}

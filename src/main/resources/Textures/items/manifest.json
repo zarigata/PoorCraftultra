@@ -1,0 +1,258 @@
+{
+  "generator": "asset_generator",
+  "version": "0.1.0",
+  "textures": [
+    {
+      "name": "wooden_pickaxe.png",
+      "width": 64,
+      "height": 64,
+      "hash": "78b4c34fd6c4d8e68c08aa23054760dfa8035067a7d80c75b49246324cd06535"
+    },
+    {
+      "name": "wooden_axe.png",
+      "width": 64,
+      "height": 64,
+      "hash": "3fe308a154297951d40a05f82fdfa5f2fd5c6b140015903ed2257a1552a52f63"
+    },
+    {
+      "name": "wooden_shovel.png",
+      "width": 64,
+      "height": 64,
+      "hash": "60a662565f9fa3dc1aba37aa08a24414842d6479abaa517f0c595af19c58c014"
+    },
+    {
+      "name": "wooden_hoe.png",
+      "width": 64,
+      "height": 64,
+      "hash": "fd03ff3688f689f91a6909ecaa7ca8bc79a85dfc883efabbad8fb84cdcbfc7ea"
+    },
+    {
+      "name": "wooden_sword.png",
+      "width": 64,
+      "height": 64,
+      "hash": "d42b2cf21aa7bf12c9ab5cfe1023437fa8b97cf9826af7e255e7a4935ac438ac"
+    },
+    {
+      "name": "stone_pickaxe.png",
+      "width": 64,
+      "height": 64,
+      "hash": "25a45fd52f35ed3c39e1f2982d58a2fbc90a7ddcc4e530cf26d017f6b176338e"
+    },
+    {
+      "name": "stone_axe.png",
+      "width": 64,
+      "height": 64,
+      "hash": "3812242b8ade9aed415e1bd2dfd596cb1dc5720e8e160428111092fc0a880740"
+    },
+    {
+      "name": "stone_shovel.png",
+      "width": 64,
+      "height": 64,
+      "hash": "2de139601d201db3419213b7260c5c2c650574145378c284bd06386ccaeabd66"
+    },
+    {
+      "name": "stone_hoe.png",
+      "width": 64,
+      "height": 64,
+      "hash": "a4800c6e3a76df568d894f1dfdc6a37b8a11977402c78545c93b2a1424a7f9a9"
+    },
+    {
+      "name": "stone_sword.png",
+      "width": 64,
+      "height": 64,
+      "hash": "ae26d3bb33adb98f028dec85273ac301ad0debeb5ae499e01d914494f462c078"
+    },
+    {
+      "name": "iron_pickaxe.png",
+      "width": 64,
+      "height": 64,
+      "hash": "3dc2646533b11a87685471d3f05ae45198dbea1744c696ac300d8724183455e1"
+    },
+    {
+      "name": "iron_axe.png",
+      "width": 64,
+      "height": 64,
+      "hash": "66b05dac8b17ee0aa6c6dea1473db64c4b0eb7358368e4d8971e8aa760418b97"
+    },
+    {
+      "name": "iron_shovel.png",
+      "width": 64,
+      "height": 64,
+      "hash": "1f7770b4bd669e49005ecd1ed117692959abd9c2dd0b2ba9cd6ac76788f59a4a"
+    },
+    {
+      "name": "iron_hoe.png",
+      "width": 64,
+      "height": 64,
+      "hash": "04eaa7889e215e37ddf5c24128a364307af862f66f6700ec4eb9dd1023da262a"
+    },
+    {
+      "name": "iron_sword.png",
+      "width": 64,
+      "height": 64,
+      "hash": "f93abc8eed085afb2e1f7f216d7338c107421f252ee91880d42c6cd86554fa9d"
+    },
+    {
+      "name": "gold_pickaxe.png",
+      "width": 64,
+      "height": 64,
+      "hash": "878364a3265879cc5a933093b519feab8c8268a409868b7c2f024a95753015c2"
+    },
+    {
+      "name": "gold_axe.png",
+      "width": 64,
+      "height": 64,
+      "hash": "386b72b5854a4b037fecdc3c8058bc5ab96fef28a38073c43b162a0c498ec5f1"
+    },
+    {
+      "name": "gold_shovel.png",
+      "width": 64,
+      "height": 64,
+      "hash": "d47cbfe0427c2396ff68e573cf4549c9345dc8fa857cbb02c874f34a95b1fb0d"
+    },
+    {
+      "name": "gold_hoe.png",
+      "width": 64,
+      "height": 64,
+      "hash": "0d54072ef3cb3e9e2d566a11533fbe7707d0a137622c143eb08dfdeed0518da0"
+    },
+    {
+      "name": "gold_sword.png",
+      "width": 64,
+      "height": 64,
+      "hash": "1b262e0061aab0935eca1434582166493a8d270d39720b27d54832b4f8b9a2a7"
+    },
+    {
+      "name": "diamond_pickaxe.png",
+      "width": 64,
+      "height": 64,
+      "hash": "ba0213610ece5ab66485506de8025f22ffc0591b51bca114efbaf492edce2e4f"
+    },
+    {
+      "name": "diamond_axe.png",
+      "width": 64,
+      "height": 64,
+      "hash": "b5a8a1f9215d54703b6a53f244a100a697c6e8cebcae43725ce64d7512ac8f4c"
+    },
+    {
+      "name": "diamond_shovel.png",
+      "width": 64,
+      "height": 64,
+      "hash": "9257619821566ab7b971ec75cae18fe77aba86e598c3bd7e17e9f34d16ea0b3e"
+    },
+    {
+      "name": "diamond_hoe.png",
+      "width": 64,
+      "height": 64,
+      "hash": "e6bdf0d518baaa6f058ddbdc840261067cfceee3c1048323716c8de692bdfa44"
+    },
+    {
+      "name": "diamond_sword.png",
+      "width": 64,
+      "height": 64,
+      "hash": "7525b9538c361eba637359f76ca328010f96d29c21242ab285a26e27ede914a3"
+    },
+    {
+      "name": "stick.png",
+      "width": 64,
+      "height": 64,
+      "hash": "0fa6f20e03737f4f915526bc242e916d79a719a5fc757760186d1f6debc80555"
+    },
+    {
+      "name": "coal.png",
+      "width": 64,
+      "height": 64,
+      "hash": "326f5ca0b9a4e0cf3d3b1667b22ff0c8a474d64df884a7696e9f8201f289e0f9"
+    },
+    {
+      "name": "iron_ingot.png",
+      "width": 64,
+      "height": 64,
+      "hash": "42ffa0efedff8de9cada6427fd109fa471d6c94a4e6cbb5c7cb0da2ffdd5d43e"
+    },
+    {
+      "name": "gold_ingot.png",
+      "width": 64,
+      "height": 64,
+      "hash": "189cff9c1f6f63bbcd8979bd1f0e9006238366bd2bc9546afc4885b5a6ec00b5"
+    },
+    {
+      "name": "diamond.png",
+      "width": 64,
+      "height": 64,
+      "hash": "4e31c5185752565e20675dc6c2395b9ff920eba545319fb2d15006dd4faafbcf"
+    },
+    {
+      "name": "redstone.png",
+      "width": 64,
+      "height": 64,
+      "hash": "23ea99fb9dec6a0396aa42186b9d2a94799c5be8f3351f67fb81658b994e8d5a"
+    },
+    {
+      "name": "emerald.png",
+      "width": 64,
+      "height": 64,
+      "hash": "74e3c180681219d827e4f8dd51d058249ff2de9c05bdc0c27b7deb8af644409d"
+    },
+    {
+      "name": "apple.png",
+      "width": 64,
+      "height": 64,
+      "hash": "21017c8181e683f491a6aa3e34391009fe974b54518fb81db6f621399e49d9d9"
+    },
+    {
+      "name": "bread.png",
+      "width": 64,
+      "height": 64,
+      "hash": "68ba0f97dec97932ca098746e1bd69946234d307bc6a4d99bc80ea3acac296c2"
+    },
+    {
+      "name": "cooked_meat.png",
+      "width": 64,
+      "height": 64,
+      "hash": "7edf60cf2b69a9fc09c951f806b9aaf62c5b8022f2a75e9e299f05059a179256"
+    },
+    {
+      "name": "raw_meat.png",
+      "width": 64,
+      "height": 64,
+      "hash": "259514f5e313b7ad9f9e70c0537f198eb769868c805c156657e0b7b82e99c957"
+    },
+    {
+      "name": "dirt_item.png",
+      "width": 64,
+      "height": 64,
+      "hash": "b237d6b957b503a41efb79f783027f639e8d816f3a18a9614673fe72f8574806"
+    },
+    {
+      "name": "stone_item.png",
+      "width": 64,
+      "height": 64,
+      "hash": "b237d6b957b503a41efb79f783027f639e8d816f3a18a9614673fe72f8574806"
+    },
+    {
+      "name": "wood_item.png",
+      "width": 64,
+      "height": 64,
+      "hash": "b237d6b957b503a41efb79f783027f639e8d816f3a18a9614673fe72f8574806"
+    },
+    {
+      "name": "crafting_table_item.png",
+      "width": 64,
+      "height": 64,
+      "hash": "b237d6b957b503a41efb79f783027f639e8d816f3a18a9614673fe72f8574806"
+    },
+    {
+      "name": "furnace_item.png",
+      "width": 64,
+      "height": 64,
+      "hash": "b237d6b957b503a41efb79f783027f639e8d816f3a18a9614673fe72f8574806"
+    },
+    {
+      "name": "chest_item.png",
+      "width": 64,
+      "height": 64,
+      "hash": "b237d6b957b503a41efb79f783027f639e8d816f3a18a9614673fe72f8574806"
+    }
+  ]
+}
