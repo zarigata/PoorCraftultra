@@ -1,521 +1,89 @@
 # Poorcraft Ultra
 
-**A production-grade, Java-based voxel sandbox with Steam, Discord, multiplayer, and AI NPCs.**
+## Build System Choice: Gradle Kotlin DSL
 
-## Build System Choice: Gradle (Kotlin DSL)
+**Rationale:**
+- **Gradle 9.x** (current stable) offers superior configuration cache, reducing build times for iterative game development
+- **Kotlin DSL** provides type-safe build scripts with IDE completion, better than Maven XML or Groovy DSL
+- **Java Toolchains** are first-class in Gradle, ensuring consistent JDK 17 across all environments
+- **Ecosystem alignment**: jMonkeyEngine community primarily uses Gradle; better plugin/template support
+- **Fallback plan**: If Gradle blocks progress, Maven 3.9.x is ready as alternative (Maven 4.0 still in RC)
 
-### Decision Rationale
-After analyzing dependencies (jMonkeyEngine, LWJGL, steamworks4j, discord-game-sdk4j, Vosk, LLM), we chose **Gradle (Kotlin DSL)** as the primary build system.
+## Java Version: 17 LTS
 
-**Pros:**
-- **Superior native library management**: LWJGL 3.3.6 natives handled via BOM + OS-specific classifiers (`natives-windows`, `natives-linux`, `natives-macos`, `natives-macos-arm64`); Gradle's platform detection and `runtimeOnly` dependencies make this seamless
-- **Excellent jlink/jpackage support**: Badass JLink plugin (org.beryx.jlink 3.x) provides unified jlink + jpackage workflow with non-modular dependency merging
-- **Build performance**: Incremental builds, build cache, parallel execution critical for large game projects
-- **Type-safe configuration**: Kotlin DSL provides IDE autocomplete, refactoring support, compile-time validation
-- **Multi-platform flexibility**: Clean per-OS dependency configuration for Windows/Linux/macOS natives
-- **Modern ecosystem**: Better suited for complex, multi-module projects with mixed dependencies
+**Rationale:**
+- **jMonkeyEngine 3.7.0-stable** officially supports Java 17 (SDK ships with JDK 17.0.9)
+- **LTS stability**: Java 17 is current LTS (released Sept 2021, support until Sept 2029)
+- **Performance**: Significant improvements over Java 11 (ZGC, pattern matching, sealed classes)
+- **Library compatibility**: All dependencies (Lemur 1.16.0, LWJGL 3.3.6) confirmed compatible
 
-**Cons:**
-- Steeper learning curve for teams unfamiliar with Gradle/Kotlin DSL
-- More flexibility = more configuration complexity
+## Engine Stack
 
-### Fallback Strategy: Maven
-If Gradle fails to build or run, the project can be migrated to Maven:
-- Equivalent `pom.xml` structure documented below
-- Use `maven-jlink-plugin` + `jpackage-maven-plugin` (Panteleyev) for packaging
-- LWJGL natives managed via `<classifier>${lwjgl.natives}</classifier>` with profiles per OS
-- steamworks4j/discord-game-sdk4j work identically (Maven Central + JitPack)
+- **jMonkeyEngine**: 3.7.0-stable (LWJGL3 backend)
+- **UI Framework**: Lemur 1.16.0 + Lemur-Proto 1.13.0
+- **Physics**: Bullet (via jme3-bullet)
+- **Testing**: JUnit 5 with headless jME context
 
-**Maven equivalent (stub pom.xml):**
-```xml
-<project>
-  <groupId>com.poorcraft</groupId>
-  <artifactId>poorcraft-ultra</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
-  <properties>
-    <java.version>17</java.version>
-    <jme.version>3.7.0-stable</jme.version>
-    <lwjgl.version>3.3.6</lwjgl.version>
-    <lwjgl.natives>natives-windows</lwjgl.natives> <!-- Override via profiles -->
-  </properties>
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.lwjgl</groupId>
-        <artifactId>lwjgl-bom</artifactId>
-        <version>${lwjgl.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-  <dependencies>
-    <!-- jMonkeyEngine -->
-    <dependency><groupId>org.jmonkeyengine</groupId><artifactId>jme3-core</artifactId><version>${jme.version}</version></dependency>
-    <dependency><groupId>org.jmonkeyengine</groupId><artifactId>jme3-desktop</artifactId><version>${jme.version}</version></dependency>
-    <dependency><groupId>org.jmonkeyengine</groupId><artifactId>jme3-lwjgl3</artifactId><version>${jme.version}</version></dependency>
-    <!-- LWJGL + natives (repeat for each module) -->
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl</artifactId></dependency>
-    <dependency><groupId>org.lwjgl</groupId><artifactId>lwjgl</artifactId><classifier>${lwjgl.natives}</classifier><scope>runtime</scope></dependency>
-    <!-- ... (glfw, opengl, stb, openal) -->
-  </dependencies>
-</project>
-```
+## Asset Pipeline
 
-## Quick Start
+**Strict validation enforced:**
+- Block textures: **64×64 PNG** (build fails on mismatch)
+- Player/NPC skins: **256×256 PNG** (build fails on mismatch)
+- Item icons: **64×64 PNG**
 
-### Prerequisites
-- **Java 17 LTS** (OpenJDK or Oracle JDK)
-- **Git** (for cloning)
-- **Python 3.9+** with pip (for asset generation in Phase 0A)
-
-### Build & Run
-```bash
-# Clone repository
-git clone <repo-url>
-cd PoorCraftultra
-
-# Generate assets (Phase 0A - required before first build)
-./scripts/dev/gen-assets.sh    # Linux/macOS
-scripts\dev\gen-assets.bat     # Windows
-
-# Build (uses Gradle wrapper)
-./scripts/dev/build.sh    # Linux/macOS
-scripts\dev\build.bat     # Windows
-
-# Run
-./scripts/dev/run.sh      # Linux/macOS
-scripts\dev\run.bat       # Windows
-```
-
-### Manual Gradle Commands
-```bash
-./gradlew generateAssets  # Generate procedural assets
-./gradlew validateAssets  # Validate assets without full build
-./gradlew clean build     # Build project (validates assets automatically)
-./gradlew run             # Run game
-./gradlew test            # Run tests
-```
+**Generation flow:**
+1. Python scripts (`/tools/assets/`) generate procedural textures
+2. Gradle tasks validate sizes and SHA-256 hashes
+3. Java runtime validator checks manifest on startup
 
 ## Project Structure
+
+Single-module layout for Phase 0 (multi-module split deferred to later phases):
+
 ```
-PoorCraftultra/
-├── src/main/java/com/poorcraft/ultra/
-│   ├── app/          # Bootstrap, config, logging
-│   ├── engine/       # jME application, scene, ECS
-│   ├── voxel/        # Chunk data, meshing (Phase 1)
-│   ├── world/        # Worldgen, save/load (Phase 2)
-│   ├── player/       # Input, camera, inventory (Phase 1)
-│   ├── gameplay/     # Blocks, items, crafting (Phase 2)
-│   ├── net/          # Multiplayer (Phase 3)
-│   ├── steam/        # Steam API (Phase 4)
-│   ├── discord/      # Discord SDK (Phase 5)
-│   ├── mods/         # Mod loader (Phase 6)
-│   ├── ai/           # STT, TTS, LLM, intent (Phase 8-10)
-│   ├── ui/           # Menus, HUD, chat (Phase 0.2+)
-│   ├── tools/        # Asset validators (Phase 0A)
-│   └── shared/       # DTOs, constants, utils
-├── config/           # YAML configuration files (user overrides)
-├── scripts/dev/      # Build/run wrappers, asset generation
-├── tools/assets/     # Python asset generators (Phase 0A)
-└── docs/             # Architecture, modding, testing (Phase 11)
-```
-
-## Crafting (Phase 2)
-
-Phase 2 introduces a minimal 2×2 shapeless crafting grid focused on early survival recipes. Current recipes include:
-
-- **Chest** – 4 × Planks → 1 × Chest. The compact cost keeps the recipe compatible with the 2×2 grid used in this phase.
-- **Torch** – 1 × Coal Ore + 1 × Wood (any type) → 4 × Torches.
-
-Additional recipes are registered in `CraftingManager` as new items or stations unlock.
-
-## Configuration
-
-The game loads configuration from `config/client.yaml` with the following priority:
-1. **Filesystem** (`config/client.yaml` in application directory) - user overrides
-2. **Classpath** (embedded `config/client.yaml` in JAR) - default configuration bundled in the JAR
-3. **Hardcoded defaults** - fallback if no config file found
-
-### Customizing Configuration
-
-To customize settings, create a `config/client.yaml` file next to the executable (or in the working directory). This file will override the embedded defaults.
-
-**Example custom config:**
-```yaml
-# config/client.yaml
-displayWidth: 1920
-displayHeight: 1080
-fullscreen: true
-vsync: true
-fpsLimit: 144
-logLevel: DEBUG
+com.poorcraft.ultra.app        - Bootstrap, DI, config, logging
+com.poorcraft.ultra.engine     - jME app, scene manager, input
+com.poorcraft.ultra.voxel      - (Phase 1) Chunk store, meshing
+com.poorcraft.ultra.world      - (Phase 2+) Worldgen, biomes
+com.poorcraft.ultra.player     - (Phase 2+) Controller, camera
+com.poorcraft.ultra.items      - (Phase 3+) Items, tools
+com.poorcraft.ultra.blocks     - (Phase 1+) Block registry
+com.poorcraft.ultra.inventory  - (Phase 3+) Containers, hotbar
+com.poorcraft.ultra.crafting   - (Phase 3+) Recipe system
+com.poorcraft.ultra.smelting   - (Phase 3+) Furnace
+com.poorcraft.ultra.mobs       - (Phase 5+) Mob system
+com.poorcraft.ultra.weather    - (Phase 2+) Day-night, weather
+com.poorcraft.ultra.audio      - (Phase 6+) Music, SFX
+com.poorcraft.ultra.ui         - UI components, menus
+com.poorcraft.ultra.save       - (Phase 1+) Save/load
+com.poorcraft.ultra.tools      - Asset validators, debug overlays
+com.poorcraft.ultra.tests      - Test utilities
 ```
 
-The embedded default configuration (`src/main/resources/config/client.yaml`) is bundled in the JAR, ensuring the application runs with sane defaults even when no external config file is present.
+## Building
 
-## Asset Generation (Phase 0A)
-
-Poorcraft Ultra uses **procedurally generated assets** (no Mojang/Microsoft content). All block textures, skins, and item icons are generated via Python scripts.
-
-### Prerequisites
-- **Python 3.9+** with pip
-- **Pillow, NumPy, noise** libraries (auto-installed by scripts)
-
-### Generate Assets
 ```bash
-# Unix/Linux/macOS
-./scripts/dev/gen-assets.sh
+# Generate assets
+./gradlew generateAssets
 
-# Windows
-scripts\dev\gen-assets.bat
-```
-
-This will:
-1. Create a Python virtual environment in `tools/assets/.venv` 
-2. Install dependencies from `tools/assets/requirements.txt` 
-3. Generate textures in `/assets/{blocks,skins,items}/` 
-4. Create `assets/manifest.json` with metadata and hashes
-
-### Validation
-Assets are automatically validated during build:
-```bash
-./gradlew validateAssets  # Validate without full build
-./gradlew build           # Validates assets before building JAR
-```
-
-Validation enforces:
-- **Block textures**: 64×64 pixels
-- **Skins**: 256×256 pixels
-- **Item icons**: 64×64 pixels
-- **Manifest integrity**: all referenced files exist with correct dimensions
-
-If validation fails, the build will stop with error messages. Run `gen-assets.sh/bat` to regenerate.
-
-### Manual Asset Inspection
-Generated assets are in:
-- `/assets/blocks/` - Block textures (wood, stone, dirt, grass, leaves, ores)
-- `/assets/skins/` - Player and NPC skins
-- `/assets/items/` - Item icons (tools, resources, food)
-- `/assets/manifest.json` - Metadata (dimensions, hashes, generation timestamp)
-
-## Smoke Tests
-```bash
-# Generate and validate assets
-./scripts/dev/gen-assets.sh
+# Validate assets (fails build on mismatch)
 ./gradlew validateAssets
 
-# Run automated tests
-./gradlew test --tests "*ConfigLoaderTest"
-./gradlew test --tests "*AssetValidatorTest"
-./gradlew test --tests "*PoorcraftEngineTest"
+# Build
+./gradlew build
+
+# Run
+./gradlew run
+
+# Run smoke tests
+./gradlew smokeTest
 ```
 
-**Manual Test (CP 0.1):**
-1. Run `./scripts/dev/run.sh` (or `.bat`)
-2. Verify window opens with title "Poorcraft Ultra"
-3. Verify FPS counter visible in top-left
-4. Move mouse; verify no crashes
-5. Press ESC; verify window closes cleanly
+## Checkpoints
 
-**Manual Test (CP 0.2):**
-1. Run game
-2. Press F3; verify debug overlay appears (FPS, Java version, OS, heap usage)
-3. Press F3 again; verify overlay hides
-4. Press F9/F10/F11; verify stub messages logged to console
-5. Press ESC to exit
-
-**Manual Test (CP 0.15):**
-1. Run `./scripts/dev/gen-assets.sh` 
-2. Verify `/assets/blocks/`, `/assets/skins/`, `/assets/items/` directories created
-3. Verify `assets/manifest.json` exists and contains asset entries
-4. Run game; press F3; verify "Assets: OK" badge in debug overlay
-5. Delete `assets/manifest.json`; run `./gradlew build`; verify build fails with validation error
-
-**Manual Test (CP 1.05):**
-1. Run game
-2. Verify checkerboard plateau visible (alternating stone/dirt blocks)
-3. Press F3; verify "Chunks: 1 loaded" in overlay
-4. Verify FPS counter shows stable framerate
-5. Press ESC; verify clean exit
-
-**Manual Test (CP 1.1):**
-1. Run game
-2. Verify 3×3 chunk grid visible
-3. Press F3; verify "Chunks: 9 loaded" and vertex/triangle counts displayed
-4. Press F10; verify meshes rebuild
-5. Press F11; verify cyan wireframe boxes toggle chunk bounds
-6. Press ESC to exit
-
-**Manual Test (CP 1.2):**
-1. Run game
-2. Verify cursor hidden; mouse look works
-3. Verify WASD movement and sprint
-4. Point at block; verify wireframe highlight appears and disappears appropriately
-5. Press ESC to exit
-
-**Manual Test (CP 1.3):**
-1. Run game
-2. Break block with LMB; verify block disappears and console logs inventory update
-3. Place block with RMB adjacent to existing block; verify placement and log
-4. Break/place multiple blocks; verify inventory counts adjust
-5. Press F3; verify chunk stats update after modifications
-6. Press ESC to exit
-
-**Manual Test (CP 1.35):**
-1. Run game; break 5 blocks and place 5 blocks across different chunks (note coordinates)
-2. Press ESC to exit
-3. **VERIFY:** Console logs "Saving 9 chunks..." followed by "All chunks saved successfully"
-4. Check `data/worlds/default/region/` exists with 9 files (`r.{x}.{z}.dat`) each 65,568 bytes
-5. Relaunch game
-6. **VERIFY:** Console logs "Loaded chunk (x, z) from disk" for all 9 chunks; no "Generated new chunk" messages
-7. **VERIFY:** Previously modified blocks persist with correct types; checkerboard untouched elsewhere
-8. Press ESC to exit
-
-## Checkpoints (Phase 0)
-- **CP 0.1**: Window opens with title "Poorcraft Ultra", solid background, FPS counter, ESC to quit
-- **CP 0.2**: F3 debug overlay (FPS, Java/OS, heap usage); hotkeys F9/F10/F11 (stubs)
-- **CP 0.15**: Assets generated and validated; "Assets: OK" badge in F3 overlay
-
-## Checkpoints (Phase 1)
-- **CP 1.05**: Single checkerboard chunk renders; overlay shows "Chunks: 1 loaded"
-- **CP 1.1**: 3×3 chunk grid with greedy meshing; F10 rebuilds meshes; F11 shows chunk bounds
-- **CP 1.2**: FPS camera (WASD + mouse look); ray-pick with crosshair highlight
-- **CP 1.3**: LMB breaks blocks, RMB places blocks; inventory counts update
-- **CP 1.35**: Save/load region files; reload produces identical block IDs; checksums validated
-
-## Checkpoints (Phase 1.5)
-- **CP 1.5.0**: Main menu with Start Game, Settings, Exit buttons
-- **CP 1.5.1**: In-game state with pause menu (ESC); Resume, Settings, Save & Exit
-- **CP 1.5.2**: Settings menu with Graphics, Controls, Audio tabs
-- **CP 1.5.3**: Configurable keybinds; mouse sensitivity and Y-axis inversion
-- **CP 1.5.4**: Window resize handling; UI scales correctly
+- **CP v0.1**: Window opens, FPS counter, ESC quits
+- **CP v0.2**: Main menu with animated background, "Assets OK" badge
 
 ## License
-MIT License. See `LICENSE` file.
 
-## Development Notes
-- **Java 17 LTS**: Chosen for long-term support; compatible with jMonkeyEngine 3.7.0-stable and LWJGL 3.3.6
-- **No Mojang/Microsoft assets**: All textures/skins procedurally generated (Phase 0A)
-- **Micro-phase approach**: Each checkpoint produces a runnable build with smoke tests
-
-## Troubleshooting
-- **Build fails**: Check Java version (`java -version` should show 17.x); ensure `JAVA_HOME` set correctly
-- **Window doesn't open**: Check logs in console; verify LWJGL natives loaded for your OS
-- **FPS counter missing**: Verify `StatsAppState` attached in `PoorcraftEngine.simpleInitApp()` 
-
-## Common Issues (Hotfix Phase)
-
-### Issue: Main Menu Not Showing / Game Goes Straight to World
-
-**Symptoms:**
-- Game window opens but shows grey skybox and terrain instead of main menu
-- Cannot click anything
-- Mouse/keyboard unresponsive
-
-**Cause:** State initialization race condition (fixed in hotfix)
-
-**Solution:**
-1. Update to latest version (hotfix applied)
-2. Check logs for "Entered MAIN_MENU state" message
-3. If issue persists, delete `config/client.yaml` to reset configuration
-4. Restart game
-
-**Logs to Check:**
-- `GameStateManager initialised - current state MAIN_MENU`
-- `MainMenuState enabled - menu attached to guiNode`
-- If missing, report issue with full log file
-
----
-
-### Issue: Mouse and Keyboard Not Working
-
-**Symptoms:**
-- Cannot move camera with mouse
-- WASD keys don't move character
-- Cannot click UI buttons
-
-**Cause:** Input registration failure (fixed in hotfix)
-
-**Solution:**
-1. Update to latest version (hotfix applied)
-2. Check logs for input registration messages
-3. Verify `config/client.yaml` has `controls` section with keybinds
-4. If missing, delete config file to regenerate defaults
-5. Restart game
-
-**Logs to Check:**
-- `InputConfig initialized with X keybinds`
-- `PlayerController.enable() - input registration complete`
-- `Registered action 'moveForward' with binding 'W'`
-- If missing, report issue with full log file
-
-**Manual Test:**
-1. Press F3 to toggle debug overlay (should work even if other input broken)
-2. If F3 works, input system is partially functional
-3. Check logs for "onAction" or "onAnalog" messages when pressing keys/moving mouse
-
----
-
-### Issue: Old Terrain Showing (Checkerboard Instead of Hills/Biomes)
-
-**Symptoms:**
-- Terrain is flat checkerboard pattern (stone/dirt alternating)
-- No hills, caves, or biome variations
-- Logs show "Loaded chunk (0, 1) from data\\worlds\\default\\region"
-
-**Cause:** Saved chunks from previous version before worldgen was implemented
-
-**Solution:**
-1. **Exit game completely**
-2. **Delete world directory:**
-   - Windows: Delete `data\\worlds\\default\\`
-   - Linux/Mac: Delete `data/worlds/default/`
-3. **Restart game**
-4. New world will generate with terrain, biomes, and caves
-
-**Logs to Check:**
-- `World generator version mismatch!`
-- `Saved world version: X.X`
-- `Current generator version: 2.0-biomes-caves`
-- If mismatch shown, follow solution above
-
-**Preserve Builds (Optional):**
-If you have builds you want to keep:
-1. Rename `data/worlds/default/` to `data/worlds/default_backup/`
-2. Start game (creates new world)
-3. Manually copy specific region files from backup if needed
-4. Note: Mixing old and new chunks may create terrain seams
-
----
-
-### Issue: Cursor Stuck Hidden or Visible
-
-**Symptoms:**
-- Cursor hidden in main menu (should be visible)
-- Cursor visible in-game (should be hidden)
-
-**Cause:** State transition not updating cursor visibility
-
-**Solution:**
-1. Press ESC to toggle between game and menu states
-2. Check logs for "Setting cursor visible: true/false" messages
-3. If issue persists, restart game
-
-**Logs to Check:**
-- `State transition: MAIN_MENU -> IN_GAME`
-- `Setting cursor visible: false`
-- `Setting cursor visible: true`
-
----
-
-### Debug Logging
-
-To enable verbose logging for troubleshooting:
-
-1. Edit `src/main/resources/logback.xml`
-2. Change root logger level from INFO to DEBUG:
-   ```xml
-   <root level="DEBUG">
-   ```
-3. Rebuild and run: `./gradlew clean build run`
-4. Check logs for detailed input registration and state transition messages
-
-**Warning:** DEBUG logging is very verbose. Only enable when troubleshooting specific issues.
-
----
-
-### Reporting Issues
-
-If issues persist after trying solutions above, report with:
-
-1. **Full log output** from console
-2. **Steps to reproduce** (exact actions taken)
-3. **Expected behavior** vs **actual behavior**
-4. **System info**: OS, Java version, screen resolution
-5. **Config file**: Attach `config/client.yaml`
-6. **Screenshot** if UI issue
-
-Post to: [GitHub Issues](https://github.com/yourrepo/PoorCraftUltra/issues)
-
-## World Saves (Phase 1.35)
-
-Poorcraft Ultra automatically persists your world when you exit the game (ESC key) or when the JVM shuts down unexpectedly.
-
-```
-data/
-  worlds/
-    default/
-      region/
-        r.{chunkX}.{chunkZ}.dat
-```
-
-- **Format:** 32-byte header + 65,536-byte block payload (65,568 bytes total)
-- **Checksum:** CRC32 stored in header; corrupted files regenerate safely
-- **Fallback:** Missing/corrupt chunks regenerate using the Phase 1 checkerboard worldgen
-
-**Backup:** Copy the entire `data/worlds/default/` directory.
-
-**Reset World:** Delete `data/worlds/default/` and restart the game; new chunks will be generated.
-
-**Troubleshooting:**
-- `Failed to load chunk ... will regenerate` → File corrupt; chunk replaced with fallback
-- Missing `.dat` files → Normal for unexplored chunks
-- Repeated checksum warnings → Check disk health or permissions
-
-## Controls (Phase 1.5)
-
-**Default Keybinds:**
-- **Movement**: WASD (configurable in Settings → Controls)
-- **Sprint**: Left Shift
-- **Break Block**: Left Mouse Button
-- **Place Block**: Right Mouse Button
-- **Pause**: ESC (opens pause menu in-game; exits in main menu)
-- **Debug Overlay**: F3
-
-**Mouse Settings:**
-- Sensitivity: Adjustable in Settings → Controls (default 1.5)
-- Invert Y-Axis: Toggle in Settings → Controls (default off)
-
-**Changing Keybinds:**
-1. Open Settings (from main menu or pause menu)
-2. Go to Controls tab
-3. Click "Rebind" next to any action
-4. Press the desired key or mouse button
-5. Click "Apply" to save changes
-
-## UI and Input Issues
-
-**Mouse feels inverted:**
-- Open Settings → Controls
-- Enable "Invert Mouse Y"
-- Click Apply
-
-**Mouse too sensitive/slow:**
-- Open Settings → Controls
-- Adjust "Mouse Sensitivity" slider
-- Click Apply
-
-**Can't change keybinds:**
-- Ensure you click "Apply" after rebinding
-- Check `config/client.yaml` for `controls` section
-- Delete config file to reset to defaults
-
-**UI too small/large after resize:**
-- UI should auto-scale on window resize
-- If not, restart game
-- Check logs for "UI scale processor" errors
-
-**Cursor stuck hidden/visible:**
-- Press ESC to toggle between game and menu states
-- Cursor hidden in-game, visible in menus
-- If stuck, restart game
-
-## Next Steps
-- **Phase 0A**: Generate procedural assets (blocks, skins, items) via Python scripts
-- **Phase 1**: ~~Implement voxel core (chunks, meshing, place/break)~~ ✓ COMPLETE
-- **Phase 1.35**: ~~Implement save/load (region files, checksums)~~ ✓ COMPLETE
-- **Phase 1.5**: ~~Implement UI system, menus, input configuration~~ ✓ COMPLETE
-- **Phase 2**: Add worldgen (terrain, biomes, caves)
-
-For detailed architecture and phase breakdown, see `/docs/architecture.md` (Phase 11).
+MIT License (no Mojang/Microsoft code or assets)
