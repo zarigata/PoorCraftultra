@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://resources/voxel_flat_shaded.gdshader" id="1_5r1uv"]
+
+[resource]
+shader = ExtResource("1_5r1uv")
+shader_parameter/base_color = Color(0.5, 0.7, 0.4, 1)
+shader_parameter/roughness = 1.0
+shader_parameter/light_tint = Color(1, 1, 1, 1)

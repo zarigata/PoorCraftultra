@@ -1,0 +1,28 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/VoxelWorld.gd" id="1"]
+[ext_resource type="Material" path="res://resources/voxel_flat_material.tres" id="2"]
+
+[sub_resource type="VoxelMesherTransvoxel" id="1"]
+
+[node name="VoxelWorld" type="Node3D"]
+script = ExtResource("1")
+
+[node name="Terrain" type="VoxelLodTerrain" parent="."]
+mesher = SubResource("1")
+material_override = ExtResource("2")
+collision_layer = 1
+collision_mask = 14
+lod_count = 4
+lod_distance = 48.0
+view_distance = 512.0
+full_load_mode = false
+threaded_update = true
+collision_enabled = true
+collision_lod_count = 2
+
+[node name="Viewer" type="VoxelViewer" parent="."]
+position = Vector3(0, 50, 0)
+requires_collisions = true
+requires_meshes = true
+view_distance = 512.0

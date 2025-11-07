@@ -1,0 +1,24 @@
+*.gd text eol=lf
+*.tscn text eol=lf diff
+*.tres text eol=lf diff
+*.shader text eol=lf
+*.glsl text eol=lf
+*.gdshader text eol=lf
+*.import text eol=lf
+*.cfg text eol=lf
+*.txt text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ktx2 binary
+*.ogg binary
+*.wav binary
+*.mp3 binary
+*.glb binary
+*.gltf binary
+*.fbx binary
+*.blend binary

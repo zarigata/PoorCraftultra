@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "biomes": {
+    "verdant_woods": {
+      "name": "Verdant Woods",
+      "ambient_loops": [
+        {"path": "res://assets/audio/ambient/forest_day.ogg", "volume_db": -10.0, "time_of_day": "day"},
+        {"path": "res://assets/audio/ambient/forest_night.ogg", "volume_db": -12.0, "time_of_day": "night"}
+      ],
+      "random_sounds": [
+        {"path": "res://assets/audio/ambient/bird_chirp.ogg", "interval_min": 5.0, "interval_max": 15.0, "volume_db": -15.0}
+      ]
+    },
+    "storm_peaks": {
+      "name": "Storm Peaks",
+      "ambient_loops": [
+        {"path": "res://assets/audio/ambient/wind_mountain.ogg", "volume_db": -8.0, "time_of_day": "all"}
+      ],
+      "random_sounds": []
+    },
+    "amber_dunes": {
+      "name": "Amber Dunes",
+      "ambient_loops": [
+        {"path": "res://assets/audio/ambient/desert_wind.ogg", "volume_db": -12.0, "time_of_day": "all"}
+      ],
+      "random_sounds": []
+    },
+    "mirelow": {
+      "name": "Mirelow",
+      "ambient_loops": [
+        {"path": "res://assets/audio/ambient/swamp_ambience.ogg", "volume_db": -10.0, "time_of_day": "all"}
+      ],
+      "random_sounds": []
+    }
+  },
+  "default_biome": "verdant_woods"
+}

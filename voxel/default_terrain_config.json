@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "seed": 12345,
+  "noise": {
+    "type": "OpenSimplex2S",
+    "frequency": 0.008,
+    "fractal_type": "FBM",
+    "fractal_octaves": 5,
+    "fractal_lacunarity": 2.0,
+    "fractal_gain": 0.5
+  },
+  "generator": {
+    "height_start": -100.0,
+    "height_range": 300.0,
+    "channel": "SDF"
+  },
+  "terrain": {
+    "mesh_block_size": 32,
+    "lod_count": 4,
+    "lod_distance": 48.0,
+    "view_distance": 512.0,
+    "collision_enabled": true,
+    "collision_lod_count": 2
+  },
+  "performance": {
+    "full_load_mode": false,
+    "threaded_update_enabled": true,
+    "max_concurrent_generations": 4
+  }
+}

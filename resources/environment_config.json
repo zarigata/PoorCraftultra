@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "day_night_cycle": {
+    "enabled": true,
+    "cycle_duration_seconds": 1200.0,
+    "start_time_normalized": 0.25,
+    "time_scale": 1.0
+  },
+  "sun": {
+    "day_rotation": {"x": -45, "y": 45, "z": 0},
+    "night_rotation": {"x": 135, "y": 45, "z": 0},
+    "day_energy": 1.0,
+    "night_energy": 0.1,
+    "day_color": {"r": 1.0, "g": 0.95, "b": 0.9},
+    "night_color": {"r": 0.4, "g": 0.5, "b": 0.7},
+    "shadow_enabled": true,
+    "shadow_bias": 0.1,
+    "shadow_normal_bias": 1.0,
+    "shadow_blur": 1.0
+  },
+  "sky": {
+    "day_top_color": {"r": 0.4, "g": 0.6, "b": 1.0},
+    "day_horizon_color": {"r": 0.7, "g": 0.8, "b": 1.0},
+    "night_top_color": {"r": 0.05, "g": 0.05, "b": 0.15},
+    "night_horizon_color": {"r": 0.1, "g": 0.15, "b": 0.25},
+    "ground_color": {"r": 0.3, "g": 0.35, "b": 0.4}
+  },
+  "ambient": {
+    "day_color": {"r": 0.3, "g": 0.3, "b": 0.35},
+    "night_color": {"r": 0.1, "g": 0.1, "b": 0.15},
+    "day_energy": 1.0,
+    "night_energy": 0.3
+  },
+  "fog": {
+    "enabled": true,
+    "day_color": {"r": 0.5, "g": 0.7, "b": 1.0},
+    "night_color": {"r": 0.1, "g": 0.15, "b": 0.25},
+    "density": 0.02,
+    "mode": "exponential",
+    "fog_depth_begin": 10.0,
+    "fog_depth_end": 200.0
+  },
+  "performance": {
+    "light_lod_enabled": true,
+    "light_lod_distance": 200.0,
+    "shadow_fade_start": 150.0,
+    "shadow_fade_end": 200.0,
+    "disable_shadows_at_night": false,
+    "night_shadow_multiplier": 0.5
+  },
+  "biome_settings": {
+    "ambient_tint_strength": 1.0,
+    "fog_tint_strength": 1.0
+  }
+}

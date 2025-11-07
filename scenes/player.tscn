@@ -1,0 +1,38 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/Player.gd" id="1"]
+
+[sub_resource type="CapsuleShape3D" id="1"]
+height = 1.8
+radius = 0.4
+
+[node name="Player" type="CharacterBody3D"]
+script = ExtResource(1)
+collision_layer = 2
+collision_mask = 41
+floor_max_angle = 0.785398
+floor_snap_length = 0.2
+floor_stop_on_slope = true
+floor_constant_speed = false
+floor_block_on_wall = true
+slide_on_ceiling = true
+motion_mode = 0
+
+[node name="CollisionShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource(1)
+
+[node name="Head" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+
+[node name="Camera" type="Camera3D" parent="Head"]
+current = true
+fov = 75.0
+near = 0.05
+far = 1000.0
+
+[node name="InteractionRay" type="RayCast3D" parent="Head"]
+collision_mask = 41
+collide_with_areas = false
+collide_with_bodies = true
+target_position = Vector3(0, 0, -5)

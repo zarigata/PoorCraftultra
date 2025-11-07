@@ -1,58 +1,20 @@
-# Gradle
-.gradle/
-build/
-out/
-bin/
-!gradle/wrapper/gradle-wrapper.jar
+.godot/
+*.translation
 
-# IDE
-.idea/
-*.iml
-.vscode/
-.settings/
-.classpath
-.project
-*.swp
-*.swo
+/export/
+/builds/
+/android/
+/ios/
 
-# OS
+.mono/
+data_*/
+mono_crash.*.json
+
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-.venv/
-venv/
-*.egg-info/
-.pytest_cache/
-
-# Generated assets (regenerated on build)
-assets/blocks/
-assets/skins/
-assets/items/
-assets/sfx/
-
-# Logs
-logs/
-*.log
-
-# Temp files
-*.tmp
-*.bak
+.vscode/
+.idea/
+*.swp
 *~
-
-# Native libraries (downloaded by Gradle)
-*.dll
-*.so
-*.dylib
-
-# Package outputs
-dist/
-*.exe
-*.dmg
-*.deb
-*.jar
-!gradle/wrapper/gradle-wrapper.jar

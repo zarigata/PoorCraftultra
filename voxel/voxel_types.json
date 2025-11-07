@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "types": {
+    "air": {
+      "id": 0,
+      "name": "Air",
+      "is_solid": false,
+      "material_id": 0
+    },
+    "dirt": {
+      "id": 1,
+      "name": "Dirt",
+      "is_solid": true,
+      "material_id": 1
+    },
+    "stone": {
+      "id": 2,
+      "name": "Stone",
+      "is_solid": true,
+      "material_id": 2
+    },
+    "grass": {
+      "id": 3,
+      "name": "Grass",
+      "is_solid": true,
+      "material_id": 3
+    }
+  }
+}
