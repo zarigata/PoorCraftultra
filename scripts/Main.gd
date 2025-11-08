@@ -1,17 +1,17 @@
 extends Node3D
 
 const PLAYER_NAME := "Player"
-const CAMERA_NAME := "MainCamera"
 const SPAWN_NODE_NAME := "PlayerSpawnPoint"
 const SUN_NODE_NAME := "Sun"
 const WORLD_ENVIRONMENT_NODE_NAME := "WorldEnvironment"
 const VOXEL_WORLD_SCENE := preload("res://scenes/voxel_world.tscn")
 const WORLD_CONTAINER_NAME := "WorldContainer"
+const PLAYER_SCENE := preload("res://scenes/player.tscn")
 
 func _ready() -> void:
+    _connect_player_registered_signal()
     await _initialize_voxel_world()
     _initialize_environment()
-    _ensure_camera_exists()
     _ensure_player_spawned()
     _attach_viewer_to_camera()
     _attach_environment_to_camera()
@@ -19,16 +19,24 @@ func _ready() -> void:
 func _ensure_player_spawned() -> void:
     var world := GameManager.get_current_world()
     if world == null:
+        ErrorLogger.log_warning("Cannot spawn player: voxel world not initialized", "Main")
         return
     if get_node_or_null(PLAYER_NAME) != null:
+        ErrorLogger.log_debug("Player already exists, skipping spawn", "Main")
         return
     var spawn_point := get_node_or_null(SPAWN_NODE_NAME)
     if spawn_point == null or not (spawn_point is Node3D):
+        ErrorLogger.log_error("PlayerSpawnPoint node not found or invalid type", "Main")
         return
-    var player := Node3D.new()
-    player.name = PLAYER_NAME
-    add_child(player)
-    player.global_transform = spawn_point.global_transform
+    var player_instance := PLAYER_SCENE.instantiate()
+    if player_instance == null:
+        ErrorLogger.log_critical("Failed to instantiate player scene", "Main")
+        return
+
+    player_instance.name = PLAYER_NAME
+    add_child(player_instance)
+    player_instance.global_position = spawn_point.global_position
+    ErrorLogger.log_info("Player spawned at %s" % spawn_point.global_position, "Main")
 
 func _initialize_voxel_world() -> void:
     var container := get_node_or_null(WORLD_CONTAINER_NAME)
@@ -74,41 +82,46 @@ func _initialize_environment() -> void:
     else:
         ErrorLogger.log_error("Environment system failed to initialize", "Main")
 
-func _ensure_camera_exists() -> void:
-    if get_node_or_null(CAMERA_NAME) != null:
+func _connect_player_registered_signal() -> void:
+    if typeof(GameManager) == TYPE_NIL or GameManager == null:
+        ErrorLogger.log_error("GameManager not available for player registration signal", "Main")
         return
-    
-    var spawn_point := get_node_or_null(SPAWN_NODE_NAME)
-    if spawn_point == null:
-        ErrorLogger.log_warning("No spawn point found for camera placement", "Main")
-        return
-    
-    var camera := Camera3D.new()
-    camera.name = CAMERA_NAME
-    camera.current = true
-    add_child(camera)
-    camera.global_position = spawn_point.global_position
-    ErrorLogger.log_info("Main camera created at spawn point", "Main")
+    if not GameManager.player_registered.is_connected(_on_player_registered):
+        GameManager.player_registered.connect(_on_player_registered)
 
 func _attach_viewer_to_camera() -> void:
     var world := GameManager.get_current_world()
     if world == null or not world.has_method("set_tracked_camera"):
+        ErrorLogger.log_warning("VoxelWorld not available for viewer attachment", "Main")
         return
-    
-    var camera := get_node_or_null(CAMERA_NAME)
+    var player := GameManager.get_player()
+    if player == null or not player.has_method("get_camera"):
+        ErrorLogger.log_warning("No player available for viewer attachment", "Main")
+        return
+    var camera := player.get_camera()
     if camera == null or not (camera is Camera3D):
-        ErrorLogger.log_warning("No camera available to attach viewer", "Main")
+        ErrorLogger.log_warning("Player camera not found", "Main")
         return
-    
     world.set_tracked_camera(camera)
-    ErrorLogger.log_debug("VoxelViewer attached to camera", "Main")
+    ErrorLogger.log_debug("VoxelViewer attached to player camera", "Main")
 
 func _attach_environment_to_camera() -> void:
-    var camera := get_node_or_null(CAMERA_NAME)
+    var player := GameManager.get_player()
+    if player == null or not player.has_method("get_camera"):
+        ErrorLogger.log_warning("No player available for environment tracking", "Main")
+        return
+    var camera := player.get_camera()
     if camera == null or not (camera is Camera3D):
-        ErrorLogger.log_warning("No camera available for environment tracking", "Main")
+        ErrorLogger.log_warning("Player camera not found for environment tracking", "Main")
         return
 
     if typeof(EnvironmentManager) != TYPE_NIL and EnvironmentManager != null and EnvironmentManager.has_method("set_tracked_camera"):
         EnvironmentManager.set_tracked_camera(camera)
-        ErrorLogger.log_debug("Environment tracking camera", "Main")
+        ErrorLogger.log_debug("Environment tracking player camera", "Main")
+
+func _on_player_registered(player: Node) -> void:
+    if player == null:
+        ErrorLogger.log_warning("Player registration signal received with null player", "Main")
+        return
+    _attach_viewer_to_camera()
+    _attach_environment_to_camera()

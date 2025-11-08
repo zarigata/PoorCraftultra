@@ -2,7 +2,7 @@ extends CanvasLayer
 class_name DebugOverlay
 
 const UPDATE_INTERVAL := 0.1
-const PANEL_SIZE := Vector2(320, 280)
+const PANEL_SIZE := Vector2(320, 320)
 const PANEL_MARGIN := Vector2(12, 12)
 const PANEL_ALPHA := 0.7
 const FPS_THRESHOLD_WARN := 30.0
@@ -67,6 +67,9 @@ func _build_ui() -> void:
     _create_stat_label(vbox, "game_state", "Game State: Unknown")
     _create_stat_label(vbox, "input_mode", "Input Mode: Unknown")
     _create_stat_label(vbox, "player_position", "Player: (0, 0, 0)")
+    _create_stat_label(vbox, "player_velocity", "Velocity: 0.0 m/s")
+    _create_stat_label(vbox, "player_state", "State: IDLE")
+    _create_stat_label(vbox, "player_grounded", "Grounded: Yes")
     _create_stat_label(vbox, "chunk_count", "Chunks: 0")
     _create_stat_label(vbox, "entity_count", "Entities: 0")
     _create_stat_label(vbox, "time_of_day", "Time: 00:00 (Day)")
@@ -93,7 +96,7 @@ func _update_stats() -> void:
     _update_memory()
     _update_game_state()
     _update_input_mode()
-    _update_player_position()
+    _update_player_stats()
     _update_chunk_stats()
     _update_entity_stats()
     _update_environment_stats()
@@ -143,14 +146,59 @@ func _update_input_mode() -> void:
             mode_name = mode_keys[mode_index]
     _set_label_text("input_mode", "Input Mode: %s" % mode_name)
 
-func _update_player_position() -> void:
-    var position := Vector3.ZERO
+func _update_player_stats() -> void:
     var game_manager := _get_game_manager()
-    if game_manager:
-        var player := game_manager.get_player()
-        if player and player is Node3D:
-            position = player.global_position
-    _set_label_text("player_position", "Player: (%.2f, %.2f, %.2f)" % [position.x, position.y, position.z])
+    if game_manager == null:
+        _set_label_text("player_position", "Player: N/A")
+        _set_label_text("player_velocity", "Velocity: N/A")
+        _set_label_text("player_state", "State: N/A")
+        _set_label_text("player_grounded", "Grounded: N/A")
+        return
+
+    var player := game_manager.get_player()
+    if player == null or not (player is Node3D):
+        _set_label_text("player_position", "Player: Not spawned")
+        _set_label_text("player_velocity", "Velocity: N/A")
+        _set_label_text("player_state", "State: N/A")
+        _set_label_text("player_grounded", "Grounded: N/A")
+        return
+
+    var position := player.global_position
+    _set_label_text("player_position", "Player: (%.1f, %.1f, %.1f)" % [position.x, position.y, position.z])
+
+    var velocity_mag := 0.0
+    if player.has_method("get_velocity_horizontal"):
+        velocity_mag = float(player.call("get_velocity_horizontal"))
+    _set_label_text("player_velocity", "Velocity: %.2f m/s" % velocity_mag)
+    var velocity_color := Color(0.6, 1.0, 0.6) if velocity_mag > 0.1 else Color(0.7, 0.7, 0.7)
+    _set_label_color("player_velocity", velocity_color)
+
+    var state_name := "UNKNOWN"
+    if player.has_method("get_current_state"):
+        var state_index := int(player.call("get_current_state"))
+        var state_names := ["IDLE", "WALKING", "SPRINTING", "JUMPING", "FALLING", "FLYING"]
+        if state_index >= 0 and state_index < state_names.size():
+            state_name = state_names[state_index]
+    _set_label_text("player_state", "State: %s" % state_name)
+    var state_color := Color(0.7, 0.7, 0.7)
+    match state_name:
+        "SPRINTING":
+            state_color = Color(0.4, 0.8, 1.0)
+        "WALKING":
+            state_color = Color(0.6, 1.0, 0.6)
+        "JUMPING", "FALLING":
+            state_color = Color(1.0, 0.9, 0.4)
+        "FLYING":
+            state_color = Color(1.0, 0.4, 1.0)
+    _set_label_color("player_state", state_color)
+
+    var grounded := false
+    if player is CharacterBody3D:
+        grounded = player.is_on_floor()
+    var grounded_text := "Yes" if grounded else "No"
+    _set_label_text("player_grounded", "Grounded: %s" % grounded_text)
+    var grounded_color := Color(0.6, 1.0, 0.6) if grounded else Color(1.0, 0.9, 0.4)
+    _set_label_color("player_grounded", grounded_color)
 
 func _update_chunk_stats() -> void:
     var chunk_text := "Chunks: 0 (stub)"

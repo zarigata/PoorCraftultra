@@ -37,6 +37,7 @@ RetroForge development follows the phases defined in `Specifications.md`:
 - ✅ **Phase A.2 – Core Infrastructure**: Main scene, autoload singletons, error handling, debug tooling.
 - ✅ **Phase A.3 – Voxel Engine Integration**: Terrain generation, chunk systems, voxel editing.
 - ✅ **Phase A.4 – Environment Setup**: Dynamic lighting, audio system, biome hooks.
+- ✅ **Phase A.5 – Player Controller**: FPS movement, state machine, collision-ready CharacterBody3D controller.
 - **Phase B – LLM Companions**: AI companion behaviors, dialogue, and tooling.
 - **Phase C – RPG Layer**: Factions, quests, NPC interactions, progression.
 - **Phase D – Networking & Polishing**: Multiplayer, optimizations, release readiness.
@@ -79,6 +80,40 @@ These load in the order listed so each manager can depend on previously initiali
 - Light LOD reduces shadow cost at distance from player
 - Audio pool prevents performance issues from too many simultaneous sounds
 
+## Player Controller
+
+### First-Person Movement
+- **WASD movement** with smooth acceleration, friction, and slope handling
+- **Mouse look** with configurable sensitivity sourced from settings
+- **Sprint** (hold Shift) for increased ground speed
+- **Jump** with realistic gravity and terminal velocity capping
+- **State machine** covering Idle, Walking, Sprinting, Jumping, Falling, and debug Flying
+- **Collision** handled through `CharacterBody3D` capsule tuned for voxel terrain
+
+### Features
+- **Head bobbing** feedback while moving on the ground
+- **Footstep audio hooks** ready for biome-aware SFX playback
+- **Fall tracking** with damage calculations prepared for future health integration
+- **Biome polling** to trigger ambient/environment transitions
+- **Mouse capture** that respects the pause state and settings updates
+- **Debug fly mode** (F key) for rapid traversal in development builds
+
+### Controls
+- **WASD** – Move
+- **Mouse** – Look around (captured on spawn)
+- **Shift** – Sprint (hold)
+- **Space** – Jump
+- **Escape** – Toggle mouse capture / pause
+- **F** – Toggle fly mode (debug builds only)
+- **E / Space** – Ascend while flying
+- **Q** – Descend while flying
+
+### Integration
+- Registers with `GameManager` for global access and pause awareness
+- Provides camera reference to `VoxelWorld` and `EnvironmentManager`
+- Polls `VoxelWorld.check_biome_at_position()` for ambience updates
+- Emits signals and exposes helpers consumed by `DebugOverlay` and future systems
+
 ## Development Tools
 
 - Press **F3** to toggle the debug overlay (FPS, memory, state, stubs for future metrics).
@@ -88,6 +123,11 @@ These load in the order listed so each manager can depend on previously initiali
   - Time of day (HH:MM format with Day/Night indicator)
   - Current biome (when biome detection is active)
   - Audio pool usage (active players vs. max pool size)
+- Player stats in debug overlay:
+  - Position (X, Y, Z)
+  - Velocity (horizontal speed in m/s)
+  - State (IDLE/WALKING/SPRINTING/JUMPING/FALLING/FLYING)
+  - Grounded status (Yes/No)
 
 ## Integrations
 

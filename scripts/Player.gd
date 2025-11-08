@@ -49,11 +49,11 @@ var _voxel_world: VoxelWorld = null
 var _game_manager: GameManager = null
 var _head_pitch: float = 0.0
 var _pending_mouse_capture: bool = false
+var _footstep_stream_cache := {}
 
 func _ready() -> void:
     _locate_autoloads()
     _resolve_child_nodes()
-    _setup_collision_layers()
     _initialize_settings()
     _connect_signals()
     _register_with_managers()
@@ -74,13 +74,16 @@ func _process(_delta: float) -> void:
 func _input(event: InputEvent) -> void:
     if event is InputEventMouseMotion and mouse_captured:
         _apply_mouse_look(event.relative)
-    elif event is InputEventKey and event.pressed:
-        if event.keycode == Key.ESCAPE:
-            if mouse_captured:
-                _release_mouse()
-            else:
-                _capture_mouse()
-        elif event.keycode == Key.F and OS.is_debug_build():
+        return
+    var toggle_capture_pressed := _input_manager != null ? _input_manager.is_action_just_pressed_buffered("toggle_mouse_capture") : Input.is_action_just_pressed("toggle_mouse_capture")
+    if toggle_capture_pressed:
+        if mouse_captured:
+            _release_mouse()
+        else:
+            _capture_mouse()
+    elif OS.is_debug_build():
+        var toggle_fly_pressed := _input_manager != null ? _input_manager.is_action_just_pressed_buffered("toggle_fly_mode") : Input.is_action_just_pressed("toggle_fly_mode")
+        if toggle_fly_pressed:
             _toggle_fly_mode()
 
 func _physics_process(delta: float) -> void:
@@ -96,11 +99,11 @@ func _physics_process(delta: float) -> void:
     else:
         match current_state:
             State.IDLE:
-                _state_idle_process(delta, movement_input, was_grounded)
+                _state_idle_process(delta, movement_input)
             State.WALKING:
-                _state_walking_process(delta, movement_input, was_grounded)
+                _state_walking_process(delta, movement_input)
             State.SPRINTING:
-                _state_sprinting_process(delta, movement_input, was_grounded)
+                _state_sprinting_process(delta, movement_input)
             State.JUMPING:
                 _state_jumping_process(delta, movement_input)
             State.FALLING:
@@ -111,12 +114,12 @@ func _physics_process(delta: float) -> void:
         if current_state != State.FLYING:
             _apply_gravity(delta, was_grounded)
 
-    velocity = move_and_slide()
+    move_and_slide()
 
     var now_grounded := is_on_floor()
     if not was_grounded and now_grounded:
         _handle_landing()
-    elif was_grounded and not now_grounded and current_state not in [State.JUMPING, State.FLYING]:
+    elif not now_grounded and current_state not in [State.JUMPING, State.FLYING, State.FALLING]:
         fall_start_height = global_position.y
         _change_state(State.FALLING)
 
@@ -143,13 +146,9 @@ func _resolve_child_nodes() -> void:
     camera = head != null and head.get_node_or_null("Camera") or null
     if camera == null:
         ErrorLogger.log_error("Player camera node missing", "Player")
-    interaction_ray = head != null and head.get_node_or_null("InteractionRay") or null
+    interaction_ray = camera != null and camera.get_node_or_null("InteractionRay") or null
     if interaction_ray == null:
         ErrorLogger.log_warning("Interaction ray not found; interactions disabled", "Player")
-
-func _setup_collision_layers() -> void:
-    collision_layer = 1 << (2 - 1)
-    collision_mask = (1 << (1 - 1)) | (1 << (4 - 1)) | (1 << (6 - 1))
 
 func _initialize_settings() -> void:
     mouse_sensitivity = _get_mouse_sensitivity()
@@ -178,6 +177,9 @@ func _ensure_voxel_world_reference() -> void:
     var world := _game_manager.get_current_world()
     if world == _voxel_world:
         return
+    if _voxel_world != null and _voxel_world.has_signal("biome_detected"):
+        if _voxel_world.biome_detected.is_connected(_on_biome_detected):
+            _voxel_world.biome_detected.disconnect(_on_biome_detected)
     _voxel_world = world
     if _voxel_world != null and _voxel_world.has_signal("biome_detected") and not _voxel_world.biome_detected.is_connected(_on_biome_detected):
         _voxel_world.biome_detected.connect(_on_biome_detected)
@@ -234,10 +236,7 @@ func _get_movement_direction(input_vector: Vector2) -> Vector3:
     var direction := (right * input_vector.x) + (forward * input_vector.y)
     return direction.normalized()
 
-func _state_idle_process(delta: float, movement_input: Vector2, was_grounded: bool) -> void:
-    if not was_grounded:
-        _change_state(State.FALLING)
-        return
+func _state_idle_process(delta: float, movement_input: Vector2) -> void:
     if movement_input != Vector2.ZERO:
         _change_state(State.WALKING)
         return
@@ -247,10 +246,7 @@ func _state_idle_process(delta: float, movement_input: Vector2, was_grounded: bo
     _apply_friction(FRICTION, delta)
     _reset_head_bob(delta)
 
-func _state_walking_process(delta: float, movement_input: Vector2, was_grounded: bool) -> void:
-    if not was_grounded:
-        _change_state(State.FALLING)
-        return
+func _state_walking_process(delta: float, movement_input: Vector2) -> void:
     if _is_jump_pressed():
         _change_state(State.JUMPING)
         return
@@ -269,10 +265,7 @@ func _state_walking_process(delta: float, movement_input: Vector2, was_grounded:
         _play_footstep()
         footstep_timer = FOOTSTEP_INTERVAL
 
-func _state_sprinting_process(delta: float, movement_input: Vector2, was_grounded: bool) -> void:
-    if not was_grounded:
-        _change_state(State.FALLING)
-        return
+func _state_sprinting_process(delta: float, movement_input: Vector2) -> void:
     if _is_jump_pressed():
         _change_state(State.JUMPING)
         return
@@ -321,9 +314,18 @@ func _state_flying_process(delta: float, movement_input: Vector2) -> void:
     direction += forward * movement_input.y
     direction += right * movement_input.x
 
-    if Input.is_key_pressed(Key.Q):
+    var descend_pressed := false
+    var ascend_pressed := false
+    if _input_manager != null:
+        descend_pressed = _input_manager.is_action_pressed_safe("fly_down")
+        ascend_pressed = _input_manager.is_action_pressed_safe("fly_up") or _input_manager.is_action_pressed_safe("jump")
+    else:
+        descend_pressed = Input.is_action_pressed("fly_down")
+        ascend_pressed = Input.is_action_pressed("fly_up") or Input.is_action_pressed("jump")
+
+    if descend_pressed:
         direction -= up
-    if Input.is_key_pressed(Key.E) or _is_jump_pressed():
+    if ascend_pressed:
         direction += up
 
     if direction != Vector3.ZERO:
@@ -361,10 +363,12 @@ func _enter_state(state: State) -> void:
         State.FLYING:
             velocity = Vector3.ZERO
             fall_start_height = global_position.y
+            self.motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 
 func _exit_state(state: State) -> void:
     match state:
         State.FLYING:
+            self.motion_mode = CharacterBody3D.MOTION_MODE_GROUNDED
             fly_mode_enabled = false
 
 func _handle_landing() -> void:
@@ -409,14 +413,21 @@ func _play_footstep() -> void:
     var feet_position := global_position + Vector3(0.0, -1.0, 0.0)
     var voxel_type := _voxel_world.get_voxel_type_at(feet_position) if _voxel_world.has_method("get_voxel_type_at") else {}
     var material_name := String(voxel_type.get("name", "default")).to_lower()
-    var stream_path := "res://assets/audio/sfx/footsteps/%s_walk.ogg" % material_name
-    if not ResourceLoader.exists(stream_path):
-        stream_path = "res://assets/audio/sfx/footsteps/default_walk.ogg"
-    if not ResourceLoader.exists(stream_path):
-        return
-    var stream := ResourceLoader.load(stream_path)
-    if stream:
-        _audio_manager.play_sfx_3d(stream, global_position)
+
+    if not _footstep_stream_cache.has(material_name):
+        var stream: AudioStream = null
+        var primary_path := "res://assets/audio/sfx/footsteps/%s_walk.ogg" % material_name
+        if ResourceLoader.exists(primary_path):
+            stream = ResourceLoader.load(primary_path)
+        else:
+            var fallback_path := "res://assets/audio/sfx/footsteps/default_walk.ogg"
+            if ResourceLoader.exists(fallback_path):
+                stream = ResourceLoader.load(fallback_path)
+        _footstep_stream_cache[material_name] = stream
+
+    var cached_stream: AudioStream = _footstep_stream_cache[material_name]
+    if cached_stream:
+        _audio_manager.play_sfx_3d(cached_stream, global_position)
 
 func _update_biome(delta: float) -> void:
     _ensure_voxel_world_reference()

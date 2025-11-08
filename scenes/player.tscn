@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/Player.gd" id="1"]
 
@@ -31,8 +31,9 @@ fov = 75.0
 near = 0.05
 far = 1000.0
 
-[node name="InteractionRay" type="RayCast3D" parent="Head"]
+[node name="InteractionRay" type="RayCast3D" parent="Head/Camera"]
 collision_mask = 41
 collide_with_areas = false
 collide_with_bodies = true
+enabled = true
 target_position = Vector3(0, 0, -5)

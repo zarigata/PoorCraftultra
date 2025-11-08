@@ -4,6 +4,7 @@ class_name GameManager
 signal game_state_changed(old_state: GameState, new_state: GameState)
 signal settings_changed(setting_name: String, new_value: Variant)
 signal game_paused(is_paused: bool)
+signal player_registered(player: Node)
 
 enum GameState { INITIALIZING, MAIN_MENU, LOADING, PLAYING, PAUSED, SAVING, EXITING }
 enum GameMode { SINGLEPLAYER, MULTIPLAYER_HOST, MULTIPLAYER_CLIENT }
@@ -34,6 +35,7 @@ func _notification(what: int) -> void:
         quit_game()
 
 var current_world: Node = null
+var current_player: Node = null
 
 func load_settings() -> void:
     settings = DEFAULT_SETTINGS.duplicate(true)
@@ -118,4 +120,14 @@ func set_current_world(world: Node) -> void:
         ErrorLogger.log_warning("World reference cleared", "GameManager")
 
 func get_player() -> Node:
-    return null
+    return current_player
+
+func set_player(player: Node) -> void:
+    if current_player != null and current_player != player:
+        ErrorLogger.log_warning("Replacing existing player reference", "GameManager")
+    current_player = player
+    if player != null:
+        ErrorLogger.log_info("Player registered: %s" % player.name, "GameManager")
+    else:
+        ErrorLogger.log_warning("Player reference cleared", "GameManager")
+    emit_signal("player_registered", player)
