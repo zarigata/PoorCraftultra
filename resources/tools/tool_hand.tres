@@ -1,0 +1,22 @@
+[gd_resource type="Tool" load_steps=2 format=3]
+
+[ext_resource path="res://resources/Tool.gd" type="Script" id="1"]
+
+[resource]
+script = ExtResource("1")
+tool_id = "hand"
+tool_name = "Hand"
+tool_tier = 1
+max_durability = 999999
+current_durability = 999999
+mining_speed = 0.5
+mining_radius = 0.8
+can_mine = true
+can_place = false
+allowed_voxel_types = ["dirt", "grass", "sand"]
+efficiency_overrides = {
+"dirt": 1.0,
+"grass": 1.0,
+"sand": 1.0
+}
+icon_path = ""

@@ -1,0 +1,51 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/MiningProgressUI.gd" id="1"]
+
+[node name="MiningProgressUI" type="CanvasLayer"]
+script = ExtResource("1")
+layer = 50
+visible = false
+
+[node name="Container" type="CenterContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = 180.0
+offset_right = 100.0
+offset_bottom = 220.0
+
+[node name="VBox" type="VBoxContainer" parent="Container"]
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+alignment = 1
+
+[node name="VoxelLabel" type="Label" parent="Container/VBox"]
+text = "Mining:"
+horizontal_alignment = 1
+vertical_alignment = 1
+modulate = Color(1, 1, 1, 0.9)
+
+[node name="ProgressBar" type="ProgressBar" parent="Container/VBox"]
+custom_minimum_size = Vector2(200, 20)
+min_value = 0.0
+max_value = 1.0
+step = 0.0
+value = 0.0
+show_percentage = false
+
+[node name="ToolLabel" type="Label" parent="Container/VBox"]
+text = "Tool:"
+horizontal_alignment = 1
+vertical_alignment = 1
+modulate = Color(0.8, 0.8, 0.8, 0.8)

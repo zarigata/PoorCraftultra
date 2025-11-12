@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "palette": {
+    "primary": {"r": 0.2, "g": 0.3, "b": 0.4, "a": 1.0},
+    "secondary": {"r": 0.3, "g": 0.4, "b": 0.5, "a": 1.0},
+    "accent": {"r": 0.4, "g": 0.7, "b": 0.9, "a": 1.0},
+    "background": {"r": 0.15, "g": 0.15, "b": 0.2, "a": 0.85},
+    "panel": {"r": 0.2, "g": 0.2, "b": 0.25, "a": 0.9},
+    "text": {"r": 0.9, "g": 0.9, "b": 0.95, "a": 1.0},
+    "text_dim": {"r": 0.6, "g": 0.6, "b": 0.65, "a": 1.0},
+    "success": {"r": 0.4, "g": 0.8, "b": 0.4, "a": 1.0},
+    "warning": {"r": 0.9, "g": 0.7, "b": 0.3, "a": 1.0},
+    "error": {"r": 0.9, "g": 0.3, "b": 0.3, "a": 1.0},
+    "highlight": {"r": 0.5, "g": 0.7, "b": 1.0, "a": 0.3}
+  },
+  "fonts": {
+    "default_size": 14,
+    "title_size": 20,
+    "small_size": 12,
+    "large_size": 18,
+    "use_system_font": true,
+    "custom_font_path": ""
+  },
+  "panels": {
+    "corner_radius": 0,
+    "border_width": 2,
+    "border_color": {"r": 0.3, "g": 0.4, "b": 0.5, "a": 1.0},
+    "shadow_enabled": false,
+    "content_margin": 12
+  },
+  "buttons": {
+    "normal_bg": {"r": 0.25, "g": 0.3, "b": 0.35, "a": 1.0},
+    "hover_bg": {"r": 0.3, "g": 0.4, "b": 0.5, "a": 1.0},
+    "pressed_bg": {"r": 0.2, "g": 0.25, "b": 0.3, "a": 1.0},
+    "disabled_bg": {"r": 0.2, "g": 0.2, "b": 0.2, "a": 0.5},
+    "corner_radius": 0,
+    "border_width": 1
+  },
+  "accessibility": {
+    "color_blind_palettes": {
+      "protanopia": {
+        "success": {"r": 0.3, "g": 0.6, "b": 0.9, "a": 1.0},
+        "warning": {"r": 0.9, "g": 0.7, "b": 0.3, "a": 1.0},
+        "error": {"r": 0.9, "g": 0.5, "b": 0.1, "a": 1.0},
+        "primary": {"r": 0.25, "g": 0.45, "b": 0.75, "a": 1.0},
+        "secondary": {"r": 0.45, "g": 0.6, "b": 0.8, "a": 1.0},
+        "accent": {"r": 0.95, "g": 0.8, "b": 0.35, "a": 1.0},
+        "panel": {"r": 0.18, "g": 0.2, "b": 0.28, "a": 0.95}
+      },
+      "deuteranopia": {
+        "success": {"r": 0.3, "g": 0.6, "b": 0.9, "a": 1.0},
+        "warning": {"r": 0.9, "g": 0.7, "b": 0.3, "a": 1.0},
+        "error": {"r": 0.9, "g": 0.5, "b": 0.1, "a": 1.0},
+        "primary": {"r": 0.2, "g": 0.5, "b": 0.75, "a": 1.0},
+        "secondary": {"r": 0.35, "g": 0.55, "b": 0.78, "a": 1.0},
+        "accent": {"r": 0.95, "g": 0.78, "b": 0.45, "a": 1.0},
+        "panel": {"r": 0.18, "g": 0.21, "b": 0.27, "a": 0.95}
+      },
+      "tritanopia": {
+        "success": {"r": 0.0, "g": 0.8, "b": 0.8, "a": 1.0},
+        "warning": {"r": 0.9, "g": 0.3, "b": 0.5, "a": 1.0},
+        "error": {"r": 0.9, "g": 0.1, "b": 0.1, "a": 1.0},
+        "primary": {"r": 0.35, "g": 0.5, "b": 0.85, "a": 1.0},
+        "secondary": {"r": 0.5, "g": 0.65, "b": 0.9, "a": 1.0},
+        "accent": {"r": 0.95, "g": 0.65, "b": 0.35, "a": 1.0},
+        "panel": {"r": 0.16, "g": 0.2, "b": 0.3, "a": 0.95}
+      }
+    },
+    "high_contrast": {
+      "background": {"r": 0.0, "g": 0.0, "b": 0.0, "a": 1.0},
+      "text": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0},
+      "border_width": 3
+    }
+  }
+}

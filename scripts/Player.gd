@@ -5,6 +5,7 @@ signal state_changed(old_state: State, new_state: State)
 signal landed(fall_distance: float)
 signal jumped()
 signal biome_entered(biome_id: String)
+signal item_collected(item_id: String, quantity: int)
 
 enum State { IDLE, WALKING, SPRINTING, JUMPING, FALLING, FLYING }
 
@@ -31,6 +32,7 @@ var current_state: State = State.IDLE
 var head: Node3D = null
 var camera: Camera3D = null
 var interaction_ray: RayCast3D = null
+var animation_player: AnimationPlayer = null
 var mouse_captured: bool = false
 var mouse_sensitivity: float = 0.3
 var gravity: float = 20.0
@@ -50,6 +52,17 @@ var _game_manager: GameManager = null
 var _head_pitch: float = 0.0
 var _pending_mouse_capture: bool = false
 var _footstep_stream_cache := {}
+var _mining_system: MiningSystem = null
+var _is_mining: bool = false
+var _mining_animation: StringName = &"mining_loop"
+var _nearby_items: Array[Node] = []
+var _pickup_cooldown: float = 0.0
+const PICKUP_COOLDOWN_DURATION := 0.1
+var _interaction_manager: InteractionManager = null
+var _building_system: BuildingSystem = null
+var _build_mode_enabled: bool = false
+var _build_mode_hold_time: float = 0.0
+const BUILD_MODE_HOLD_DURATION := 0.3
 
 func _ready() -> void:
     _locate_autoloads()
@@ -84,6 +97,9 @@ func _input(event: InputEvent) -> void:
     elif OS.is_debug_build():
         var toggle_fly_pressed := _input_manager != null ? _input_manager.is_action_just_pressed_buffered("toggle_fly_mode") : Input.is_action_just_pressed("toggle_fly_mode")
         if toggle_fly_pressed:
+            var interact_just_pressed := _input_manager != null ? _input_manager.is_action_just_pressed_buffered("interact") : Input.is_action_just_pressed("interact")
+            if interact_just_pressed:
+                return
             _toggle_fly_mode()
 
 func _physics_process(delta: float) -> void:
@@ -93,6 +109,8 @@ func _physics_process(delta: float) -> void:
 
     var was_grounded := is_on_floor()
     var movement_input := _get_movement_input()
+
+    _handle_mining_input(delta)
 
     if current_state == State.FLYING:
         _state_flying_process(delta, movement_input)
@@ -127,6 +145,86 @@ func _physics_process(delta: float) -> void:
 
     _update_head_bob(delta, movement_input, now_grounded)
     _update_biome(delta)
+    _update_pickup(delta)
+    _update_interaction(delta)
+    _handle_building_input(delta)
+
+func _handle_mining_input(_delta: float) -> void:
+    if _mining_system == null or _game_manager == null:
+        return
+
+    if _game_manager.is_paused:
+        if _is_mining:
+            _mining_system.stop_mining()
+            _is_mining = false
+        return
+
+    var mine_pressed := false
+    if _input_manager != null:
+        mine_pressed = _input_manager.is_action_pressed_safe("mine")
+    else:
+        mine_pressed = Input.is_action_pressed("mine")
+
+    if mine_pressed and not _is_mining:
+        if _mining_system.can_start_mining() and _mining_system.start_mining(self):
+            _is_mining = true
+            ErrorLogger.log_debug("Mining started", "Player")
+            _play_mining_animation()
+    elif not mine_pressed and _is_mining:
+        _mining_system.stop_mining()
+        _is_mining = false
+        ErrorLogger.log_debug("Mining stopped", "Player")
+        _stop_mining_animation()
+
+    if _is_mining and is_moving():
+        var velocity_threshold := 0.5
+        if get_velocity_horizontal() > velocity_threshold:
+            _mining_system.stop_mining()
+            _is_mining = false
+            ErrorLogger.log_debug("Mining cancelled due to movement", "Player")
+            _stop_mining_animation()
+
+func _handle_building_input(delta: float) -> void:
+    if _building_system == null or _game_manager == null:
+        return
+
+    if _game_manager.is_paused:
+        if _build_mode_enabled:
+            _exit_build_mode()
+        return
+
+    var build_pressed := false
+    if _input_manager != null:
+        build_pressed = _input_manager.is_action_pressed_safe("build_mode")
+    else:
+        build_pressed = Input.is_action_pressed("build_mode")
+
+    if build_pressed:
+        _build_mode_hold_time += delta
+        if _build_mode_hold_time >= BUILD_MODE_HOLD_DURATION and not _build_mode_enabled:
+            _enter_build_mode()
+    else:
+        if _build_mode_enabled:
+            _exit_build_mode()
+        _build_mode_hold_time = 0.0
+
+    if _build_mode_enabled and _building_system.is_in_build_mode():
+        _building_system.update_preview(self)
+
+        var place_pressed := false
+        if _input_manager != null:
+            place_pressed = _input_manager.is_action_just_pressed_buffered("place")
+        else:
+            place_pressed = Input.is_action_just_pressed("place")
+
+        if place_pressed:
+            if _building_system.try_place_building():
+                ErrorLogger.log_debug("Building placed", "Player")
+
+        if Input.is_action_just_pressed("rotate_building_cw"):
+            _building_system.rotate_preview(90.0)
+        elif Input.is_action_just_pressed("rotate_building_ccw"):
+            _building_system.rotate_preview(-90.0)
 
 func _locate_autoloads() -> void:
     if typeof(InputManager) != TYPE_NIL and InputManager != null:
@@ -136,6 +234,12 @@ func _locate_autoloads() -> void:
     if typeof(GameManager) != TYPE_NIL and GameManager != null:
         _game_manager = GameManager
         _voxel_world = _game_manager.get_current_world()
+    if typeof(MiningSystem) != TYPE_NIL and MiningSystem != null:
+        _mining_system = MiningSystem
+    if typeof(InteractionManager) != TYPE_NIL and InteractionManager != null:
+        _interaction_manager = InteractionManager
+    if typeof(BuildingSystem) != TYPE_NIL and BuildingSystem != null:
+        _building_system = BuildingSystem
 
 func _resolve_child_nodes() -> void:
     head = get_node_or_null("Head")
@@ -149,6 +253,9 @@ func _resolve_child_nodes() -> void:
     interaction_ray = camera != null and camera.get_node_or_null("InteractionRay") or null
     if interaction_ray == null:
         ErrorLogger.log_warning("Interaction ray not found; interactions disabled", "Player")
+    animation_player = head != null and head.get_node_or_null("AnimationPlayer") or get_node_or_null("AnimationPlayer")
+    if animation_player == null:
+        ErrorLogger.log_warning("AnimationPlayer not found; mining animations disabled", "Player")
 
 func _initialize_settings() -> void:
     mouse_sensitivity = _get_mouse_sensitivity()
@@ -164,6 +271,22 @@ func _connect_signals() -> void:
         if not _game_manager.game_paused.is_connected(_on_game_paused):
             _game_manager.game_paused.connect(_on_game_paused)
     _ensure_voxel_world_reference()
+    _connect_mining_signals()
+    # Item pickup is handled via DroppedItem's Area3D detection
+    # No explicit signal connection needed here
+
+func _connect_mining_signals() -> void:
+    if _mining_system == null:
+        return
+    if _mining_system.mining_started.is_connected(_on_mining_started):
+        _mining_system.mining_started.disconnect(_on_mining_started)
+    if _mining_system.mining_completed.is_connected(_on_mining_completed):
+        _mining_system.mining_completed.disconnect(_on_mining_completed)
+    if _mining_system.mining_cancelled.is_connected(_on_mining_cancelled):
+        _mining_system.mining_cancelled.disconnect(_on_mining_cancelled)
+    _mining_system.mining_started.connect(_on_mining_started)
+    _mining_system.mining_completed.connect(_on_mining_completed)
+    _mining_system.mining_cancelled.connect(_on_mining_cancelled)
 
 func _register_with_managers() -> void:
     if _game_manager != null:
@@ -406,6 +529,36 @@ func _update_head_bob(delta: float, movement_input: Vector2, grounded: bool) -> 
     else:
         _reset_head_bob(delta)
 
+func _update_pickup(delta: float) -> void:
+    if _pickup_cooldown > 0.0:
+        _pickup_cooldown = max(_pickup_cooldown - delta, 0.0)
+
+func _update_interaction(delta: float) -> void:
+    if _interaction_manager == null:
+        return
+
+    if interaction_ray != null and interaction_ray.enabled:
+        _interaction_manager.update_focus(self, interaction_ray)
+    else:
+        _interaction_manager.clear_focus()
+
+    if _game_manager != null and _game_manager.is_paused:
+        return
+
+    var interact_pressed := false
+    if _input_manager != null:
+        interact_pressed = _input_manager.is_action_just_pressed_buffered("interact")
+    else:
+        interact_pressed = Input.is_action_just_pressed("interact")
+
+    if interact_pressed:
+        if _interaction_manager.can_interact():
+            var success := _interaction_manager.try_interact(self)
+            if success:
+                ErrorLogger.log_debug("Interaction triggered", "Player")
+        else:
+            ErrorLogger.log_debug("Cannot interact (cooldown or no focus)", "Player")
+
 func _play_footstep() -> void:
     _ensure_voxel_world_reference()
     if _audio_manager == null or _voxel_world == null:
@@ -473,8 +626,54 @@ func _on_settings_changed(setting_name: String, new_value: Variant) -> void:
 func _on_game_paused(paused: bool) -> void:
     if paused:
         _release_mouse()
+        if _is_mining and _mining_system != null:
+            _mining_system.stop_mining()
+            _is_mining = false
+            _stop_mining_animation()
+            ErrorLogger.log_debug("Mining stopped", "Player")
+        if _build_mode_enabled and _building_system != null:
+            _exit_build_mode()
     else:
         _pending_mouse_capture = true
+
+func _on_mining_started(_position: Vector3, _voxel: Dictionary) -> void:
+    _play_mining_animation()
+
+func _on_mining_completed(_position: Vector3, _drops: Array) -> void:
+    _is_mining = false
+    _stop_mining_animation()
+    if _mining_system == null:
+        return
+    var mine_pressed := false
+    if _input_manager != null:
+        mine_pressed = _input_manager.is_action_pressed_safe("mine")
+    else:
+        mine_pressed = Input.is_action_pressed("mine")
+    if mine_pressed and _mining_system.can_start_mining() and _mining_system.start_mining(self):
+        _is_mining = true
+        _play_mining_animation()
+
+func _on_mining_cancelled() -> void:
+    _stop_mining_animation()
+
+func _play_mining_animation() -> void:
+    if animation_player == null:
+        return
+    if _mining_animation == StringName():
+        return
+    if not animation_player.has_animation(_mining_animation):
+        return
+    animation_player.play(_mining_animation, -1.0, 1.0, true)
+
+func _stop_mining_animation() -> void:
+    if animation_player == null:
+        return
+    if _mining_animation == StringName():
+        return
+    if not animation_player.has_animation(_mining_animation):
+        return
+    if animation_player.is_playing() and animation_player.current_animation == _mining_animation:
+        animation_player.stop()
 
 func _on_biome_detected(_position: Vector3, biome_id: String) -> void:
     if biome_id == current_biome:
@@ -491,6 +690,44 @@ func _toggle_fly_mode() -> void:
         _change_state(State.IDLE)
         ErrorLogger.log_info("Fly mode disabled", "Player")
 
+func request_item_pickup(item: Node) -> bool:
+    """Public method for DroppedItem to request pickup.
+    Returns true if pickup was accepted."""
+    if _game_manager != null and _game_manager.is_paused:
+        return false
+
+    if _pickup_cooldown > 0.0:
+        return false
+
+    return _on_item_pickup_requested(item)
+
+func _on_item_pickup_requested(item: Node) -> bool:
+    if item == null:
+        ErrorLogger.log_warning("Pickup requested with null item", "Player")
+        return false
+    if not item.has_method("get_item_data"):
+        ErrorLogger.log_warning("Pickup item missing get_item_data()", "Player")
+        return false
+
+    var item_data := item.get_item_data()
+    if typeof(item_data) != TYPE_DICTIONARY:
+        ErrorLogger.log_warning("Pickup item data invalid type", "Player")
+        return false
+    if not item_data.has("item_id") or not item_data.has("quantity"):
+        ErrorLogger.log_warning("Pickup item data missing fields", "Player")
+        return false
+
+    var item_id := String(item_data.get("item_id", "")).strip_edges()
+    var quantity := int(item_data.get("quantity", 0))
+    if item_id.is_empty() or quantity <= 0:
+        ErrorLogger.log_warning("Pickup item data contains invalid values", "Player")
+        return false
+
+    emit_signal("item_collected", item_id, quantity)
+    ErrorLogger.log_info("Collected item: %dx %s" % [quantity, item_id], "Player")
+    _pickup_cooldown = PICKUP_COOLDOWN_DURATION
+    return true
+
 func _is_jump_pressed() -> bool:
     if _input_manager != null:
         return _input_manager.is_action_just_pressed_buffered("jump")
@@ -501,8 +738,19 @@ func _is_sprint_pressed() -> bool:
         return _input_manager.is_action_pressed_safe("sprint")
     return Input.is_action_pressed("sprint")
 
+func _is_mining_input_pressed() -> bool:
+    if _input_manager != null:
+        return _input_manager.is_action_pressed_safe("mine")
+    return Input.is_action_pressed("mine")
+
 func get_camera() -> Camera3D:
     return camera
+
+func get_surface_normal() -> Vector3:
+    return Vector3.UP
+
+func get_interaction_ray() -> RayCast3D:
+    return interaction_ray
 
 func get_head_position() -> Vector3:
     return head != null ? head.global_position : global_position

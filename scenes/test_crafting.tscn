@@ -1,0 +1,170 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/TestCamera.gd" id="1_m0dh0"]
+[ext_resource type="PackedScene" path="res://scenes/station_workbench.tscn" id="2_hh4r4"]
+[ext_resource type="PackedScene" path="res://scenes/station_furnace.tscn" id="3_q44jj"]
+[ext_resource type="PackedScene" path="res://scenes/crafting_ui.tscn" id="4_0m2kn"]
+[ext_resource type="Script" path="res://scripts/TestUI.gd" id="5_6mwof"]
+
+[sub_resource type="SkyMaterial" id="SkyMaterial_klwcb"]
+sky_top_color = Color(0.4, 0.6, 1, 1)
+sky_horizon_color = Color(0.7, 0.8, 1, 1)
+ground_color = Color(0.3, 0.35, 0.4, 1)
+
+[sub_resource type="Sky" id="Sky_7sbgw"]
+sky_material = SubResource("SkyMaterial_klwcb")
+
+[sub_resource type="Environment" id="Environment_8d3fb"]
+background_mode = 2
+ambient_light_color = Color(0.3, 0.3, 0.35, 1)
+ambient_light_energy = 1.0
+tonemap_mode = 3
+glow_enabled = true
+glow_intensity = 0.4
+fog_enabled = true
+fog_mode = 0
+fog_light_color = Color(0.5, 0.7, 1, 1)
+fog_density = 0.02
+ssao_enabled = true
+ssao_intensity = 1.0
+dof_blur_far_enabled = true
+dof_blur_far_distance = 40.0
+dof_blur_far_transition = 20.0
+sky = SubResource("Sky_7sbgw")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6sq0f"]
+albedo_color = Color(0.35, 0.38, 0.4, 1)
+roughness = 1.0
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_4lq6r"]
+size = Vector2(40, 40)
+
+[node name="TestCrafting" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_8d3fb")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-45, 45, 0)
+light_energy = 1.0
+shadow_enabled = true
+shadow_bias = 0.1
+shadow_normal_bias = 1.0
+shadow_blur = 1.0
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_4lq6r")
+material_override = SubResource("StandardMaterial3D_6sq0f")
+
+[node name="StationWorkbench" parent="." instance=ExtResource("2_hh4r4")]
+position = Vector3(-3, 0, 0)
+
+[node name="StationFurnace" parent="." instance=ExtResource("3_q44jj")]
+position = Vector3(3, 0, 0)
+
+[node name="TestCamera" type="Camera3D" parent="."]
+position = Vector3(0, 2, 8)
+rotation_degrees = Vector3(-15, 0, 0)
+current = true
+fov = 75.0
+script = ExtResource("1_m0dh0")
+
+[node name="CraftingUI" parent="." instance=ExtResource("4_0m2kn")]
+
+[node name="TestUI" type="CanvasLayer" parent="."]
+layer = 10
+script = ExtResource("5_6mwof")
+
+[node name="Panel" type="Panel" parent="TestUI"]
+custom_minimum_size = Vector2(200, 300)
+layout_mode = 3
+anchors_preset = 9
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -150.0
+offset_right = 100.0
+offset_bottom = 150.0
+
+[node name="MarginContainer" type="MarginContainer" parent="TestUI/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TestUI/Panel/MarginContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="Header" type="Label" parent="TestUI/Panel/MarginContainer/VBoxContainer"]
+text = "Crafting Testbed"
+horizontal_alignment = 1
+size_flags_horizontal = 3
+
+[node name="AddMaterialsButton" type="Button" parent="TestUI/Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+text = "Add Test Materials"
+size_flags_horizontal = 3
+
+[node name="OpenWorkbenchButton" type="Button" parent="TestUI/Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+text = "Open Workbench UI"
+size_flags_horizontal = 3
+
+[node name="OpenFurnaceButton" type="Button" parent="TestUI/Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+text = "Open Furnace UI"
+size_flags_horizontal = 3
+
+[node name="OpenHandButton" type="Button" parent="TestUI/Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+text = "Open Hand Crafting"
+size_flags_horizontal = 3
+
+[node name="ClearInventoryButton" type="Button" parent="TestUI/Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+text = "Clear Inventory"
+size_flags_horizontal = 3
+
+[node name="ClearQueuesButton" type="Button" parent="TestUI/Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+text = "Clear All Queues"
+size_flags_horizontal = 3
+
+[node name="SaveGameButton" type="Button" parent="TestUI/Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+text = "Save Game"
+size_flags_horizontal = 3
+
+[node name="LoadGameButton" type="Button" parent="TestUI/Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+text = "Load Game"
+size_flags_horizontal = 3
+
+[node name="SpawnStationButton" type="Button" parent="TestUI/Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+text = "Spawn Test Station"
+size_flags_horizontal = 3

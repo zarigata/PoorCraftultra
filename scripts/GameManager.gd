@@ -23,6 +23,14 @@ const DEFAULT_SETTINGS := {
     "audio/sfx_volume": 1.0,
     "audio/music_volume": 0.7,
     "controls/mouse_sensitivity": 0.3,
+    "inventory/auto_sort_on_pickup": false,
+    "inventory/show_weight": true,
+    "inventory/show_tooltips": true,
+    "ui/scale": 1.0,
+    "ui/color_blind_mode": 0,
+    "ui/high_contrast": false,
+    "ui/text_size": 1.0,
+    "ui/safe_area_margin": 20,
 }
 
 func _ready() -> void:

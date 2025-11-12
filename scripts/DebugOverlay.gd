@@ -2,18 +2,27 @@ extends CanvasLayer
 class_name DebugOverlay
 
 const UPDATE_INTERVAL := 0.1
-const PANEL_SIZE := Vector2(320, 320)
+const PANEL_SIZE := Vector2(320, 480)
 const PANEL_MARGIN := Vector2(12, 12)
+const PANEL_PADDING := 12.0
 const PANEL_ALPHA := 0.7
 const FPS_THRESHOLD_WARN := 30.0
 const FPS_THRESHOLD_GOOD := 50.0
 
 var _time_accumulator: float = 0.0
 var _labels := {}
+var _ui_manager: UIManager = null
+var _panel: Panel = null
+var _panel_container: VBoxContainer = null
 
 func _ready() -> void:
     layer = 100
+    _lookup_ui_manager()
     _build_ui()
+    _apply_theme()
+    _apply_layout_scale()
+    _connect_ui_manager_signals()
+    _register_with_ui_manager()
     hide()
     ErrorLogger.log_debug("DebugOverlay ready", "DebugOverlay")
 
@@ -35,10 +44,13 @@ func toggle_visibility() -> void:
 func _build_ui() -> void:
     var panel := Panel.new()
     panel.name = "Panel"
-    panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT, Control.PRESET_MODE_MINSIZE, PANEL_MARGIN)
-    panel.size = PANEL_SIZE
     panel.self_modulate.a = PANEL_ALPHA
+    panel.anchor_left = 0.0
+    panel.anchor_top = 0.0
+    panel.anchor_right = 0.0
+    panel.anchor_bottom = 0.0
     add_child(panel)
+    _panel = panel
 
     var vbox := VBoxContainer.new()
     vbox.name = "Container"
@@ -46,11 +58,8 @@ func _build_ui() -> void:
     vbox.anchor_top = 0
     vbox.anchor_right = 1
     vbox.anchor_bottom = 1
-    vbox.offset_left = 12
-    vbox.offset_top = 12
-    vbox.offset_right = -12
-    vbox.offset_bottom = -12
     panel.add_child(vbox)
+    _panel_container = vbox
 
     var title := Label.new()
     title.text = "RetroForge Debug"
@@ -75,6 +84,19 @@ func _build_ui() -> void:
     _create_stat_label(vbox, "time_of_day", "Time: 00:00 (Day)")
     _create_stat_label(vbox, "biome", "Biome: Unknown")
     _create_stat_label(vbox, "audio_pool", "Audio Pool: 0/32")
+    _create_stat_label(vbox, "mining_state", "Mining: IDLE")
+    _create_stat_label(vbox, "mining_tool", "Tool: Hand")
+    _create_stat_label(vbox, "undo_stack", "Undo: 0/50")
+    _create_stat_label(vbox, "dropped_items", "Items: 0")
+    _create_stat_label(vbox, "inventory_slots", "Inventory: 0/30")
+    _create_stat_label(vbox, "inventory_weight", "Weight: 0.0/100.0")
+    _create_stat_label(vbox, "hotbar_selected", "Hotbar: 1")
+    _create_stat_label(vbox, "ui_scale", "UI Scale: 1.0x")
+    _create_stat_label(vbox, "ui_registered", "UIs: 0")
+    _create_stat_label(vbox, "crafting_active", "Crafting: N/A")
+    _create_stat_label(vbox, "crafting_queues", "Queues: N/A")
+    _create_stat_label(vbox, "interaction_focused", "Focus: None")
+    _create_stat_label(vbox, "interaction_count", "Interactables: 0")
 
 func _create_stat_label(container: VBoxContainer, key: String, text: String) -> void:
     var label := Label.new()
@@ -101,6 +123,12 @@ func _update_stats() -> void:
     _update_entity_stats()
     _update_environment_stats()
     _update_audio_stats()
+    _update_mining_stats()
+    _update_dropped_items_stats()
+    _update_inventory_stats()
+    _update_ui_stats()
+    _update_crafting_stats()
+    _update_interaction_stats()
 
 func _update_fps() -> void:
     var fps := Engine.get_frames_per_second()
@@ -222,6 +250,151 @@ func _set_label_color(key: String, color: Color) -> void:
     if _labels.has(key):
         _labels[key].self_modulate = color
 
+func _lookup_ui_manager() -> void:
+    if typeof(UIManager) != TYPE_NIL and UIManager != null:
+        _ui_manager = UIManager
+
+func _apply_theme() -> void:
+    if _ui_manager == null:
+        return
+    _ui_manager.apply_theme_to_control(self)
+    ErrorLogger.log_debug("Theme applied to DebugOverlay", "DebugOverlay")
+
+func _connect_ui_manager_signals() -> void:
+    if _ui_manager == null:
+        return
+    if not _ui_manager.is_connected("theme_changed", Callable(self, "_on_ui_theme_changed")):
+        _ui_manager.connect("theme_changed", Callable(self, "_on_ui_theme_changed"))
+    if not _ui_manager.is_connected("resolution_changed", Callable(self, "_on_ui_resolution_changed")):
+        _ui_manager.connect("resolution_changed", Callable(self, "_on_ui_resolution_changed"))
+
+func _exit_tree() -> void:
+    if _ui_manager != null:
+        if _ui_manager.is_connected("theme_changed", Callable(self, "_on_ui_theme_changed")):
+            _ui_manager.disconnect("theme_changed", Callable(self, "_on_ui_theme_changed"))
+        if _ui_manager.is_connected("resolution_changed", Callable(self, "_on_ui_resolution_changed")):
+            _ui_manager.disconnect("resolution_changed", Callable(self, "_on_ui_resolution_changed"))
+        _ui_manager.unregister_ui(self)
+
+func _register_with_ui_manager() -> void:
+    if _ui_manager == null:
+        return
+    _ui_manager.register_ui(self, "DebugOverlay")
+
+func _update_ui_stats() -> void:
+    if _ui_manager == null:
+        _set_label_text("ui_scale", "UI Scale: N/A")
+        _set_label_text("ui_registered", "UIs: N/A")
+        return
+
+    var scale := 1.0
+    if _ui_manager.has_method("get_ui_scale"):
+        scale = _ui_manager.get_ui_scale()
+    _set_label_text("ui_scale", "UI Scale: %.2fx" % scale)
+
+    var registered := []
+    if _ui_manager.has_method("get_registered_uis"):
+        registered = _ui_manager.get_registered_uis()
+    _set_label_text("ui_registered", "UIs: %d" % registered.size())
+
+func _update_crafting_stats() -> void:
+    var crafting_system := _get_crafting_system()
+    if crafting_system == null:
+        _set_label_text("crafting_active", "Crafting: N/A")
+        _set_label_color("crafting_active", Color(0.7, 0.7, 0.7))
+        _set_label_text("crafting_queues", "Queues: N/A")
+        _set_label_color("crafting_queues", Color(0.7, 0.7, 0.7))
+        return
+
+    var active_crafts := crafting_system.get("active_crafts")
+    if typeof(active_crafts) != TYPE_DICTIONARY:
+        active_crafts = {}
+    var active_count := 0
+    if typeof(active_crafts) == TYPE_DICTIONARY:
+        for value in active_crafts.values():
+            if value != null:
+                active_count += 1
+    var active_text := "Crafting: None"
+    var active_color := Color(0.7, 0.7, 0.7)
+    if active_count > 0:
+        active_text = "Crafting: %d active" % active_count
+        active_color = Color(0.6, 1.0, 0.6)
+    _set_label_text("crafting_active", active_text)
+    _set_label_color("crafting_active", active_color)
+
+    var queues := crafting_system.get("crafting_queues")
+    if typeof(queues) != TYPE_DICTIONARY:
+        queues = {}
+    var total_in_queue := 0
+    if typeof(queues) == TYPE_DICTIONARY:
+        for queue_array in queues.values():
+            if queue_array is Array:
+                for entry in queue_array:
+                    if entry != null:
+                        total_in_queue += int(entry.quantity)
+    var queue_text := "Queues: %d" % total_in_queue
+    var queue_color := Color(0.7, 0.7, 0.7)
+    if total_in_queue > 0:
+        queue_color = Color(0.6, 1.0, 0.6)
+    _set_label_text("crafting_queues", queue_text)
+    _set_label_color("crafting_queues", queue_color)
+
+func _update_interaction_stats() -> void:
+    var interaction_manager := _get_interaction_manager()
+    if interaction_manager == null:
+        _set_label_text("interaction_focused", "Focus: N/A")
+        _set_label_text("interaction_count", "Interactables: N/A")
+        _set_label_color("interaction_focused", Color(0.7, 0.7, 0.7))
+        _set_label_color("interaction_count", Color(0.7, 0.7, 0.7))
+        return
+
+    var focused_text := "Focus: None"
+    if interaction_manager.has_method("get_focused_interactable"):
+        var focused := interaction_manager.call("get_focused_interactable")
+        if focused != null and is_instance_valid(focused):
+            var prompt := focused.get_prompt_text() if focused.has_method("get_prompt_text") else "Unknown"
+            focused_text = "Focus: %s" % prompt
+    _set_label_text("interaction_focused", focused_text)
+
+    var focused_color := Color(0.6, 1.0, 0.6) if focused_text != "Focus: None" else Color(0.7, 0.7, 0.7)
+    _set_label_color("interaction_focused", focused_color)
+
+    var count := 0
+    if interaction_manager.has_method("get_all_interactables"):
+        var interactables := interaction_manager.call("get_all_interactables")
+        if typeof(interactables) == TYPE_ARRAY:
+            count = interactables.size()
+    _set_label_text("interaction_count", "Interactables: %d" % count)
+    _set_label_color("interaction_count", Color(0.6, 0.9, 1.0))
+
+func _on_ui_theme_changed() -> void:
+    _apply_theme()
+    _apply_layout_scale()
+
+func _on_ui_resolution_changed(_new_size: Vector2) -> void:
+    _apply_layout_scale()
+
+func _apply_layout_scale() -> void:
+    if _panel == null:
+        return
+    var scale := 1.0
+    if _ui_manager != null and _ui_manager.has_method("get_ui_scale"):
+        scale = _ui_manager.get_ui_scale()
+    var scaled_size := PANEL_SIZE * scale
+    var margin := PANEL_MARGIN * scale
+    _panel.custom_minimum_size = scaled_size
+    _panel.size = scaled_size
+    _panel.offset_left = margin.x
+    _panel.offset_top = margin.y
+    _panel.offset_right = margin.x + scaled_size.x
+    _panel.offset_bottom = margin.y + scaled_size.y
+    if _panel_container != null:
+        var padding := PANEL_PADDING * scale
+        _panel_container.offset_left = padding
+        _panel_container.offset_top = padding
+        _panel_container.offset_right = -padding
+        _panel_container.offset_bottom = -padding
+
 func _update_environment_stats() -> void:
     var env_manager := _get_environment_manager()
     if env_manager:
@@ -242,9 +415,6 @@ func _update_environment_stats() -> void:
         if biome == null or biome == "":
             biome = "Unknown"
         _set_label_text("biome", "Biome: %s" % biome)
-    else:
-        _set_label_text("time_of_day", "Time: N/A")
-        _set_label_text("biome", "Biome: N/A")
 
 func _update_audio_stats() -> void:
     var audio_manager := _get_audio_manager()
@@ -276,6 +446,172 @@ func _update_audio_stats() -> void:
         _set_label_color("audio_pool", color)
     else:
         _set_label_text("audio_pool", "Audio Pool: N/A")
+
+func _update_mining_stats() -> void:
+    var mining_system := _get_mining_system()
+    if mining_system == null:
+        _set_label_text("mining_state", "Mining: N/A")
+        _set_label_text("mining_tool", "Tool: N/A")
+        _set_label_text("undo_stack", "Undo: N/A")
+        return
+
+    var state_name := "UNKNOWN"
+    if mining_system.has_method("get_current_state"):
+        var state_index := int(mining_system.call("get_current_state"))
+        var state_names := ["IDLE", "TARGETING", "MINING", "COOLDOWN"]
+        if state_index >= 0 and state_index < state_names.size():
+            state_name = state_names[state_index]
+
+    var progress_value := mining_system.get("mining_progress")
+    var progress := progress_value if typeof(progress_value) == TYPE_FLOAT else 0.0
+
+    var state_text := "Mining: %s" % state_name
+    if state_name == "MINING":
+        state_text += " (%.0f%%)" % (progress * 100.0)
+    _set_label_text("mining_state", state_text)
+
+    var state_color := Color(0.7, 0.7, 0.7)
+    match state_name:
+        "MINING":
+            state_color = Color(1.0, 0.9, 0.4)
+        "COOLDOWN":
+            state_color = Color(1.0, 0.6, 0.4)
+    _set_label_color("mining_state", state_color)
+
+    var tool_name := "None"
+    var durability := 0.0
+    if mining_system.has_method("get_active_tool"):
+        var tool := mining_system.call("get_active_tool")
+        if tool != null and tool is Tool:
+            tool_name = tool.tool_name
+            durability = tool.get_durability_percentage()
+
+    var tool_text := "Tool: %s" % tool_name
+    if durability > 0.0:
+        tool_text += " (%.0f%%)" % (durability * 100.0)
+    _set_label_text("mining_tool", tool_text)
+
+    var tool_color := Color(0.6, 1.0, 0.6)
+    if durability < 0.25:
+        tool_color = Color(1.0, 0.4, 0.4)
+    elif durability < 0.5:
+        tool_color = Color(1.0, 0.8, 0.4)
+    _set_label_color("mining_tool", tool_color)
+
+    var undo_size := 0
+    if mining_system.has_method("get_undo_stack_size"):
+        undo_size = int(mining_system.call("get_undo_stack_size"))
+    _set_label_text("undo_stack", "Undo: %d/50" % undo_size)
+
+func _update_dropped_items_stats() -> void:
+    """Updates dropped items statistics."""
+    var tree := get_tree()
+    if tree == null:
+        _set_label_text("dropped_items", "Items: N/A")
+        return
+
+    var item_count := 0
+    var root := tree.current_scene
+    if root != null:
+        item_count = _count_dropped_items_recursive(root)
+
+    _set_label_text("dropped_items", "Items: %d" % item_count)
+
+    var color := Color(0.6, 1.0, 0.6)
+    if item_count > 100:
+        color = Color(1.0, 0.4, 0.4)
+    elif item_count > 50:
+        color = Color(1.0, 0.8, 0.4)
+    _set_label_color("dropped_items", color)
+
+func _count_dropped_items_recursive(node: Node) -> int:
+    """Recursively counts DroppedItem instances in scene tree."""
+    var count := 0
+    if node is RigidBody3D and node.get_script() != null:
+        var script_path := String(node.get_script().resource_path)
+        if script_path.ends_with("DroppedItem.gd"):
+            count += 1
+
+    for child in node.get_children():
+        if child is Node:
+            count += _count_dropped_items_recursive(child)
+
+    return count
+
+func _update_inventory_stats() -> void:
+    var inventory := _get_inventory()
+    if inventory == null:
+        _set_label_text("inventory_slots", "Inventory: N/A")
+        _set_label_text("inventory_weight", "Weight: N/A")
+        _set_label_text("hotbar_selected", "Hotbar: N/A")
+        _set_label_color("inventory_slots", Color(0.7, 0.7, 0.7))
+        _set_label_color("inventory_weight", Color(0.7, 0.7, 0.7))
+        _set_label_color("hotbar_selected", Color(0.7, 0.7, 0.7))
+        return
+
+    var total_slots := 30
+    if inventory.has_method("get_slot_count"):
+        total_slots = int(inventory.call("get_slot_count"))
+
+    var empty_slots := 0
+    if inventory.has_method("get_empty_slot_count"):
+        empty_slots = int(inventory.call("get_empty_slot_count"))
+
+    var used_slots := max(total_slots - empty_slots, 0)
+    _set_label_text("inventory_slots", "Inventory: %d/%d" % [used_slots, total_slots])
+
+    var usage_ratio := 0.0
+    if total_slots > 0:
+        usage_ratio = float(used_slots) / float(total_slots)
+
+    var slots_color := Color(0.6, 1.0, 0.6)
+    if usage_ratio > 0.9:
+        slots_color = Color(1.0, 0.4, 0.4)
+    elif usage_ratio > 0.7:
+        slots_color = Color(1.0, 0.8, 0.4)
+    _set_label_color("inventory_slots", slots_color)
+
+    var current_weight_variant := inventory.get("current_weight")
+    var current_weight := float(current_weight_variant) if typeof(current_weight_variant) in [TYPE_FLOAT, TYPE_INT] else 0.0
+
+    var max_weight := 100.0
+    var max_weight_variant := inventory.get("MAX_WEIGHT")
+    if typeof(max_weight_variant) in [TYPE_FLOAT, TYPE_INT]:
+        max_weight = float(max_weight_variant)
+
+    _set_label_text("inventory_weight", "Weight: %.1f/%.1f" % [current_weight, max_weight])
+
+    var weight_ratio := 0.0
+    if max_weight > 0.0:
+        weight_ratio = current_weight / max_weight
+
+    var weight_color := Color(0.6, 1.0, 0.6)
+    if weight_ratio > 0.9:
+        weight_color = Color(1.0, 0.4, 0.4)
+    elif weight_ratio > 0.7:
+        weight_color = Color(1.0, 0.8, 0.4)
+    _set_label_color("inventory_weight", weight_color)
+
+    var selected_hotbar_variant := inventory.get("selected_hotbar_slot")
+    var selected_hotbar := int(selected_hotbar_variant) if typeof(selected_hotbar_variant) in [TYPE_INT, TYPE_FLOAT] else 0
+    _set_label_text("hotbar_selected", "Hotbar: %d" % (selected_hotbar + 1))
+    _set_label_color("hotbar_selected", Color(0.6, 0.9, 1.0))
+
+func _get_inventory() -> Node:
+    if typeof(Inventory) != TYPE_NIL and Inventory != null:
+        return Inventory
+    var tree := get_tree()
+    if tree and tree.has_node("/root/Inventory"):
+        return tree.get_node("/root/Inventory")
+    return null
+
+func _get_mining_system() -> Node:
+    if typeof(MiningSystem) != TYPE_NIL and MiningSystem != null:
+        return MiningSystem
+    var tree := get_tree()
+    if tree and tree.has_node("/root/MiningSystem"):
+        return tree.get_node("/root/MiningSystem")
+    return null
 
 func _get_environment_manager() -> Node:
     if typeof(EnvironmentManager) != TYPE_NIL and EnvironmentManager != null:
@@ -313,4 +649,20 @@ func _get_voxel_world() -> Node:
     var game_manager := _get_game_manager()
     if game_manager and game_manager.has_method("get_current_world"):
         return game_manager.get_current_world()
+    return null
+
+func _get_crafting_system() -> Node:
+    if typeof(CraftingSystem) != TYPE_NIL and CraftingSystem != null:
+        return CraftingSystem
+    var tree := get_tree()
+    if tree and tree.has_node("/root/CraftingSystem"):
+        return tree.get_node("/root/CraftingSystem")
+    return null
+
+func _get_interaction_manager() -> Node:
+    if typeof(InteractionManager) != TYPE_NIL and InteractionManager != null:
+        return InteractionManager
+    var tree := get_tree()
+    if tree and tree.has_node("/root/InteractionManager"):
+        return tree.get_node("/root/InteractionManager")
     return null

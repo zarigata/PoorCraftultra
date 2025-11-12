@@ -7,14 +7,23 @@ const WORLD_ENVIRONMENT_NODE_NAME := "WorldEnvironment"
 const VOXEL_WORLD_SCENE := preload("res://scenes/voxel_world.tscn")
 const WORLD_CONTAINER_NAME := "WorldContainer"
 const PLAYER_SCENE := preload("res://scenes/player.tscn")
+const MINING_PROGRESS_UI_SCENE := preload("res://scenes/mining_progress_ui.tscn")
+const INVENTORY_UI_SCENE := preload("res://scenes/inventory_ui.tscn")
+const CRAFTING_UI_SCENE := preload("res://scenes/crafting_ui.tscn")
+const INTERACTION_PROMPT_UI_SCENE := preload("res://scenes/interaction_prompt_ui.tscn")
 
 func _ready() -> void:
     _connect_player_registered_signal()
     await _initialize_voxel_world()
     _initialize_environment()
+    _initialize_ui_manager()
     _ensure_player_spawned()
     _attach_viewer_to_camera()
     _attach_environment_to_camera()
+    _initialize_mining_ui()
+    _initialize_inventory_ui()
+    _initialize_crafting_ui()
+    _initialize_interaction_prompt_ui()
 
 func _ensure_player_spawned() -> void:
     var world := GameManager.get_current_world()
@@ -125,3 +134,62 @@ func _on_player_registered(player: Node) -> void:
         return
     _attach_viewer_to_camera()
     _attach_environment_to_camera()
+
+func _initialize_mining_ui() -> void:
+    var ui_instance := MINING_PROGRESS_UI_SCENE.instantiate()
+    if ui_instance == null:
+        ErrorLogger.log_error("Failed to instantiate mining progress UI", "Main")
+        return
+    add_child(ui_instance)
+    ErrorLogger.log_info("Mining progress UI initialized", "Main")
+
+func _initialize_inventory_ui() -> void:
+    var ui_instance := INVENTORY_UI_SCENE.instantiate()
+    if ui_instance == null:
+        ErrorLogger.log_error("Failed to instantiate inventory UI", "Main")
+        return
+    add_child(ui_instance)
+    ErrorLogger.log_info("Inventory UI initialized", "Main")
+
+func _initialize_crafting_ui() -> void:
+    var ui_instance := CRAFTING_UI_SCENE.instantiate()
+    if ui_instance == null:
+        ErrorLogger.log_error("Failed to instantiate crafting UI", "Main")
+        return
+    add_child(ui_instance)
+    ErrorLogger.log_info("Crafting UI initialized", "Main")
+
+func _initialize_interaction_prompt_ui() -> void:
+    var ui_instance := INTERACTION_PROMPT_UI_SCENE.instantiate()
+    if ui_instance == null:
+        ErrorLogger.log_error("Failed to instantiate interaction prompt UI", "Main")
+        return
+    add_child(ui_instance)
+    ErrorLogger.log_info("Interaction prompt UI initialized", "Main")
+
+func _initialize_ui_manager() -> void:
+    """Ensures UIManager autoload is available before UI instantiation."""
+    if typeof(UIManager) == TYPE_NIL or UIManager == null:
+        ErrorLogger.log_error("UIManager not available", "Main")
+        return
+    ErrorLogger.log_info("UIManager ready", "Main")
+
+func _input(event: InputEvent) -> void:
+    if not event.is_action_pressed("crafting"):
+        return
+    var crafting_ui := _get_crafting_ui()
+    if crafting_ui == null:
+        return
+    if not crafting_ui.visible:
+        crafting_ui.open_for_station("none")
+    else:
+        crafting_ui.close_ui()
+    get_tree().set_input_as_handled()
+
+func _get_crafting_ui() -> CraftingUI:
+    if typeof(UIManager) != TYPE_NIL and UIManager != null and UIManager.has_method("get_ui"):
+        var ui := UIManager.get_ui("CraftingUI")
+        if ui is CraftingUI:
+            return ui
+    var node := get_node_or_null("CraftingUI")
+    return node if node is CraftingUI else null

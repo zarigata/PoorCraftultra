@@ -5,25 +5,120 @@
       "id": 0,
       "name": "Air",
       "is_solid": false,
-      "material_id": 0
+      "material_id": 0,
+      "hardness": 0.0,
+      "required_tool_tier": 0,
+      "mining_time_base": 0.0,
+      "drops": [],
+      "mining_sound": "none"
     },
     "dirt": {
       "id": 1,
       "name": "Dirt",
       "is_solid": true,
-      "material_id": 1
+      "material_id": 1,
+      "hardness": 0.5,
+      "required_tool_tier": 0,
+      "mining_time_base": 0.8,
+      "drops": [
+        {
+          "item_id": "dirt",
+          "quantity_min": 1,
+          "quantity_max": 1,
+          "chance": 1.0
+        }
+      ],
+      "mining_sound": "dirt"
     },
     "stone": {
       "id": 2,
       "name": "Stone",
       "is_solid": true,
-      "material_id": 2
+      "material_id": 2,
+      "hardness": 1.5,
+      "required_tool_tier": 1,
+      "mining_time_base": 2.0,
+      "drops": [
+        {
+          "item_id": "stone",
+          "quantity_min": 1,
+          "quantity_max": 1,
+          "chance": 1.0
+        }
+      ],
+      "mining_sound": "stone"
     },
     "grass": {
       "id": 3,
       "name": "Grass",
       "is_solid": true,
-      "material_id": 3
+      "material_id": 3,
+      "hardness": 0.5,
+      "required_tool_tier": 0,
+      "mining_time_base": 0.8,
+      "drops": [
+        {
+          "item_id": "dirt",
+          "quantity_min": 1,
+          "quantity_max": 1,
+          "chance": 1.0
+        }
+      ],
+      "mining_sound": "dirt"
+    },
+    "iron_ore": {
+      "id": 4,
+      "name": "Iron Ore",
+      "is_solid": true,
+      "material_id": 4,
+      "hardness": 2.0,
+      "required_tool_tier": 2,
+      "mining_time_base": 3.0,
+      "drops": [
+        {
+          "item_id": "iron_ore",
+          "quantity_min": 1,
+          "quantity_max": 2,
+          "chance": 1.0
+        }
+      ],
+      "mining_sound": "metal"
+    },
+    "copper_ore": {
+      "id": 5,
+      "name": "Copper Ore",
+      "is_solid": true,
+      "material_id": 5,
+      "hardness": 1.8,
+      "required_tool_tier": 2,
+      "mining_time_base": 2.5,
+      "drops": [
+        {
+          "item_id": "copper_ore",
+          "quantity_min": 1,
+          "quantity_max": 2,
+          "chance": 1.0
+        }
+      ],
+      "mining_sound": "metal"
+    },
+    "coal": {
+      "id": 6,
+      "name": "Coal",
+      "is_solid": true,
+      "material_id": 6,
+      "hardness": 1.2,
+      "required_tool_tier": 1,
+      "mining_time_base": 1.5,
+      "drops": [
+        {
+          "item_id": "coal",
+          "quantity_min": 1,
+          "quantity_max": 3,
+          "chance": 1.0
+        }
+      ],
+      "mining_sound": "stone"
     }
   }
 }

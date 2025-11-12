@@ -1,0 +1,97 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/InventoryUI.gd" id="1_exskl"]
+
+[node name="InventoryUI" type="CanvasLayer"]
+script = ExtResource("1_exskl")
+layer = 60
+visible = false
+
+[node name="Panel" type="Panel" parent="."]
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 260.0
+offset_top = 80.0
+offset_right = -260.0
+offset_bottom = -80.0
+self_modulate = Color(1, 1, 1, 0.92)
+
+[node name="MainContainer" type="VBoxContainer" parent="Panel"]
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+
+[node name="TitleLabel" type="Label" parent="Panel/MainContainer"]
+text = "Inventory"
+horizontal_alignment = 1
+horizontal_size_flags = 3
+add_theme_font_size_override("font_size", 24)
+
+[node name="TopBar" type="HBoxContainer" parent="Panel/MainContainer"]
+size_flags_horizontal = 3
+size_flags_vertical = 1
+
+[node name="SearchBox" type="LineEdit" parent="Panel/MainContainer/TopBar"]
+placeholder_text = "Search..."
+clear_button_enabled = true
+size_flags_horizontal = 3
+size_flags_vertical = 1
+
+[node name="SortButton" type="Button" parent="Panel/MainContainer/TopBar"]
+text = "Sort"
+size_flags_horizontal = 1
+size_flags_vertical = 1
+
+[node name="WeightLabel" type="Label" parent="Panel/MainContainer/TopBar"]
+text = "Weight: 0/100"
+size_flags_horizontal = 1
+size_flags_vertical = 1
+horizontal_alignment = 2
+
+[node name="StatusLabel" type="Label" parent="Panel/MainContainer"]
+visible = false
+horizontal_alignment = 1
+size_flags_horizontal = 3
+size_flags_vertical = 1
+modulate = Color(1, 0.8, 0.4, 1)
+text = ""
+
+[node name="InventoryScroll" type="ScrollContainer" parent="Panel/MainContainer"]
+custom_minimum_size = Vector2(0, 320)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="InventoryGrid" type="GridContainer" parent="Panel/MainContainer/InventoryScroll"]
+columns = 6
+custom_minimum_size = Vector2(0, 320)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Separator" type="HSeparator" parent="Panel/MainContainer"]
+size_flags_horizontal = 3
+size_flags_vertical = 1
+
+[node name="HotbarLabel" type="Label" parent="Panel/MainContainer"]
+text = "Hotbar (1-9)"
+horizontal_alignment = 1
+size_flags_horizontal = 3
+size_flags_vertical = 1
+
+[node name="HotbarContainer" type="HBoxContainer" parent="Panel/MainContainer"]
+custom_minimum_size = Vector2(0, 84)
+size_flags_horizontal = 3
+size_flags_vertical = 1
+alignment = 1
+
+[node name="StatusTimer" type="Timer" parent="."]
+one_shot = true
+wait_time = 2.5

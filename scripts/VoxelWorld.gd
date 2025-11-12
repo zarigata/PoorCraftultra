@@ -6,11 +6,14 @@ signal meshing_error(error_message: String)
 signal chunk_loaded(chunk_position: Vector3i)
 signal chunk_unloaded(chunk_position: Vector3i)
 signal biome_detected(position: Vector3, biome_id: String)
+signal voxel_edited(edit: Dictionary)
 
 const CONFIG_PATH := "res://voxel/default_terrain_config.json"
 const VOXEL_TYPES_PATH := "res://voxel/voxel_types.json"
 const STATS_UPDATE_INTERVAL := 0.5
 const MATERIAL_PATH := "res://resources/voxel_flat_material.tres"
+const BOUNDS_MIN := Vector3(-10000.0, -10000.0, -10000.0)
+const BOUNDS_MAX := Vector3(10000.0, 10000.0, 10000.0)
 
 var terrain: VoxelLodTerrain
 var viewer: VoxelViewer
@@ -18,9 +21,14 @@ var generator
 var noise: FastNoiseLite
 var tracked_camera: Camera3D = null
 
+var voxel_tool: VoxelTool = null
+var edit_mutex: Mutex = Mutex.new()
+
 var world_seed: int = 0
 var config: Dictionary = {}
 var voxel_types: Dictionary = {}
+var voxel_types_by_id: Dictionary = {}
+var voxel_types_by_material_id: Dictionary = {}
 var is_initialized: bool = false
 var last_detected_biome: String = ""
 var _stats_timer: float = 0.0
@@ -74,6 +82,16 @@ func _setup_nodes() -> void:
         viewer.name = "Viewer"
         add_child(viewer)
         ErrorLogger.log_warning("VoxelViewer node missing from scene. Created dynamically.", "VoxelWorld")
+
+    if terrain != null and terrain.has_method("get_voxel_tool"):
+        voxel_tool = terrain.get_voxel_tool()
+        if voxel_tool != null:
+            voxel_tool.channel = VoxelBuffer.CHANNEL_SDF
+            ErrorLogger.log_info("VoxelTool initialized for editing", "VoxelWorld")
+        else:
+            ErrorLogger.log_error("VoxelTool not available from terrain", "VoxelWorld")
+    else:
+        ErrorLogger.log_error("Terrain missing get_voxel_tool method; edits disabled", "VoxelWorld")
 
 func _create_generator() -> void:
     noise = FastNoiseLite.new()
@@ -189,6 +207,8 @@ func _get_default_config() -> Dictionary:
 
 func _load_voxel_types() -> void:
 	voxel_types = {}
+	voxel_types_by_id.clear()
+	voxel_types_by_material_id.clear()
 	var file := FileAccess.open(VOXEL_TYPES_PATH, FileAccess.READ)
 	if file == null:
 		ErrorLogger.log_warning("Failed to open voxel types at %s" % VOXEL_TYPES_PATH, "VoxelWorld")
@@ -200,6 +220,16 @@ func _load_voxel_types() -> void:
 		ErrorLogger.log_error("Invalid JSON format in voxel types", "VoxelWorld")
 		return
 	voxel_types = parsed.get("types", {})
+	for type_key in voxel_types.keys():
+		var type_data := voxel_types[type_key]
+		if typeof(type_data) != TYPE_DICTIONARY:
+			continue
+		var type_id := int(type_data.get("id", -1))
+		if type_id >= 0:
+			voxel_types_by_id[type_id] = type_data
+		var material_id := int(type_data.get("material_id", -1))
+		if material_id >= 0:
+			voxel_types_by_material_id[material_id] = type_data
 	ErrorLogger.log_info("Loaded %d voxel types" % voxel_types.size(), "VoxelWorld")
 
 func _update_stats() -> void:
@@ -278,16 +308,26 @@ func get_stats() -> Dictionary:
 	return stats.duplicate(true)
 
 func get_voxel_at(position: Vector3) -> float:
-	if terrain and terrain.has_method("get_voxel_tool"):
-		var tool := terrain.get_voxel_tool()
-		tool.channel = VoxelBuffer.CHANNEL_SDF
-		return tool.get_voxel_f(position)
-	return 0.0
+	var tool := _ensure_voxel_tool()
+	if tool == null:
+		return 0.0
+	edit_mutex.lock()
+	var previous_channel := tool.channel
+	tool.channel = VoxelBuffer.CHANNEL_SDF
+	var value := tool.get_voxel_f(position)
+	tool.channel = previous_channel
+	edit_mutex.unlock()
+	return value
 
 func get_voxel_type_at(position: Vector3) -> Dictionary:
-	"""Returns the voxel type data at the given position.
-	Currently returns a placeholder based on SDF value.
-	Future: Read from material channel or custom data."""
+	"""Returns voxel type data at the given position.
+	Prioritizes material and type channels, falling back to SDF heuristics as a last resort."""
+	var material_id := get_material_id_at(position)
+	if material_id >= 0 and voxel_types_by_material_id.has(material_id):
+		return voxel_types_by_material_id[material_id]
+	var channel_type_id := _read_voxel_int(position, VoxelBuffer.CHANNEL_TYPE)
+	if channel_type_id >= 0 and voxel_types_by_id.has(channel_type_id):
+		return voxel_types_by_id[channel_type_id]
 	var sdf := get_voxel_at(position)
 	if sdf > 0.0:
 		return voxel_types.get("air", {})
@@ -295,13 +335,11 @@ func get_voxel_type_at(position: Vector3) -> Dictionary:
 		return voxel_types.get("grass", {})
 	elif sdf > -50.0:
 		return voxel_types.get("dirt", {})
-	else:
-		return voxel_types.get("stone", {})
+	return voxel_types.get("stone", {})
 
 func get_material_id_at(position: Vector3) -> int:
-	"""Returns the material ID at the given position."""
-	var voxel_type := get_voxel_type_at(position)
-	return voxel_type.get("material_id", 0)
+	"""Returns the material ID at the given position using the voxel material channel."""
+	return _read_voxel_int(position, VoxelBuffer.CHANNEL_MATERIAL)
 
 func get_voxel_type_by_name(type_name: String) -> Dictionary:
 	"""Returns voxel type data by name."""
@@ -343,31 +381,173 @@ func check_biome_at_position(position: Vector3) -> void:
 			EnvironmentManager.set_biome(biome)
 
 func set_voxel_at(position: Vector3, value: float) -> void:
-	ErrorLogger.log_debug("set_voxel_at stub invoked", "VoxelWorld")
+    if voxel_tool == null:
+        ErrorLogger.log_warning("VoxelTool not available for set_voxel_at", "VoxelWorld")
+        return
+
+    edit_mutex.lock()
+    voxel_tool.set_voxel_f(position, value)
+    edit_mutex.unlock()
 
 func serialize_state() -> Dictionary:
-	return {
-		"seed": world_seed,
-		"edits": [],
-		"config": config,
-	}
+    return {
+        "seed": world_seed,
+        "edits": _serialize_edits(),
+        "config": config,
+    }
 
 func deserialize_state(data: Dictionary) -> void:
-	config = data.get("config", config)
-	var new_seed := data.get("seed", world_seed)
-	set_seed(new_seed)
-	_apply_config()
-	ErrorLogger.log_info("Voxel world state deserialized with seed %d" % new_seed, "VoxelWorld")
+    config = data.get("config", config)
+    var new_seed := data.get("seed", world_seed)
+    set_seed(new_seed)
+    _apply_config()
+    var edits := data.get("edits", [])
+    for edit in edits:
+        apply_edit(edit)
+    ErrorLogger.log_info("Voxel world state deserialized with seed %d" % new_seed, "VoxelWorld")
 
 func queue_edit(center: Vector3, radius: float, delta: float) -> void:
-	ErrorLogger.log_debug("queue_edit stub invoked", "VoxelWorld")
+    var operation := delta < 0.0 ? 0 : 1
+    var edit := {
+        "center": center,
+        "radius": radius,
+        "operation": operation,
+        "value": delta,
+        "timestamp": Time.get_ticks_msec(),
+    }
+    apply_edit(edit)
 
 func get_surface_height(xz: Vector2) -> float:
 	ErrorLogger.log_debug("get_surface_height stub invoked", "VoxelWorld")
 	return 0.0
 
 func add_edit_listener(callback: Callable) -> void:
-	ErrorLogger.log_debug("add_edit_listener stub invoked", "VoxelWorld")
+    ErrorLogger.log_debug("add_edit_listener stub invoked", "VoxelWorld")
+
+func apply_edit(edit: Dictionary) -> bool:
+    if voxel_tool == null:
+        ErrorLogger.log_error("VoxelTool not initialized", "VoxelWorld")
+        return false
+
+    var center: Vector3 = edit.get("center", Vector3.ZERO)
+    var radius: float = float(edit.get("radius", 1.0))
+    var operation: int = int(edit.get("operation", 0))
+    var value: float = float(edit.get("value", 0.0))
+
+    if radius <= 0.0 or radius > 5.0:
+        ErrorLogger.log_warning("Invalid edit radius: %.2f" % radius, "VoxelWorld")
+        return false
+    if not _is_within_bounds(center):
+        ErrorLogger.log_warning("Edit center out of bounds: %s" % center, "VoxelWorld")
+        return false
+
+    edit_mutex.lock()
+    var previous_mode := voxel_tool.mode
+    var previous_scale := voxel_tool.sdf_scale
+
+    match operation:
+        0:
+            voxel_tool.mode = VoxelTool.MODE_REMOVE
+            voxel_tool.do_sphere(center, radius)
+        1:
+            voxel_tool.mode = VoxelTool.MODE_ADD
+            voxel_tool.do_sphere(center, radius)
+        2:
+            voxel_tool.sdf_scale = value
+            voxel_tool.mode = VoxelTool.MODE_ADD if value >= 0.0 else VoxelTool.MODE_REMOVE
+            voxel_tool.do_sphere(center, radius)
+        _:
+            voxel_tool.mode = previous_mode
+            voxel_tool.sdf_scale = previous_scale
+            edit_mutex.unlock()
+            ErrorLogger.log_warning("Unknown edit operation: %s" % operation, "VoxelWorld")
+            return false
+
+    voxel_tool.mode = previous_mode
+    voxel_tool.sdf_scale = previous_scale
+    edit_mutex.unlock()
+
+    emit_signal("voxel_edited", edit)
+    ErrorLogger.log_debug("Voxel edit applied at %s radius %.2f" % [center, radius], "VoxelWorld")
+    return true
+
+func capture_voxel_snapshot(center: Vector3, radius: float) -> Dictionary:
+	var tool := _ensure_voxel_tool()
+	if tool == null:
+		return {}
+
+	var snapshot := {}
+	var radius_int := int(ceil(radius))
+	var radius_squared := radius * radius
+	var min_bound := Vector3i(int(floor(center.x)) - radius_int, int(floor(center.y)) - radius_int, int(floor(center.z)) - radius_int)
+	var max_bound := Vector3i(int(floor(center.x)) + radius_int, int(floor(center.y)) + radius_int, int(floor(center.z)) + radius_int)
+
+	edit_mutex.lock()
+	var previous_channel := tool.channel
+	tool.channel = VoxelBuffer.CHANNEL_SDF
+	for x in range(min_bound.x, max_bound.x + 1):
+		for y in range(min_bound.y, max_bound.y + 1):
+			for z in range(min_bound.z, max_bound.z + 1):
+				var grid_pos := Vector3i(x, y, z)
+				var sample_center := Vector3(x, y, z) + Vector3.ONE * 0.5
+				if sample_center.distance_squared_to(center) > radius_squared:
+					continue
+				if snapshot.has(grid_pos):
+					continue
+				snapshot[grid_pos] = tool.get_voxel_f(Vector3(x, y, z))
+	tool.channel = previous_channel
+	edit_mutex.unlock()
+
+	ErrorLogger.log_debug("Captured snapshot of %d voxels" % snapshot.size(), "VoxelWorld")
+	return snapshot
+
+func restore_voxel_snapshot(snapshot: Dictionary) -> bool:
+	var tool := _ensure_voxel_tool()
+	if tool == null or snapshot.is_empty():
+		return false
+
+	edit_mutex.lock()
+	var previous_channel := tool.channel
+	tool.channel = VoxelBuffer.CHANNEL_SDF
+	for pos in snapshot.keys():
+		var grid_pos := pos if pos is Vector3i else Vector3i(int(round(pos.x)), int(round(pos.y)), int(round(pos.z)))
+		var value := float(snapshot[pos])
+		tool.set_voxel_f(Vector3(grid_pos), value)
+	tool.channel = previous_channel
+	edit_mutex.unlock()
+
+	ErrorLogger.log_debug("Restored snapshot of %d voxels" % snapshot.size(), "VoxelWorld")
+	return true
+
+func _read_voxel_int(position: Vector3, channel: int, default_value: int = -1) -> int:
+	var tool := _ensure_voxel_tool()
+	if tool == null:
+		return default_value
+	edit_mutex.lock()
+	var previous_channel := tool.channel
+	tool.channel = channel
+	var grid_pos := Vector3i(int(floor(position.x)), int(floor(position.y)), int(floor(position.z)))
+	var value := tool.get_voxel(grid_pos)
+	tool.channel = previous_channel
+	edit_mutex.unlock()
+	return int(value)
+
+func _ensure_voxel_tool() -> VoxelTool:
+	if voxel_tool != null:
+		return voxel_tool
+	if terrain != null and terrain.has_method("get_voxel_tool"):
+		voxel_tool = terrain.get_voxel_tool()
+		if voxel_tool != null:
+			voxel_tool.channel = VoxelBuffer.CHANNEL_SDF
+			ErrorLogger.log_debug("VoxelTool reinitialized", "VoxelWorld")
+	return voxel_tool
+
+func _is_within_bounds(position: Vector3) -> bool:
+    return position.x >= BOUNDS_MIN.x and position.x <= BOUNDS_MAX.x and position.y >= BOUNDS_MIN.y and position.y <= BOUNDS_MAX.y and position.z >= BOUNDS_MIN.z and position.z <= BOUNDS_MAX.z
+
+func _serialize_edits() -> Array:
+    # Placeholder for future serialization integration
+    return []
 
 func _get_noise_type(name: String) -> int:
 	match name:

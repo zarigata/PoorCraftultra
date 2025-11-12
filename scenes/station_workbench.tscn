@@ -1,0 +1,37 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/StationWorkbench.gd" id="1_y3rpy"]
+[ext_resource type="Script" path="res://scripts/Interactable.gd" id="2_t8b1y"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_c5qfn"]
+albedo_color = Color(0.454902, 0.341176, 0.223529, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3hep0"]
+size = Vector3(1.5, 1, 1)
+material = SubResource("StandardMaterial3D_c5qfn")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wujda"]
+size = Vector3(1.5, 1, 1)
+
+[node name="StationWorkbench" type="Node3D"]
+script = ExtResource("1_y3rpy")
+
+[node name="Visual" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_3hep0")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+
+[node name="StaticBody" type="StaticBody3D" parent="."]
+collision_layer = 8
+collision_mask = 2
+
+[node name="CollisionShape" type="CollisionShape3D" parent="StaticBody"]
+shape = SubResource("BoxShape3D_wujda")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+
+[node name="Interactable" type="Node" parent="."]
+script = ExtResource("2_t8b1y")
+interaction_range = 5.0
+priority = 10
+interaction_type = "station"
+screen_reader_text = "Workbench - Open crafting menu"
+prompt_text = "[E] Craft"

@@ -1,0 +1,23 @@
+[gd_resource type="Tool" load_steps=2 format=3]
+
+[ext_resource path="res://resources/Tool.gd" type="Script" id="1"]
+
+[resource]
+script = ExtResource("1")
+tool_id = "pickaxe_stone"
+tool_name = "Stone Pickaxe"
+tool_tier = 2
+max_durability = 200
+current_durability = 200
+mining_speed = 1.5
+mining_radius = 1.2
+can_mine = true
+can_place = false
+allowed_voxel_types = []
+efficiency_overrides = {
+"coal": 1.8,
+"copper_ore": 1.5,
+"iron_ore": 1.5,
+"stone": 2.0
+}
+icon_path = ""

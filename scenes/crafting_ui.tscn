@@ -1,0 +1,201 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/CraftingUI.gd" id="1_k6n8g"]
+
+[node name="CraftingUI" type="CanvasLayer"]
+layer = 65
+script = ExtResource("1_k6n8g")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_left = 0.25
+anchor_top = 0.2
+anchor_right = 0.75
+anchor_bottom = 0.8
+offset_left = -16.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 16.0
+self_modulate = Color(1, 1, 1, 0.92)
+
+[node name="MainContainer" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="TitleBar" type="HBoxContainer" parent="Panel/MainContainer"]
+size_flags_horizontal = 3
+size_flags_vertical = 1
+
+[node name="TitleLabel" type="Label" parent="Panel/MainContainer/TitleBar"]
+text = "Crafting - Workbench"
+size_flags_horizontal = 3
+size_flags_vertical = 1
+horizontal_alignment = 0
+vertical_alignment = 1
+
+[node name="CloseButton" type="Button" parent="Panel/MainContainer/TitleBar"]
+custom_minimum_size = Vector2(32, 32)
+text = "X"
+
+[node name="SeparatorTop" type="HSeparator" parent="Panel/MainContainer"]
+size_flags_horizontal = 3
+
+[node name="ContentContainer" type="HBoxContainer" parent="Panel/MainContainer"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="RecipeListContainer" type="VBoxContainer" parent="Panel/MainContainer/ContentContainer"]
+custom_minimum_size = Vector2(300, 0)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="RecipeSearchBar" type="HBoxContainer" parent="Panel/MainContainer/ContentContainer/RecipeListContainer"]
+size_flags_horizontal = 3
+
+[node name="RecipeSearchBox" type="LineEdit" parent="Panel/MainContainer/ContentContainer/RecipeListContainer/RecipeSearchBar"]
+placeholder_text = "Search recipes..."
+clear_button_enabled = true
+size_flags_horizontal = 3
+
+[node name="CategoryFilter" type="OptionButton" parent="Panel/MainContainer/ContentContainer/RecipeListContainer/RecipeSearchBar"]
+custom_minimum_size = Vector2(120, 32)
+size_flags_horizontal = 1
+
+[node name="RecipeScroll" type="ScrollContainer" parent="Panel/MainContainer/ContentContainer/RecipeListContainer"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="RecipeList" type="VBoxContainer" parent="Panel/MainContainer/ContentContainer/RecipeListContainer/RecipeScroll"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VSeparator" type="VSeparator" parent="Panel/MainContainer/ContentContainer"]
+
+[node name="RecipeDetailsContainer" type="VBoxContainer" parent="Panel/MainContainer/ContentContainer"]
+custom_minimum_size = Vector2(350, 0)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="RecipeNameLabel" type="Label" parent="Panel/MainContainer/ContentContainer/RecipeDetailsContainer"]
+text = "Select a recipe"
+size_flags_horizontal = 3
+horizontal_alignment = 1
+
+[node name="RecipeDescLabel" type="Label" parent="Panel/MainContainer/ContentContainer/RecipeDetailsContainer"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+autowrap_mode = 2
+
+[node name="InputsLabel" type="Label" parent="Panel/MainContainer/ContentContainer/RecipeDetailsContainer"]
+text = "Required Materials:"
+
+[node name="InputsList" type="VBoxContainer" parent="Panel/MainContainer/ContentContainer/RecipeDetailsContainer"]
+size_flags_horizontal = 3
+
+[node name="OutputsLabel" type="Label" parent="Panel/MainContainer/ContentContainer/RecipeDetailsContainer"]
+text = "Produces:"
+
+[node name="OutputsList" type="VBoxContainer" parent="Panel/MainContainer/ContentContainer/RecipeDetailsContainer"]
+size_flags_horizontal = 3
+
+[node name="SeparatorDetails" type="HSeparator" parent="Panel/MainContainer/ContentContainer/RecipeDetailsContainer"]
+
+[node name="CraftControls" type="HBoxContainer" parent="Panel/MainContainer/ContentContainer/RecipeDetailsContainer"]
+size_flags_horizontal = 3
+
+[node name="QuantitySpinBox" type="SpinBox" parent="Panel/MainContainer/ContentContainer/RecipeDetailsContainer/CraftControls"]
+min_value = 1.0
+max_value = 99.0
+value = 1.0
+prefix = "Qty: "
+step = 1.0
+size_flags_horizontal = 3
+
+[node name="CraftButton" type="Button" parent="Panel/MainContainer/ContentContainer/RecipeDetailsContainer/CraftControls"]
+text = "Craft"
+size_flags_horizontal = 3
+
+[node name="SeparatorMiddle" type="HSeparator" parent="Panel/MainContainer"]
+size_flags_horizontal = 3
+
+[node name="QueueContainer" type="VBoxContainer" parent="Panel/MainContainer"]
+custom_minimum_size = Vector2(0, 120)
+size_flags_horizontal = 3
+size_flags_vertical = 1
+
+[node name="QueueLabel" type="Label" parent="Panel/MainContainer/QueueContainer"]
+text = "Crafting Queue (0/10)"
+
+[node name="QueueScroll" type="ScrollContainer" parent="Panel/MainContainer/QueueContainer"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="QueueList" type="VBoxContainer" parent="Panel/MainContainer/QueueContainer/QueueScroll"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ActiveCraftPanel" type="Panel" parent="Panel/MainContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 60)
+size_flags_horizontal = 3
+
+[node name="ActiveCraftContainer" type="VBoxContainer" parent="Panel/MainContainer/ActiveCraftPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ActiveCraftLabel" type="Label" parent="Panel/MainContainer/ActiveCraftPanel/ActiveCraftContainer"]
+text = "Crafting: Planks"
+size_flags_horizontal = 3
+horizontal_alignment = 1
+
+[node name="CraftProgressBar" type="ProgressBar" parent="Panel/MainContainer/ActiveCraftPanel/ActiveCraftContainer"]
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1.0
+value = 0.0
+custom_minimum_size = Vector2(0, 20)
+show_percentage = true
+
+[node name="ActiveCraftButtons" type="HBoxContainer" parent="Panel/MainContainer/ActiveCraftPanel/ActiveCraftContainer"]
+size_flags_horizontal = 3
+
+[node name="TimeRemainingLabel" type="Label" parent="Panel/MainContainer/ActiveCraftPanel/ActiveCraftContainer/ActiveCraftButtons"]
+text = "Time: 0.0s"
+size_flags_horizontal = 3
+
+[node name="CancelButton" type="Button" parent="Panel/MainContainer/ActiveCraftPanel/ActiveCraftContainer/ActiveCraftButtons"]
+text = "Cancel"
+custom_minimum_size = Vector2(80, 32)
+
+[node name="StatusLabel" type="Label" parent="Panel/MainContainer"]
+visible = false
+text = "Status"
+size_flags_horizontal = 3
+horizontal_alignment = 1
+
+[node name="StatusTimer" type="Timer" parent="."]
+one_shot = true
+wait_time = 2.5

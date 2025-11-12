@@ -1,0 +1,54 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/StationFurnace.gd" id="1_72kfq"]
+[ext_resource type="Script" path="res://scripts/Interactable.gd" id="2_5nrua"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0r1v4"]
+albedo_color = Color(0.380392, 0.380392, 0.380392, 1)
+metallic = 0.1
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xlbwy"]
+albedo_color = Color(0.996078, 0.45098, 0.0588235, 1)
+emission_enabled = true
+emission = Color(1, 0.517647, 0.0745098, 1)
+emission_energy = 2.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_egefp"]
+size = Vector3(1.2, 1.5, 1.2)
+material = SubResource("StandardMaterial3D_0r1v4")
+
+[sub_resource type="BoxMesh" id="BoxMesh_23hc0"]
+size = Vector3(0.8, 0.3, 0.8)
+material = SubResource("StandardMaterial3D_xlbwy")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ljntc"]
+size = Vector3(1.2, 1.5, 1.2)
+
+[node name="StationFurnace" type="Node3D"]
+script = ExtResource("1_72kfq")
+
+[node name="Visual" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_egefp")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+
+[node name="FireGlow" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_23hc0")
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
+
+[node name="StaticBody" type="StaticBody3D" parent="."]
+collision_layer = 8
+collision_mask = 2
+
+[node name="CollisionShape" type="CollisionShape3D" parent="StaticBody"]
+shape = SubResource("BoxShape3D_ljntc")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+
+[node name="Interactable" type="Node" parent="."]
+script = ExtResource("2_5nrua")
+interaction_range = 5.0
+priority = 10
+interaction_type = "station"
+screen_reader_text = "Furnace - Open smelting menu"
+prompt_text = "[E] Smelt"

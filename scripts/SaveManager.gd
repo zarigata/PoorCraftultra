@@ -74,6 +74,23 @@ func save_game(save_name: String) -> bool:
     data.world_seed = 0
     data.player_data = {}
 
+    # Collect inventory data
+    if typeof(Inventory) != TYPE_NIL and Inventory != null and Inventory.has_method("serialize"):
+        data.player_data["inventory"] = Inventory.serialize()
+        ErrorLogger.log_debug("Saved inventory data", "SaveManager")
+    else:
+        ErrorLogger.log_warning("Inventory system not available for save", "SaveManager")
+        data.player_data["inventory"] = {}
+
+    # Collect crafting data
+    if typeof(CraftingSystem) != TYPE_NIL and CraftingSystem != null and CraftingSystem.has_method("serialize"):
+        var crafting_data := CraftingSystem.serialize()
+        data.player_data["crafting"] = crafting_data
+        ErrorLogger.log_debug("Saved crafting data", "SaveManager")
+    else:
+        ErrorLogger.log_warning("Crafting system not available for save", "SaveManager")
+        data.player_data["crafting"] = {}
+
     var world := GameManager.get_current_world()
     if world and world.has_method("serialize_state"):
         var world_state := world.serialize_state()
@@ -152,6 +169,34 @@ func load_game(save_name: String) -> bool:
         ErrorLogger.log_debug("Restored world seed: %d with config" % world_data["seed"], "SaveManager")
     else:
         ErrorLogger.log_warning("No voxel world to restore", "SaveManager")
+
+    # Restore inventory data
+    if typeof(Inventory) != TYPE_NIL and Inventory != null and Inventory.has_method("deserialize"):
+        var inventory_data := parsed.get("player_data", {}).get("inventory", {})
+        if not inventory_data.is_empty():
+            var restored := Inventory.deserialize(inventory_data)
+            if restored:
+                ErrorLogger.log_debug("Restored inventory data", "SaveManager")
+            else:
+                ErrorLogger.log_warning("Failed to restore inventory data", "SaveManager")
+        else:
+            ErrorLogger.log_debug("No inventory data in save file", "SaveManager")
+    else:
+        ErrorLogger.log_warning("Inventory system not available for load", "SaveManager")
+
+    # Restore crafting data
+    if typeof(CraftingSystem) != TYPE_NIL and CraftingSystem != null and CraftingSystem.has_method("deserialize"):
+        var crafting_data := parsed.get("player_data", {}).get("crafting", {})
+        if not crafting_data.is_empty():
+            var crafting_restored := CraftingSystem.deserialize(crafting_data)
+            if crafting_restored:
+                ErrorLogger.log_debug("Restored crafting data", "SaveManager")
+            else:
+                ErrorLogger.log_warning("Failed to restore crafting data", "SaveManager")
+        else:
+            ErrorLogger.log_debug("No crafting data in save file", "SaveManager")
+    else:
+        ErrorLogger.log_warning("Crafting system not available for load", "SaveManager")
     emit_signal("load_completed", true, save_path)
     is_loading = false
     return true
